@@ -138,37 +138,53 @@
 </div>
 
 <script>
+    // Позиции сохранены прямо в коде навсегда!
     const initialPlayers = [
-        { id: 1, name: "Alim", rating: 35.0, roles: [], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 2, name: "Akhmet", rating: 20.0, roles: [], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
+        { id: 1, name: "Alim", rating: 35.0, roles: ["НАП"], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
+        { id: 2, name: "Akhmet", rating: 20.0, roles: ["ЗАЩ"], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
         { id: 3, name: "Ali", rating: 10.0, roles: [], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 4, name: "Omar", rating: 45.0, roles: [], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 5, name: "Sultan", rating: 25.0, roles: [], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 6, name: "Islam", rating: 40.0, roles: [], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 7, name: "Ilfat", rating: 40.0, roles: [], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
+        { id: 4, name: "Omar", rating: 45.0, roles: ["НАП"], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
+        { id: 5, name: "Sultan", rating: 25.0, roles: ["ЗАЩ"], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
+        { id: 6, name: "Islam", rating: 40.0, roles: ["ВРТ"], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
+        { id: 7, name: "Ilfat", rating: 40.0, roles: ["НАП"], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
         { id: 8, name: "Damir", rating: 10.0, roles: [], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 9, name: "Madiyar", rating: 20.0, roles: [], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 10, name: "Batyr", rating: 25.0, roles: [], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 11, name: "Tamerlan", rating: 40.0, roles: [], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 12, name: "Abdirasul", rating: 30.0, roles: [], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 13, name: "Rakhman", rating: 30.0, roles: [], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 14, name: "Akhmad", rating: 40.0, roles: [], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
+        { id: 9, name: "Madiyar", rating: 20.0, roles: ["ЗАЩ"], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
+        { id: 10, name: "Batyr", rating: 25.0, roles: ["ВРТ"], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
+        { id: 11, name: "Tamerlan", rating: 40.0, roles: ["НАП"], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
+        { id: 12, name: "Abdirasul", rating: 30.0, roles: ["ЗАЩ"], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
+        { id: 13, name: "Rakhman", rating: 30.0, roles: ["НАП"], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
+        { id: 14, name: "Akhmad", rating: 40.0, roles: ["ЗАЩ"], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
         { id: 15, name: "Nurtas", rating: 25.0, roles: [], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 16, name: "Bauyrzhan", rating: 35.0, roles: [], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 17, name: "Azamat", rating: 15.0, roles: [], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 18, name: "Arnat", rating: 35.0, roles: [], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 19, name: "Ismail", rating: 45.0, roles: [], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 20, name: "Dias", rating: 25.0, roles: [], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 21, name: "Oraz", rating: 30.0, roles: [], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
+        { id: 16, name: "Bauyrzhan", rating: 35.0, roles: ["НАП"], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
+        { id: 17, name: "Azamat", rating: 15.0, roles: ["ЗАЩ"], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
+        { id: 18, name: "Arnat", rating: 35.0, roles: ["НАП"], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
+        { id: 19, name: "Ismail", rating: 45.0, roles: ["НАП"], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
+        { id: 20, name: "Dias", rating: 25.0, roles: ["ЗАЩ"], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
+        { id: 21, name: "Oraz", rating: 30.0, roles: ["ВРТ"], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
         { id: 22, name: "Amir", rating: 15.0, roles: [], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 23, name: "Yeramir", rating: 25.0, roles: [], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 24, name: "Alseit abi", rating: 45.0, roles: [], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 25, name: "Abduluahid agay", rating: 40.0, roles: [], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
+        { id: 23, name: "Yeramir", rating: 25.0, roles: ["ЗАЩ"], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
+        { id: 24, name: "Alseit abi", rating: 45.0, roles: ["НАП"], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
+        { id: 25, name: "Abduluahid agay", rating: 40.0, roles: ["ЗАЩ"], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
         { id: 26, name: "Mark", rating: 15.0, roles: [], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
         { id: 27, name: "Abdullah", rating: 10.0, roles: [], goals: 0, assists: 0, ownGoals: 0, mvp: 0 }
     ];
 
-    let playersData = JSON.parse(localStorage.getItem('sport_time_players')) || JSON.parse(JSON.stringify(initialPlayers));
+    let savedData = JSON.parse(localStorage.getItem('sport_time_players'));
+    let playersData;
+
+    if (savedData) {
+        // Синхронизируем сохраненные роли с новыми дефолтными
+        playersData = savedData.map(p => {
+            let initP = initialPlayers.find(ip => ip.id === p.id);
+            if (initP && (!p.roles || p.roles.length === 0)) {
+                p.roles = initP.roles;
+            }
+            return p;
+        });
+    } else {
+        playersData = JSON.parse(JSON.stringify(initialPlayers));
+    }
+
     let activePlayers = [];
     let matchStats = {};
 
@@ -253,7 +269,7 @@
         let selected = [];
         playersData.forEach(p => {
             const cb = document.getElementById(`check_${p.id}`);
-            if (cb && cb.checked) selected.push({...p});
+            if (cb && cb.checked) selected.push(JSON.parse(JSON.stringify(p)));
         });
 
         if (selected.length < 2) {
@@ -267,7 +283,6 @@
 
         let teams = Array.from({ length: numTeams }, () => ({ players: [], score: 0 }));
 
-        // Разделяем игроков по категориям
         let vrtList = shuffle(selected.filter(p => p.roles && p.roles.includes('ВРТ')));
         let isOnlyZas = p => p.roles && p.roles.includes('ЗАЩ') && !p.roles.includes('НАП') && !p.roles.includes('ВРТ');
         let isOnlyNap = p => p.roles && p.roles.includes('НАП') && !p.roles.includes('ЗАЩ') && !p.roles.includes('ВРТ');
@@ -276,13 +291,10 @@
         let napList = shuffle(selected.filter(isOnlyNap)).sort((a, b) => b.rating - a.rating);
         let othersList = shuffle(selected.filter(p => !vrtList.includes(p) && !zasList.includes(p) && !napList.includes(p))).sort((a, b) => b.rating - a.rating);
 
-        // Функция добавления игрока в оптимальную команду
         function addPlayerToBestTeam(p) {
-            // Выбираем команды, где еще есть место по лимиту игроков
             let availableTeams = teams.filter(t => t.players.length < maxPerTeam);
             if (availableTeams.length === 0) availableTeams = teams;
 
-            // Находим команду с минимальным общим рейтингом
             availableTeams.sort((a, b) => a.score - b.score);
             let targetTeam = availableTeams[0];
 
@@ -290,20 +302,16 @@
             targetTeam.score += p.rating;
         }
 
-        // 1. Сначала распределяем Вратарей
         vrtList.forEach(p => addPlayerToBestTeam(p));
 
-        // 2. Равномерно по очереди Защитники и Нападающие
         let maxLen = Math.max(zasList.length, napList.length);
         for (let i = 0; i < maxLen; i++) {
             if (zasList[i]) addPlayerToBestTeam(zasList[i]);
             if (napList[i]) addPlayerToBestTeam(napList[i]);
         }
 
-        // 3. Распределяем универсалов и игроков без позиций
         othersList.forEach(p => addPlayerToBestTeam(p));
 
-        // Отрисовка
         const res = document.getElementById('teamsResult');
         res.innerHTML = '';
         teams.forEach((t, i) => {
@@ -440,7 +448,7 @@
     }
 
     function resetChanges() {
-        if (confirm("Сбросить рейтинги и статистику?")) {
+        if (confirm("Сбросить рейтинги и статистику к начальным значениям?")) {
             localStorage.removeItem('sport_time_players');
             playersData = JSON.parse(JSON.stringify(initialPlayers));
             renderPlayers();
