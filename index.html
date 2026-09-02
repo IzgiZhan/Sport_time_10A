@@ -6,154 +6,166 @@
     <title>Sport Time 10A</title>
     <style>
         :root {
-            --bg: #0f172a;
-            --card-bg: #1e293b;
-            --card-border: #334155;
-            --accent-red: #f43f5e;
-            --accent-green: #10b981;
-            --accent-blue: #3b82f6;
-            --accent-gold: #f59e0b;
-            --text-main: #f8fafc;
-            --text-sub: #94a3b8;
+            --bg-color: #f1f5f9;
+            --card-bg: #ffffff;
+            --card-border: #cbd5e1;
+            --primary-red: #e11d48;
+            --primary-green: #10b981;
+            --primary-blue: #2563eb;
+            --primary-gold: #f59e0b;
+            --text-main: #0f172a;
+            --text-sub: #475569;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text-main); padding-bottom: 50px; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: var(--bg-color); color: var(--text-main); padding-bottom: 50px; }
 
-        header { background: #1a2332; border-bottom: 1px solid var(--card-border); padding: 14px; text-align: center; position: sticky; top: 0; z-index: 100; backdrop-filter: blur(8px); }
-        header h1 { font-size: 18px; font-weight: 800; letter-spacing: 1px; }
-        header h1 span { color: var(--accent-red); }
+        header { background: linear-gradient(135deg, #0f172a, #1e293b); border-bottom: 3px solid var(--primary-red); padding: 16px; text-align: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        header h1 { font-size: 22px; font-weight: 900; text-transform: uppercase; letter-spacing: 1.5px; color: #ffffff; }
+        header h1 span { color: #f43f5e; text-shadow: 0 0 10px rgba(244, 63, 94, 0.5); }
 
-        .tabs { display: flex; background: #1a2332; border-bottom: 1px solid var(--card-border); }
-        .tab-btn { flex: 1; padding: 12px; background: none; border: none; color: var(--text-sub); font-weight: 700; font-size: 12px; cursor: pointer; text-transform: uppercase; border-bottom: 3px solid transparent; transition: all 0.2s; }
-        .tab-btn.active { color: #fff; border-bottom-color: var(--accent-red); background: rgba(244, 63, 94, 0.08); }
+        .tabs { display: flex; background: #ffffff; border-bottom: 2px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.03); }
+        .tab-btn { flex: 1; padding: 13px; background: none; border: none; color: var(--text-sub); font-weight: 800; font-size: 13px; cursor: pointer; text-transform: uppercase; border-bottom: 3px solid transparent; transition: all 0.2s; }
+        .tab-btn.active { color: var(--primary-red); border-bottom-color: var(--primary-red); background: #ffe4e6; }
 
-        .container { max-width: 700px; margin: 0 auto; padding: 16px; }
+        .container { max-width: 750px; margin: 0 auto; padding: 16px; }
 
         .section { display: none; }
         .section.active { display: block; }
 
         .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-        .section-title { font-size: 12px; text-transform: uppercase; color: var(--text-sub); font-weight: 800; letter-spacing: 0.5px; }
+        .section-title { font-size: 13px; text-transform: uppercase; color: #334155; font-weight: 800; letter-spacing: 0.5px; }
 
-        .player-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 8px; }
-        .player-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 10px; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; transition: transform 0.1s, border 0.2s; }
-        .player-card:active { transform: scale(0.98); }
-        .player-info { display: flex; align-items: center; gap: 10px; }
-        .player-info input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--accent-red); cursor: pointer; }
-        .player-name { font-weight: 600; font-size: 14px; }
-        .player-rating { background: #0f172a; border: 1px solid var(--card-border); padding: 3px 8px; border-radius: 6px; font-size: 12px; font-weight: 800; color: #38bdf8; }
+        .player-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px; }
+        .player-card { background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%); border: 1.5px solid var(--card-border); border-radius: 12px; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: transform 0.1s, border-color 0.2s; }
+        .player-card:active { transform: scale(0.99); }
+        .player-info { display: flex; align-items: center; gap: 12px; }
+        .player-info input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--primary-red); cursor: pointer; }
+        
+        .name-rating-box { display: flex; align-items: center; gap: 8px; }
+        .player-name { font-weight: 800; font-size: 15px; color: var(--text-main); }
+        .player-rating { background: linear-gradient(135deg, #0284c7, #0369a1); color: #ffffff; border-radius: 20px; padding: 3px 9px; font-size: 12px; font-weight: 800; display: inline-flex; align-items: center; gap: 3px; box-shadow: 0 2px 4px rgba(2, 132, 199, 0.3); }
 
-        .btn { display: block; width: 100%; padding: 14px; border: none; border-radius: 10px; font-size: 14px; font-weight: 800; text-transform: uppercase; cursor: pointer; transition: opacity 0.2s; margin-top: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
-        .btn:active { opacity: 0.8; }
-        .btn-green { background: var(--accent-green); color: #fff; }
-        .btn-blue { background: var(--accent-blue); color: #fff; }
-        .btn-dark { background: transparent; border: 1px solid var(--card-border); color: var(--text-sub); margin-top: 30px; font-size: 11px; font-weight: 600; }
+        .role-selector { display: flex; gap: 4px; margin-top: 6px; }
+        .role-btn { border: 1px solid #cbd5e1; background: #ffffff; color: var(--text-sub); font-size: 10px; font-weight: 800; padding: 4px 8px; border-radius: 6px; cursor: pointer; transition: all 0.15s; }
+        .role-btn.active[data-role="НАП"] { background: #fecdd3; color: #9f1239; border-color: #fda4af; box-shadow: 0 1px 3px rgba(225, 29, 72, 0.2); }
+        .role-btn.active[data-role="ЗАЩ"] { background: #bfdbfe; color: #1e40af; border-color: #93c5fd; box-shadow: 0 1px 3px rgba(37, 99, 235, 0.2); }
+        .role-btn.active[data-role="ВРТ"] { background: #fef08a; color: #854d0e; border-color: #fde047; box-shadow: 0 1px 3px rgba(217, 119, 6, 0.2); }
 
-        .teams-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin-top: 10px; }
-        .team-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 10px; overflow: hidden; }
-        .team-header { background: #162032; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--card-border); }
-        .team-header h3 { font-size: 14px; font-weight: 800; }
-        .team-score { font-size: 11px; font-weight: 800; background: var(--accent-red); color: #fff; padding: 2px 6px; border-radius: 4px; }
+        .btn { display: block; width: 100%; padding: 15px; border: none; border-radius: 10px; font-size: 15px; font-weight: 900; text-transform: uppercase; cursor: pointer; transition: transform 0.1s, opacity 0.2s; margin-top: 16px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); letter-spacing: 0.5px; }
+        .btn:active { transform: scale(0.98); }
+        .btn-green { background: linear-gradient(135deg, #10b981, #059669); color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.2); }
+        .btn-blue { background: linear-gradient(135deg, #2563eb, #1d4ed8); color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.2); }
+        .btn-dark { background: #ffffff; border: 2px solid #cbd5e1; color: var(--text-sub); margin-top: 30px; font-size: 11px; font-weight: 800; }
+
+        .teams-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 14px; margin-top: 10px; }
+        .team-card { background: #ffffff; border: 2px solid #cbd5e1; border-radius: 12px; overflow: hidden; box-shadow: 0 3px 8px rgba(0,0,0,0.06); }
+        .team-header { background: linear-gradient(135deg, #1e293b, #0f172a); color: #ffffff; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; }
+        .team-header h3 { font-size: 15px; font-weight: 900; }
+        .team-meta { display: flex; align-items: center; gap: 6px; }
+        .team-count { font-size: 11px; background: #334155; color: #fff; padding: 2px 6px; border-radius: 10px; font-weight: 800; }
+        .team-score { font-size: 12px; font-weight: 800; background: var(--primary-red); color: #fff; padding: 3px 8px; border-radius: 20px; box-shadow: 0 2px 4px rgba(225, 29, 72, 0.4); }
         .team-list { list-style: none; }
-        .team-list li { padding: 8px 14px; border-bottom: 1px solid #283548; font-size: 13px; display: flex; justify-content: space-between; }
+        .team-list li { padding: 10px 14px; border-bottom: 1px solid #f1f5f9; font-size: 13px; display: flex; justify-content: space-between; align-items: center; font-weight: 700; }
         .team-list li:last-child { border-bottom: none; }
+        .role-badge-box { display: inline-flex; gap: 3px; margin-left: 4px; }
+        .role-badge { font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 6px; }
+        .badge-nap { background: #ffe4e6; color: #e11d48; }
+        .badge-zas { background: #dbeafe; color: #2563eb; }
+        .badge-vrt { background: #fef9c3; color: #ca8a04; }
 
-        .stat-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 10px; padding: 12px; margin-bottom: 8px; display: flex; flex-direction: column; gap: 8px; }
-        @media (min-width: 500px) {
+        .stat-card { background: #ffffff; border: 1.5px solid var(--card-border); border-radius: 12px; padding: 14px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.04); }
+        @media (min-width: 520px) {
             .stat-card { flex-direction: row; justify-content: space-between; align-items: center; }
         }
-        .stat-info { display: flex; flex-direction: column; gap: 2px; }
-        .stat-details { font-size: 11px; color: var(--text-sub); }
-        .stat-controls { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+        .stat-info { display: flex; flex-direction: column; gap: 3px; }
+        .stat-details { font-size: 11px; color: var(--text-sub); font-weight: 700; }
+        .stat-controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
         .stat-box { display: flex; flex-direction: column; align-items: center; gap: 2px; }
         .stat-box span { font-size: 9px; color: var(--text-sub); font-weight: 800; }
-        .counter { display: flex; align-items: center; background: #0f172a; border: 1px solid var(--card-border); border-radius: 6px; overflow: hidden; }
-        .counter button { width: 28px; height: 28px; background: #283548; border: none; color: #fff; font-weight: 800; cursor: pointer; }
-        .counter button:active { background: #3b4d67; }
-        .counter val { width: 22px; text-align: center; font-size: 12px; font-weight: 800; }
+        .counter { display: flex; align-items: center; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 8px; overflow: hidden; }
+        .counter button { width: 30px; height: 30px; background: #e2e8f0; border: none; color: var(--text-main); font-weight: 900; cursor: pointer; font-size: 14px; }
+        .counter button:active { background: #cbd5e1; }
+        .counter val { width: 24px; text-align: center; font-size: 13px; font-weight: 900; }
 
-        .mvp-btn { background: #0f172a; border: 1px solid var(--card-border); color: var(--text-sub); padding: 5px 8px; border-radius: 6px; font-size: 10px; font-weight: 800; cursor: pointer; transition: all 0.2s; height: 28px; }
-        .mvp-btn.active { background: var(--accent-gold); color: #000; border-color: var(--accent-gold); box-shadow: 0 0 10px rgba(245, 158, 11, 0.4); }
+        .mvp-btn { background: #f1f5f9; border: 1px solid #cbd5e1; color: var(--text-sub); padding: 6px 10px; border-radius: 8px; font-size: 11px; font-weight: 800; cursor: pointer; transition: all 0.2s; height: 30px; }
+        .mvp-btn.active { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; border-color: #d97706; box-shadow: 0 0 10px rgba(245, 158, 11, 0.4); }
     </style>
 </head>
 <body>
 
 <header>
-    <h1>Sport Time <span>10A</span></h1>
+    <h1>Sport Time <span>10A</span> ⚽</h1>
 </header>
 
 <div class="tabs">
-    <button class="tab-btn active" onclick="switchTab('playersTab', this)">Игроки</button>
-    <button class="tab-btn" onclick="switchTab('teamsTab', this)">Команды</button>
-    <button class="tab-btn" onclick="switchTab('matchTab', this)">Матч</button>
+    <button class="tab-btn active" onclick="switchTab('playersTab', this)">👥 Игроки</button>
+    <button class="tab-btn" onclick="switchTab('teamsTab', this)">⚔️ Команды</button>
+    <button class="tab-btn" onclick="switchTab('matchTab', this)">📊 Матч</button>
 </div>
 
 <div class="container">
-    <!-- Вкладка 1: Игроки -->
     <div id="playersTab" class="section active">
         <div class="section-header">
-            <span class="section-title">Состав (<span id="selectedCount">0</span>)</span>
-            <button onclick="selectAll(true)" style="background:none; border:none; color:var(--accent-blue); font-size:11px; font-weight:700; cursor:pointer;">Выбрать всех</button>
+            <span class="section-title">Состав класса (<span id="selectedCount">0</span>)</span>
+            <button onclick="selectAll(true)" style="background:none; border:none; color:var(--primary-blue); font-size:12px; font-weight:800; cursor:pointer;">Выбрать всех</button>
         </div>
         <div class="player-grid" id="playersList"></div>
         <button class="btn btn-green" onclick="generateAndSwitch()">🎲 Сформировать новые команды</button>
     </div>
 
-    <!-- Вкладка 2: Команды -->
     <div id="teamsTab" class="section">
         <div class="section-header">
-            <span class="section-title">Баланс команд</span>
-            <button onclick="generateAndSwitch()" style="background:none; border:none; color:var(--accent-green); font-size:11px; font-weight:700; cursor:pointer;">🔄 Перемешать ещё раз</button>
+            <span class="section-title">Баланс составов</span>
+            <button onclick="generateAndSwitch()" style="background:none; border:none; color:var(--primary-green); font-size:12px; font-weight:800; cursor:pointer;">🔄 Перемешать еще раз</button>
         </div>
         <div id="teamsResult" class="teams-container">
-            <p style="text-align:center; color:var(--text-sub); grid-column: 1/-1; padding: 20px;">Нажмите «Сформировать новые команды».</p>
+            <p style="text-align:center; color:var(--text-sub); grid-column: 1/-1; padding: 20px; font-weight:700;">Нажмите «Сформировать новые команды».</p>
         </div>
     </div>
 
-    <!-- Вкладка 3: Матч -->
     <div id="matchTab" class="section">
         <div class="section-header">
             <span class="section-title">Статистика игры</span>
         </div>
         <div id="statsForm">
-            <p style="text-align:center; color:var(--text-sub); padding: 20px;">Сначала сформируйте команды.</p>
+            <p style="text-align:center; color:var(--text-sub); padding: 20px; font-weight:700;">Сначала сформируйте команды.</p>
         </div>
         <button id="saveStatsBtn" class="btn btn-blue" style="display:none;" onclick="finishMatch()">Сохранить результативность</button>
     </div>
 
-    <button class="btn btn-dark" onclick="resetChanges()">Сбросить данные к исходным</button>
+    <button class="btn btn-dark" onclick="resetChanges()">🔄 Сбросить данные к исходным</button>
 </div>
 
 <script>
     const initialPlayers = [
-        { id: 1, name: "Alim", rating: 35.0, goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 2, name: "Akhmet", rating: 20.0, goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 3, name: "Ali", rating: 10.0, goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 4, name: "Omar", rating: 45.0, goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 5, name: "Sultan", rating: 25.0, goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 6, name: "Islam", rating: 40.0, goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 7, name: "Ilfat", rating: 40.0, goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 8, name: "Damir", rating: 10.0, goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 9, name: "Madiyar", rating: 20.0, goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 10, name: "Batyr", rating: 25.0, goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 11, name: "Tamerlan", rating: 40.0, goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 12, name: "Abdirasul", rating: 30.0, goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 13, name: "Rakhman", rating: 30.0, goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 14, name: "Akhmad", rating: 40.0, goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 15, name: "Nurtas", rating: 25.0, goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 16, name: "Bauyrzhan", rating: 35.0, goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 17, name: "Azamat", rating: 15.0, goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 18, name: "Arnat", rating: 35.0, goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 19, name: "Ismail", rating: 45.0, goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 20, name: "Dias", rating: 25.0, goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 21, name: "Oraz", rating: 30.0, goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 22, name: "Amir", rating: 15.0, goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 23, name: "Yeramir", rating: 25.0, goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 24, name: "Alseit abi", rating: 45.0, goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 25, name: "Abduluahid agay", rating: 40.0, goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 26, name: "Mark", rating: 15.0, goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 27, name: "Abdullah", rating: 10.0, goals: 0, assists: 0, ownGoals: 0, mvp: 0 }
+        { id: 1, name: "Alim", rating: 35.0, roles: [], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
+        { id: 2, name: "Akhmet", rating: 20.0, roles: [], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
+        { id: 3, name: "Ali", rating: 10.0, roles: [], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
+        { id: 4, name: "Omar", rating: 45.0, roles: [], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
+        { id: 5, name: "Sultan", rating: 25.0, roles: [], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
+        { id: 6, name: "Islam", rating: 40.0, roles: [], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
+        { id: 7, name: "Ilfat", rating: 40.0, roles: [], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
+        { id: 8, name: "Damir", rating: 10.0, roles: [], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
+        { id: 9, name: "Madiyar", rating: 20.0, roles: [], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
+        { id: 10, name: "Batyr", rating: 25.0, roles: [], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
+        { id: 11, name: "Tamerlan", rating: 40.0, roles: [], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
+        { id: 12, name: "Abdirasul", rating: 30.0, roles: [], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
+        { id: 13, name: "Rakhman", rating: 30.0, roles: [], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
+        { id: 14, name: "Akhmad", rating: 40.0, roles: [], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
+        { id: 15, name: "Nurtas", rating: 25.0, roles: [], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
+        { id: 16, name: "Bauyrzhan", rating: 35.0, roles: [], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
+        { id: 17, name: "Azamat", rating: 15.0, roles: [], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
+        { id: 18, name: "Arnat", rating: 35.0, roles: [], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
+        { id: 19, name: "Ismail", rating: 45.0, roles: [], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
+        { id: 20, name: "Dias", rating: 25.0, roles: [], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
+        { id: 21, name: "Oraz", rating: 30.0, roles: [], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
+        { id: 22, name: "Amir", rating: 15.0, roles: [], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
+        { id: 23, name: "Yeramir", rating: 25.0, roles: [], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
+        { id: 24, name: "Alseit abi", rating: 45.0, roles: [], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
+        { id: 25, name: "Abduluahid agay", rating: 40.0, roles: [], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
+        { id: 26, name: "Mark", rating: 15.0, roles: [], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
+        { id: 27, name: "Abdullah", rating: 10.0, roles: [], goals: 0, assists: 0, ownGoals: 0, mvp: 0 }
     ];
 
     let playersData = JSON.parse(localStorage.getItem('sport_time_players')) || JSON.parse(JSON.stringify(initialPlayers));
@@ -172,20 +184,51 @@
         container.innerHTML = '';
 
         playersData.forEach(p => {
+            if (!Array.isArray(p.roles)) {
+                p.roles = p.role ? [p.role] : [];
+            }
             if (p.ownGoals === undefined) p.ownGoals = 0;
             if (p.mvp === undefined) p.mvp = 0;
+
+            const isNap = p.roles.includes('НАП');
+            const isZas = p.roles.includes('ЗАЩ');
+            const isVrt = p.roles.includes('ВРТ');
 
             container.innerHTML += `
                 <div class="player-card">
                     <div class="player-info">
                         <input type="checkbox" id="check_${p.id}" value="${p.id}" checked onchange="updateCount()">
-                        <label for="check_${p.id}" class="player-name">${p.name}</label>
+                        <div>
+                            <div class="name-rating-box">
+                                <span class="player-name">${p.name}</span>
+                                <span class="player-rating">⭐ ${p.rating.toFixed(1)}</span>
+                            </div>
+                            <div class="role-selector">
+                                <button class="role-btn ${isNap ? 'active' : ''}" data-role="НАП" onclick="toggleRole(${p.id}, 'НАП')">⚽ НАП</button>
+                                <button class="role-btn ${isZas ? 'active' : ''}" data-role="ЗАЩ" onclick="toggleRole(${p.id}, 'ЗАЩ')">🛡️ ЗАЩ</button>
+                                <button class="role-btn ${isVrt ? 'active' : ''}" data-role="ВРТ" onclick="toggleRole(${p.id}, 'ВРТ')">🧤 ВРТ</button>
+                            </div>
+                        </div>
                     </div>
-                    <div class="player-rating">${p.rating.toFixed(1)}</div>
                 </div>
             `;
         });
         updateCount();
+    }
+
+    function toggleRole(id, role) {
+        let player = playersData.find(p => p.id === id);
+        if (player) {
+            if (!Array.isArray(player.roles)) player.roles = [];
+            const idx = player.roles.indexOf(role);
+            if (idx > -1) {
+                player.roles.splice(idx, 1);
+            } else {
+                player.roles.push(role);
+            }
+            localStorage.setItem('sport_time_players', JSON.stringify(playersData));
+            renderPlayers();
+        }
     }
 
     function updateCount() {
@@ -198,7 +241,6 @@
         updateCount();
     }
 
-    // Рандомизация массива
     function shuffle(arr) {
         for (let i = arr.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
@@ -221,42 +263,75 @@
 
         activePlayers = selected;
         const numTeams = Math.ceil(selected.length / 5);
-
-        // Сортировка по рейтингу + лёгкая случайная встряска равных игроков
-        selected.sort((a, b) => b.rating - a.rating);
-
-        // Разбиваем игроков на «корзины» сильных, средних и слабых, чтобы внутри них перемешивать
-        let shuffledList = [];
-        for (let i = 0; i < selected.length; i += numTeams) {
-            let chunk = selected.slice(i, i + numTeams);
-            shuffledList.push(...shuffle(chunk));
-        }
+        const maxPerTeam = Math.ceil(selected.length / numTeams);
 
         let teams = Array.from({ length: numTeams }, () => ({ players: [], score: 0 }));
-        let dir = 1;
-        let idx = 0;
 
-        // Распределение по змейке для поддержания хорошего баланса
-        shuffledList.forEach(p => {
-            teams[idx].players.push(p);
-            teams[idx].score += p.rating;
-            idx += dir;
-            if (idx >= numTeams) { idx = numTeams - 1; dir = -1; }
-            else if (idx < 0) { idx = 0; dir = 1; }
-        });
+        // Разделяем игроков по категориям
+        let vrtList = shuffle(selected.filter(p => p.roles && p.roles.includes('ВРТ')));
+        let isOnlyZas = p => p.roles && p.roles.includes('ЗАЩ') && !p.roles.includes('НАП') && !p.roles.includes('ВРТ');
+        let isOnlyNap = p => p.roles && p.roles.includes('НАП') && !p.roles.includes('ЗАЩ') && !p.roles.includes('ВРТ');
+        
+        let zasList = shuffle(selected.filter(isOnlyZas)).sort((a, b) => b.rating - a.rating);
+        let napList = shuffle(selected.filter(isOnlyNap)).sort((a, b) => b.rating - a.rating);
+        let othersList = shuffle(selected.filter(p => !vrtList.includes(p) && !zasList.includes(p) && !napList.includes(p))).sort((a, b) => b.rating - a.rating);
 
-        // Отрисовка результативных команд
+        // Функция добавления игрока в оптимальную команду
+        function addPlayerToBestTeam(p) {
+            // Выбираем команды, где еще есть место по лимиту игроков
+            let availableTeams = teams.filter(t => t.players.length < maxPerTeam);
+            if (availableTeams.length === 0) availableTeams = teams;
+
+            // Находим команду с минимальным общим рейтингом
+            availableTeams.sort((a, b) => a.score - b.score);
+            let targetTeam = availableTeams[0];
+
+            targetTeam.players.push(p);
+            targetTeam.score += p.rating;
+        }
+
+        // 1. Сначала распределяем Вратарей
+        vrtList.forEach(p => addPlayerToBestTeam(p));
+
+        // 2. Равномерно по очереди Защитники и Нападающие
+        let maxLen = Math.max(zasList.length, napList.length);
+        for (let i = 0; i < maxLen; i++) {
+            if (zasList[i]) addPlayerToBestTeam(zasList[i]);
+            if (napList[i]) addPlayerToBestTeam(napList[i]);
+        }
+
+        // 3. Распределяем универсалов и игроков без позиций
+        othersList.forEach(p => addPlayerToBestTeam(p));
+
+        // Отрисовка
         const res = document.getElementById('teamsResult');
         res.innerHTML = '';
         teams.forEach((t, i) => {
             res.innerHTML += `
                 <div class="team-card">
                     <div class="team-header">
-                        <h3>Команда ${i + 1}</h3>
-                        <span class="team-score">Σ ${t.score.toFixed(1)}</span>
+                        <h3>🏆 Команда ${i + 1}</h3>
+                        <div class="team-meta">
+                            <span class="team-count">👥 ${t.players.length}</span>
+                            <span class="team-score">Σ ${t.score.toFixed(1)}</span>
+                        </div>
                     </div>
                     <ul class="team-list">
-                        ${t.players.map(p => `<li><span>${p.name}</span><span style="color:var(--text-sub)">${p.rating.toFixed(1)}</span></li>`).join('')}
+                        ${t.players.map(p => {
+                            let badges = '';
+                            if (p.roles && p.roles.length > 0) {
+                                badges = p.roles.map(r => {
+                                    if (r === 'ВРТ') return `<span class="role-badge badge-vrt">🧤 ВРТ</span>`;
+                                    if (r === 'ЗАЩ') return `<span class="role-badge badge-zas">🛡️ ЗАЩ</span>`;
+                                    if (r === 'НАП') return `<span class="role-badge badge-nap">⚽ НАП</span>`;
+                                    return '';
+                                }).join('');
+                            }
+                            return `<li>
+                                <span>${p.name} <span class="role-badge-box">${badges}</span></span>
+                                <span style="color:var(--primary-blue)">⭐ ${p.rating.toFixed(1)}</span>
+                            </li>`;
+                        }).join('')}
                     </ul>
                 </div>
             `;
@@ -277,12 +352,12 @@
                 <div class="stat-card">
                     <div class="stat-info">
                         <span class="player-name">${p.name}</span>
-                        <span class="stat-details">Всего — Г: ${p.goals} | А: ${p.assists} | АГ: ${p.ownGoals} | MVP: ${p.mvp || 0}</span>
+                        <span class="stat-details">Всего — ⚽ ${p.goals} | 👟 ${p.assists} | 💥 ${p.ownGoals} | 🏆 ${p.mvp || 0}</span>
                     </div>
                     <div class="stat-controls">
                         <button class="mvp-btn" id="mvp_${p.id}" onclick="toggleMvp(${p.id})">🏆 MVP (+2.0)</button>
                         <div class="stat-box">
-                            <span>Г (+1.0)</span>
+                            <span>⚽ (+1.0)</span>
                             <div class="counter">
                                 <button onclick="changeStat(${p.id}, 'goals', -1)">-</button>
                                 <val id="g_${p.id}">0</val>
@@ -290,7 +365,7 @@
                             </div>
                         </div>
                         <div class="stat-box">
-                            <span>А (+0.5)</span>
+                            <span>👟 (+0.5)</span>
                             <div class="counter">
                                 <button onclick="changeStat(${p.id}, 'assists', -1)">-</button>
                                 <val id="a_${p.id}">0</val>
@@ -298,7 +373,7 @@
                             </div>
                         </div>
                         <div class="stat-box">
-                            <span>АГ (-1.0)</span>
+                            <span>💥 (-1.0)</span>
                             <div class="counter">
                                 <button onclick="changeStat(${p.id}, 'ownGoals', -1)">-</button>
                                 <val id="og_${p.id}">0</val>
