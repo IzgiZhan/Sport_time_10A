@@ -53,7 +53,7 @@
         { id: 1, name: "Alim", rating: 3.5, goals: 0, assists: 0 },
         { id: 2, name: "Akhmet", rating: 2.0, goals: 0, assists: 0 },
         { id: 3, name: "Ali", rating: 1.0, goals: 0, assists: 0 },
-        { id: 4, name: "Omar", rating: 5.0, goals: 0, assists: 0 },
+        { id: 4, name: "Omar", rating: 4.5, goals: 0, assists: 0 },
         { id: 5, name: "Sultan", rating: 2.5, goals: 0, assists: 0 },
         { id: 6, name: "Islam", rating: 4.0, goals: 0, assists: 0 },
         { id: 7, name: "Ilfat", rating: 4.0, goals: 0, assists: 0 },
@@ -65,15 +65,15 @@
         { id: 13, name: "Rakhman", rating: 3.0, goals: 0, assists: 0 },
         { id: 14, name: "Akhmad", rating: 4.0, goals: 0, assists: 0 },
         { id: 15, name: "Nurtas", rating: 2.5, goals: 0, assists: 0 },
-        { id: 16, name: "Bauyrzhan", rating: 3.0, goals: 0, assists: 0 },
+        { id: 16, name: "Bauyrzhan", rating: 3.5, goals: 0, assists: 0 },
         { id: 17, name: "Azamat", rating: 1.5, goals: 0, assists: 0 },
         { id: 18, name: "Arnat", rating: 3.5, goals: 0, assists: 0 },
-        { id: 19, name: "Ismail", rating: 5.0, goals: 0, assists: 0 },
+        { id: 19, name: "Ismail", rating: 4.5, goals: 0, assists: 0 },
         { id: 20, name: "Dias", rating: 2.5, goals: 0, assists: 0 },
         { id: 21, name: "Oraz", rating: 3.0, goals: 0, assists: 0 },
         { id: 22, name: "Amir", rating: 1.5, goals: 0, assists: 0 },
         { id: 23, name: "Yeramir", rating: 2.5, goals: 0, assists: 0 },
-        { id: 24, name: "Alseit abi", rating: 5.0, goals: 0, assists: 0 },
+        { id: 24, name: "Alseit abi", rating: 4.5, goals: 0, assists: 0 },
         { id: 25, name: "Abduluahid agay", rating: 4.0, goals: 0, assists: 0 },
         { id: 26, name: "Mark", rating: 1.5, goals: 0, assists: 0 },
         { id: 27, name: "Abdullah", rating: 1.0, goals: 0, assists: 0 }
@@ -191,7 +191,7 @@
     }
 
     function resetChanges() {
-        if (confirm("Вы уверены, что хотите сбросить все рейтинги и статистику до исходных значений?")) {
+        if (confirm("Вы уверены, что хотите сбросить все рейтинги и статистику к исходным значениям?")) {
             localStorage.removeItem('sport_time_players');
             playersData = JSON.parse(JSON.stringify(initialPlayers));
             document.getElementById('result').style.display = 'none';
