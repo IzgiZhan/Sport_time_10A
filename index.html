@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sport Time 10A</title>
+    <title>Sport Time 10A - Турнир</title>
     <style>
         :root {
             --bg-color: #f1f5f9;
@@ -20,15 +20,15 @@
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: var(--bg-color); color: var(--text-main); padding-bottom: 50px; }
 
-        header { background: linear-gradient(135deg, #0f172a, #1e293b); border-bottom: 3px solid var(--primary-red); padding: 16px; text-align: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
-        header h1 { font-size: 22px; font-weight: 900; text-transform: uppercase; letter-spacing: 1.5px; color: #ffffff; }
+        header { background: linear-gradient(135deg, #0f172a, #1e293b); border-bottom: 3px solid var(--primary-red); padding: 14px; text-align: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        header h1 { font-size: 20px; font-weight: 900; text-transform: uppercase; letter-spacing: 1.5px; color: #ffffff; }
         header h1 span { color: #f43f5e; text-shadow: 0 0 10px rgba(244, 63, 94, 0.5); }
 
-        .tabs { display: flex; background: #ffffff; border-bottom: 2px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.03); }
-        .tab-btn { flex: 1; padding: 13px; background: none; border: none; color: var(--text-sub); font-weight: 800; font-size: 13px; cursor: pointer; text-transform: uppercase; border-bottom: 3px solid transparent; transition: all 0.2s; }
+        .tabs { display: flex; background: #ffffff; border-bottom: 2px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.03); overflow-x: auto; }
+        .tab-btn { flex: 1; min-width: 80px; padding: 12px 8px; background: none; border: none; color: var(--text-sub); font-weight: 800; font-size: 12px; cursor: pointer; text-transform: uppercase; border-bottom: 3px solid transparent; transition: all 0.2s; white-space: nowrap; }
         .tab-btn.active { color: var(--primary-red); border-bottom-color: var(--primary-red); background: #ffe4e6; }
 
-        .container { max-width: 750px; margin: 0 auto; padding: 16px; }
+        .container { max-width: 800px; margin: 0 auto; padding: 14px; }
 
         .section { display: none; }
         .section.active { display: block; }
@@ -36,60 +36,74 @@
         .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
         .section-title { font-size: 13px; text-transform: uppercase; color: #334155; font-weight: 800; letter-spacing: 0.5px; }
 
+        /* Игроки */
         .player-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px; }
-        .player-card { background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%); border: 1.5px solid var(--card-border); border-radius: 12px; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: transform 0.1s, border-color 0.2s; }
-        .player-card:active { transform: scale(0.99); }
-        .player-info { display: flex; align-items: center; gap: 12px; }
-        .player-info input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--primary-red); cursor: pointer; }
-        
-        .name-rating-box { display: flex; align-items: center; gap: 8px; }
-        .player-name { font-weight: 800; font-size: 15px; color: var(--text-main); }
-        .player-rating { background: linear-gradient(135deg, #0284c7, #0369a1); color: #ffffff; border-radius: 20px; padding: 3px 9px; font-size: 12px; font-weight: 800; display: inline-flex; align-items: center; gap: 3px; box-shadow: 0 2px 4px rgba(2, 132, 199, 0.3); }
+        .player-card { background: #ffffff; border: 1.5px solid var(--card-border); border-radius: 12px; padding: 12px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.04); }
+        .player-info { display: flex; align-items: center; gap: 10px; }
+        .player-info input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--primary-red); cursor: pointer; }
+        .player-name { font-weight: 800; font-size: 14px; color: var(--text-main); }
+        .player-rating { background: #0284c7; color: #ffffff; border-radius: 20px; padding: 2px 8px; font-size: 11px; font-weight: 800; }
 
-        .role-selector { display: flex; gap: 4px; margin-top: 6px; }
-        .role-btn { border: 1px solid #cbd5e1; background: #ffffff; color: var(--text-sub); font-size: 10px; font-weight: 800; padding: 4px 8px; border-radius: 6px; cursor: pointer; transition: all 0.15s; }
-        .role-btn.active[data-role="НАП"] { background: #fecdd3; color: #9f1239; border-color: #fda4af; box-shadow: 0 1px 3px rgba(225, 29, 72, 0.2); }
-        .role-btn.active[data-role="ЗАЩ"] { background: #bfdbfe; color: #1e40af; border-color: #93c5fd; box-shadow: 0 1px 3px rgba(37, 99, 235, 0.2); }
-        .role-btn.active[data-role="ВРТ"] { background: #fef08a; color: #854d0e; border-color: #fde047; box-shadow: 0 1px 3px rgba(217, 119, 6, 0.2); }
+        .role-selector { display: flex; gap: 4px; margin-top: 4px; }
+        .role-btn { border: 1px solid #cbd5e1; background: #ffffff; color: var(--text-sub); font-size: 10px; font-weight: 800; padding: 3px 6px; border-radius: 6px; cursor: pointer; }
+        .role-btn.active[data-role="НАП"] { background: #fecdd3; color: #9f1239; border-color: #fda4af; }
+        .role-btn.active[data-role="ЗАЩ"] { background: #bfdbfe; color: #1e40af; border-color: #93c5fd; }
+        .role-btn.active[data-role="ВРТ"] { background: #fef08a; color: #854d0e; border-color: #fde047; }
 
-        .btn { display: block; width: 100%; padding: 15px; border: none; border-radius: 10px; font-size: 15px; font-weight: 900; text-transform: uppercase; cursor: pointer; transition: transform 0.1s, opacity 0.2s; margin-top: 16px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); letter-spacing: 0.5px; }
+        .btn { display: block; width: 100%; padding: 14px; border: none; border-radius: 10px; font-size: 14px; font-weight: 900; text-transform: uppercase; cursor: pointer; transition: transform 0.1s; margin-top: 14px; box-shadow: 0 4px 10px rgba(0,0,0,0.08); }
         .btn:active { transform: scale(0.98); }
-        .btn-green { background: linear-gradient(135deg, #10b981, #059669); color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.2); }
-        .btn-blue { background: linear-gradient(135deg, #2563eb, #1d4ed8); color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.2); }
-        .btn-dark { background: #ffffff; border: 2px solid #cbd5e1; color: var(--text-sub); margin-top: 30px; font-size: 11px; font-weight: 800; }
+        .btn-green { background: linear-gradient(135deg, #10b981, #059669); color: #fff; }
+        .btn-dark { background: #ffffff; border: 2px solid #cbd5e1; color: var(--text-sub); margin-top: 25px; font-size: 11px; font-weight: 800; }
 
-        .teams-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 14px; margin-top: 10px; }
-        .team-card { background: #ffffff; border: 2px solid #cbd5e1; border-radius: 12px; overflow: hidden; box-shadow: 0 3px 8px rgba(0,0,0,0.06); }
-        .team-header { background: linear-gradient(135deg, #1e293b, #0f172a); color: #ffffff; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; }
-        .team-header h3 { font-size: 15px; font-weight: 900; }
-        .team-meta { display: flex; align-items: center; gap: 6px; }
-        .team-count { font-size: 11px; background: #334155; color: #fff; padding: 2px 6px; border-radius: 10px; font-weight: 800; }
-        .team-score { font-size: 12px; font-weight: 800; background: var(--primary-red); color: #fff; padding: 3px 8px; border-radius: 20px; box-shadow: 0 2px 4px rgba(225, 29, 72, 0.4); }
+        /* Команды и Турнирная таблица */
+        .teams-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; margin-bottom: 20px; }
+        .team-card { background: #ffffff; border: 2px solid #cbd5e1; border-radius: 12px; overflow: hidden; }
+        .team-header { background: #1e293b; color: #ffffff; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+        .team-header-title { display: flex; align-items: center; gap: 8px; flex: 1; }
+        .team-logo { width: 24px; height: 24px; object-fit: contain; background: #fff; border-radius: 50%; padding: 2px; }
+        .team-select { background: #0f172a; color: #fff; border: 1px solid #475569; font-weight: 800; font-size: 12px; border-radius: 6px; padding: 4px; width: 100%; }
+        .team-score { font-size: 11px; font-weight: 800; background: var(--primary-red); color: #fff; padding: 2px 6px; border-radius: 12px; white-space: nowrap; }
         .team-list { list-style: none; }
-        .team-list li { padding: 10px 14px; border-bottom: 1px solid #f1f5f9; font-size: 13px; display: flex; justify-content: space-between; align-items: center; font-weight: 700; }
-        .team-list li:last-child { border-bottom: none; }
-        .role-badge-box { display: inline-flex; gap: 3px; margin-left: 4px; }
-        .role-badge { font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 6px; }
-        .badge-nap { background: #ffe4e6; color: #e11d48; }
-        .badge-zas { background: #dbeafe; color: #2563eb; }
-        .badge-vrt { background: #fef9c3; color: #ca8a04; }
+        .team-list li { padding: 8px 12px; border-bottom: 1px solid #f1f5f9; font-size: 12px; display: flex; justify-content: space-between; font-weight: 700; }
 
-        .stat-card { background: #ffffff; border: 1.5px solid var(--card-border); border-radius: 12px; padding: 14px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.04); }
-        @media (min-width: 520px) {
-            .stat-card { flex-direction: row; justify-content: space-between; align-items: center; }
-        }
-        .stat-info { display: flex; flex-direction: column; gap: 3px; }
-        .stat-details { font-size: 11px; color: var(--text-sub); font-weight: 700; }
-        .stat-controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-        .stat-box { display: flex; flex-direction: column; align-items: center; gap: 2px; }
-        .stat-box span { font-size: 9px; color: var(--text-sub); font-weight: 800; }
-        .counter { display: flex; align-items: center; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 8px; overflow: hidden; }
-        .counter button { width: 30px; height: 30px; background: #e2e8f0; border: none; color: var(--text-main); font-weight: 900; cursor: pointer; font-size: 14px; }
-        .counter button:active { background: #cbd5e1; }
-        .counter val { width: 24px; text-align: center; font-size: 13px; font-weight: 900; }
+        /* Групповая таблица */
+        .table-wrapper { overflow-x: auto; background: #fff; border-radius: 12px; border: 1.5px solid var(--card-border); margin-bottom: 20px; }
+        .league-table { width: 100%; border-collapse: collapse; text-align: center; font-size: 12px; }
+        .league-table th { background: #0f172a; color: #fff; padding: 10px; font-weight: 800; text-transform: uppercase; font-size: 11px; }
+        .league-table td { padding: 10px; border-bottom: 1px solid #e2e8f0; font-weight: 700; }
+        .league-table tr:nth-child(even) { background-color: #f8fafc; }
+        .league-table tr:last-child td { border-bottom: none; }
+        .team-cell { text-align: left; font-weight: 900; color: #1e293b; display: flex; align-items: center; gap: 8px; }
+        .pts-cell { font-weight: 900; color: var(--primary-red); background: #ffe4e6; }
 
-        .mvp-btn { background: #f1f5f9; border: 1px solid #cbd5e1; color: var(--text-sub); padding: 6px 10px; border-radius: 8px; font-size: 11px; font-weight: 800; cursor: pointer; transition: all 0.2s; height: 30px; }
-        .mvp-btn.active { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; border-color: #d97706; box-shadow: 0 0 10px rgba(245, 158, 11, 0.4); }
+        /* Матчи расписание */
+        .match-card { background: #fff; border: 1.5px solid var(--card-border); border-radius: 10px; padding: 12px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 8px; }
+        .match-badge { font-size: 10px; font-weight: 800; color: #64748b; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; align-self: flex-start; }
+        .match-main { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+        .match-team { flex: 1; font-size: 13px; font-weight: 800; display: flex; align-items: center; gap: 6px; }
+        .match-team.right { justify-content: flex-end; text-align: right; }
+        .match-score-inputs { display: flex; align-items: center; gap: 4px; }
+        .match-score-inputs input { width: 36px; height: 36px; text-align: center; font-size: 16px; font-weight: 900; border: 1.5px solid #cbd5e1; border-radius: 6px; }
+        .match-btn { background: #10b981; color: #fff; border: none; padding: 8px 12px; border-radius: 6px; font-size: 11px; font-weight: 800; cursor: pointer; }
+
+        /* Авторы голов */
+        .goal-events-container { background: #f8fafc; border: 1px dashed var(--card-border); padding: 10px; border-radius: 8px; margin-top: 8px; }
+        .goal-row { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; flex-wrap: wrap; background: #fff; padding: 6px; border-radius: 6px; border: 1px solid #e2e8f0; }
+        .goal-row select { padding: 4px; border-radius: 4px; border: 1px solid #cbd5e1; font-size: 11px; font-weight: 700; }
+        .goal-row label { font-size: 11px; font-weight: 800; color: var(--primary-red); display: flex; align-items: center; gap: 2px; }
+
+        /* Лидерборд */
+        .filter-bar { display: flex; gap: 6px; margin-bottom: 12px; overflow-x: auto; }
+        .filter-btn { padding: 6px 12px; background: #fff; border: 1px solid #cbd5e1; border-radius: 20px; font-size: 11px; font-weight: 800; color: var(--text-sub); cursor: pointer; white-space: nowrap; }
+        .filter-btn.active { background: var(--primary-red); color: #fff; border-color: var(--primary-red); }
+
+        .leader-table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 12px; overflow: hidden; border: 1.5px solid var(--card-border); }
+        .leader-table th, .leader-table td { padding: 10px 12px; text-align: left; font-size: 13px; font-weight: 700; border-bottom: 1px solid #f1f5f9; }
+        .leader-table th { background: #0f172a; color: #fff; font-size: 11px; text-transform: uppercase; }
+        .rank { font-weight: 900; width: 30px; text-align: center; color: var(--text-sub); }
+        .rank-1 { color: #f59e0b; }
+        .rank-2 { color: #94a3b8; }
+        .rank-3 { color: #b45309; }
     </style>
 </head>
 <body>
@@ -100,98 +114,146 @@
 
 <div class="tabs">
     <button class="tab-btn active" onclick="switchTab('playersTab', this)">👥 Игроки</button>
-    <button class="tab-btn" onclick="switchTab('teamsTab', this)">⚔️ Команды</button>
-    <button class="tab-btn" onclick="switchTab('matchTab', this)">📊 Матч</button>
+    <button class="tab-btn" onclick="switchTab('teamsTab', this)">⚔️ Турнир и Игры</button>
+    <button class="tab-btn" onclick="switchTab('leadersTab', this)">🏆 Топ Лидеры</button>
 </div>
 
 <div class="container">
+    <!-- Вкладка Игроки -->
     <div id="playersTab" class="section active">
         <div class="section-header">
             <span class="section-title">Состав класса (<span id="selectedCount">0</span>)</span>
             <button onclick="selectAll(true)" style="background:none; border:none; color:var(--primary-blue); font-size:12px; font-weight:800; cursor:pointer;">Выбрать всех</button>
         </div>
         <div class="player-grid" id="playersList"></div>
-        <button class="btn btn-green" onclick="generateAndSwitch()">🎲 Сформировать новые команды</button>
+        <button class="btn btn-green" onclick="generateAndSwitch()">🎲 Сформировать турнир</button>
     </div>
 
+    <!-- Вкладка Турнир (Таблица группы + Матчи) -->
     <div id="teamsTab" class="section">
         <div class="section-header">
-            <span class="section-title">Баланс составов</span>
-            <button onclick="generateAndSwitch()" style="background:none; border:none; color:var(--primary-green); font-size:12px; font-weight:800; cursor:pointer;">🔄 Перемешать еще раз</button>
+            <span class="section-title">📊 Групповой этап / Таблица (2 Круга)</span>
         </div>
-        <div id="teamsResult" class="teams-container">
-            <p style="text-align:center; color:var(--text-sub); grid-column: 1/-1; padding: 20px; font-weight:700;">Нажмите «Сформировать новые команды».</p>
+        <div class="table-wrapper">
+            <table class="league-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th style="text-align:left;">Команда</th>
+                        <th>И</th>
+                        <th>В</th>
+                        <th>Н</th>
+                        <th>П</th>
+                        <th>З-П</th>
+                        <th>РМ</th>
+                        <th>Очки</th>
+                    </tr>
+                </thead>
+                <tbody id="leagueTableBody">
+                    <tr><td colspan="9" style="padding:20px; color:var(--text-sub);">Нажмите «Сформировать турнир»</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section-header">
+            <span class="section-title">⚙️ Выбор клубов и Составы</span>
+        </div>
+        <div id="teamsResult" class="teams-container"></div>
+
+        <div class="section-header" style="margin-top:20px;">
+            <span class="section-title">📅 Расписание матчей</span>
+        </div>
+        <div id="matchesList">
+            <p style="text-align:center; color:var(--text-sub); padding:10px; font-weight:700;">Сформируйте турнир для создания игр.</p>
         </div>
     </div>
 
-    <div id="matchTab" class="section">
+    <!-- Вкладка Лидерборд -->
+    <div id="leadersTab" class="section">
         <div class="section-header">
-            <span class="section-title">Статистика игры</span>
+            <span class="section-title">Таблица лидеров</span>
         </div>
-        <div id="statsForm">
-            <p style="text-align:center; color:var(--text-sub); padding: 20px; font-weight:700;">Сначала сформируйте команды.</p>
+        <div class="filter-bar">
+            <button class="filter-btn active" onclick="renderLeaderboard('goals', this)">⚽ Бомбардиры</button>
+            <button class="filter-btn" onclick="renderLeaderboard('assists', this)">👟 Ассистенты</button>
+            <button class="filter-btn" onclick="renderLeaderboard('points', this)">🔥 Гол + Пас</button>
+            <button class="filter-btn" onclick="renderLeaderboard('mvp', this)">🏆 MVP</button>
         </div>
-        <button id="saveStatsBtn" class="btn btn-blue" style="display:none;" onclick="finishMatch()">Сохранить результативность</button>
+        <table class="leader-table">
+            <thead>
+                <tr>
+                    <th style="width:30px;">#</th>
+                    <th>Игрок</th>
+                    <th id="statColHeader" style="text-align:right;">Голы</th>
+                </tr>
+            </thead>
+            <tbody id="leaderboardBody"></tbody>
+        </table>
     </div>
 
     <button class="btn btn-dark" onclick="resetChanges()">🔄 Сбросить данные к начальным</button>
 </div>
 
 <script>
+    const clubPresets = [
+        { name: "Real Madrid", logo: "https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg" },
+        { name: "FC Barcelona", logo: "https://upload.wikimedia.org/wikipedia/en/4/47/FC_Barcelona_%28crest%29.svg" },
+        { name: "Manchester City", logo: "https://upload.wikimedia.org/wikipedia/en/e/eb/Manchester_City_FC_badge.svg" },
+        { name: "Bayern Munich", logo: "https://upload.wikimedia.org/wikipedia/commons/1/1b/FC_Bayern_M%C3%BCnchen_logo_%282017%29.svg" },
+        { name: "PSG", logo: "https://upload.wikimedia.org/wikipedia/en/a/a7/Paris_Saint-Germain_F.C..svg" },
+        { name: "Liverpool", logo: "https://upload.wikimedia.org/wikipedia/en/0/0c/Liverpool_FC.svg" },
+        { name: "Arsenal", logo: "https://upload.wikimedia.org/wikipedia/en/5/53/Arsenal_FC.svg" },
+        { name: "Juventus", logo: "https://upload.wikimedia.org/wikipedia/commons/b/bc/Juventus_FC_2017_icon_%28black%29.svg" },
+        { name: "Казахстан 🇰🇿", logo: "https://upload.wikimedia.org/wikipedia/commons/d/d3/Flag_of_Kazakhstan.svg" },
+        { name: "Бразилия 🇧🇷", logo: "https://upload.wikimedia.org/wikipedia/commons/0/05/Flag_of_Brazil.svg" },
+        { name: "Аргентина 🇦🇷", logo: "https://upload.wikimedia.org/wikipedia/commons/1/1a/Flag_of_Argentina.svg" },
+        { name: "Франция 🇫🇷", logo: "https://upload.wikimedia.org/wikipedia/commons/c/c3/Flag_of_France.svg" }
+    ];
+
+    const defaultLogo = "https://upload.wikimedia.org/wikipedia/commons/d/d3/Soccerball.svg";
+
     const initialPlayers = [
-        { id: 1, name: "Alim", rating: 35.0, roles: ["НАП"], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 2, name: "Akhmet", rating: 20.0, roles: ["ЗАЩ"], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 3, name: "Ali", rating: 0.0, roles: [], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 4, name: "Omar", rating: 50.0, roles: ["НАП"], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 5, name: "Sultan", rating: 25.0, roles: ["ЗАЩ"], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 6, name: "Islam", rating: 40.0, roles: ["ВРТ"], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 7, name: "Ilfat", rating: 40.0, roles: ["НАП"], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 8, name: "Damir", rating: 0.0, roles: [], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 9, name: "Madiyar", rating: 20.0, roles: ["ЗАЩ"], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 10, name: "Batyr", rating: 25.0, roles: ["ВРТ"], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 11, name: "Tamerlan", rating: 40.0, roles: ["НАП"], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 12, name: "Abdirasul", rating: 30.0, roles: ["ЗАЩ"], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 13, name: "Rakhman", rating: 30.0, roles: ["НАП"], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 14, name: "Akhmad", rating: 40.0, roles: ["ЗАЩ"], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 15, name: "Nurtas", rating: 25.0, roles: [], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 16, name: "Bauyrzhan", rating: 35.0, roles: ["НАП"], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 17, name: "Azamat", rating: 10.0, roles: ["ЗАЩ"], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 18, name: "Arnat", rating: 35.0, roles: ["НАП"], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 19, name: "Ismail", rating: 50.0, roles: ["НАП"], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 20, name: "Dias", rating: 25.0, roles: ["ЗАЩ"], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 21, name: "Oraz", rating: 30.0, roles: ["ВРТ"], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 22, name: "Amir", rating: 10.0, roles: [], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 23, name: "Yeramir", rating: 25.0, roles: ["ЗАЩ"], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 24, name: "Alseit abi", rating: 50.0, roles: ["НАП"], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 25, name: "Abduluahid agay", rating: 40.0, roles: ["ЗАЩ"], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 26, name: "Mark", rating: 10.0, roles: [], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 27, name: "Abdullah", rating: 0.0, roles: [], goals: 0, assists: 0, ownGoals: 0, mvp: 0 }
+        { id: 1, name: "Alim", rating: 35.0, roles: ["НАП"], goals: 0, assists: 0, mvp: 0 },
+        { id: 2, name: "Akhmet", rating: 20.0, roles: ["ЗАЩ"], goals: 0, assists: 0, mvp: 0 },
+        { id: 3, name: "Ali", rating: 0.0, roles: [], goals: 0, assists: 0, mvp: 0 },
+        { id: 4, name: "Omar", rating: 50.0, roles: ["НАП"], goals: 0, assists: 0, mvp: 0 },
+        { id: 5, name: "Sultan", rating: 30.0, roles: ["ЗАЩ"], goals: 0, assists: 0, mvp: 0 },
+        { id: 6, name: "Islam", rating: 40.0, roles: ["ВРТ"], goals: 0, assists: 0, mvp: 0 },
+        { id: 7, name: "Ilfat", rating: 40.0, roles: ["НАП"], goals: 0, assists: 0, mvp: 0 },
+        { id: 8, name: "Damir", rating: 0.0, roles: [], goals: 0, assists: 0, mvp: 0 },
+        { id: 9, name: "Madiyar", rating: 20.0, roles: ["ЗАЩ"], goals: 0, assists: 0, mvp: 0 },
+        { id: 10, name: "Batyr", rating: 25.0, roles: ["ВРТ"], goals: 0, assists: 0, mvp: 0 },
+        { id: 11, name: "Tamerlan", rating: 40.0, roles: ["НАП"], goals: 0, assists: 0, mvp: 0 },
+        { id: 12, name: "Abdirasul", rating: 30.0, roles: ["ЗАЩ"], goals: 0, assists: 0, mvp: 0 },
+        { id: 13, name: "Rakhman", rating: 30.0, roles: ["НАП"], goals: 0, assists: 0, mvp: 0 },
+        { id: 14, name: "Akhmad", rating: 40.0, roles: ["ЗАЩ"], goals: 0, assists: 0, mvp: 0 },
+        { id: 15, name: "Nurtas", rating: 25.0, roles: [], goals: 0, assists: 0, mvp: 0 },
+        { id: 16, name: "Bauyrzhan", rating: 35.0, roles: ["НАП"], goals: 0, assists: 0, mvp: 0 },
+        { id: 17, name: "Azamat", rating: 10.0, roles: ["ЗАЩ"], goals: 0, assists: 0, mvp: 0 },
+        { id: 18, name: "Arnat", rating: 35.0, roles: ["НАП"], goals: 0, assists: 0, mvp: 0 },
+        { id: 19, name: "Ismail", rating: 50.0, roles: ["НАП"], goals: 0, assists: 0, mvp: 0 },
+        { id: 20, name: "Dias", rating: 25.0, roles: ["ЗАЩ"], goals: 0, assists: 0, mvp: 0 },
+        { id: 21, name: "Oraz", rating: 30.0, roles: ["ВРТ"], goals: 0, assists: 0, mvp: 0 },
+        { id: 22, name: "Amir", rating: 10.0, roles: [], goals: 0, assists: 0, mvp: 0 },
+        { id: 23, name: "Yeramir", rating: 25.0, roles: ["ЗАЩ"], goals: 0, assists: 0, mvp: 0 },
+        { id: 24, name: "Alseit abi", rating: 50.0, roles: ["НАП"], goals: 0, assists: 0, mvp: 0 },
+        { id: 25, name: "Abduluahid agay", rating: 40.0, roles: ["ЗАЩ"], goals: 0, assists: 0, mvp: 0 },
+        { id: 26, name: "Mark", rating: 10.0, roles: [], goals: 0, assists: 0, mvp: 0 },
+        { id: 27, name: "Abdullah", rating: 0.0, roles: [], goals: 0, assists: 0, mvp: 0 }
     ];
 
     let savedData = JSON.parse(localStorage.getItem('sport_time_players'));
-    let playersData;
+    let playersData = savedData || JSON.parse(JSON.stringify(initialPlayers));
 
-    if (savedData) {
-        playersData = savedData.map(p => {
-            let initP = initialPlayers.find(ip => ip.id === p.id);
-            if (initP) {
-                p.rating = initP.rating;
-                if (!p.roles) p.roles = initP.roles;
-            }
-            return p;
-        });
-    } else {
-        playersData = JSON.parse(JSON.stringify(initialPlayers));
-    }
-
-    let activePlayers = [];
-    let matchStats = {};
+    let activeTeams = [];
+    let activeMatches = [];
 
     function switchTab(tabId, btn) {
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.getElementById(tabId).classList.add('active');
         if(btn) btn.classList.add('active');
+        if(tabId === 'leadersTab') renderLeaderboard('goals');
     }
 
     function renderPlayers() {
@@ -199,12 +261,7 @@
         container.innerHTML = '';
 
         playersData.forEach(p => {
-            if (!Array.isArray(p.roles)) {
-                p.roles = p.role ? [p.role] : [];
-            }
-            if (p.ownGoals === undefined) p.ownGoals = 0;
-            if (p.mvp === undefined) p.mvp = 0;
-
+            if (!Array.isArray(p.roles)) p.roles = [];
             const isNap = p.roles.includes('НАП');
             const isZas = p.roles.includes('ЗАЩ');
             const isVrt = p.roles.includes('ВРТ');
@@ -214,7 +271,7 @@
                     <div class="player-info">
                         <input type="checkbox" id="check_${p.id}" value="${p.id}" checked onchange="updateCount()">
                         <div>
-                            <div class="name-rating-box">
+                            <div style="display:flex; align-items:center; gap:6px;">
                                 <span class="player-name">${p.name}</span>
                                 <span class="player-rating">⭐ ${p.rating.toFixed(1)}</span>
                             </div>
@@ -234,13 +291,9 @@
     function toggleRole(id, role) {
         let player = playersData.find(p => p.id === id);
         if (player) {
-            if (!Array.isArray(player.roles)) player.roles = [];
             const idx = player.roles.indexOf(role);
-            if (idx > -1) {
-                player.roles.splice(idx, 1);
-            } else {
-                player.roles.push(role);
-            }
+            if (idx > -1) player.roles.splice(idx, 1);
+            else player.roles.push(role);
             localStorage.setItem('sport_time_players', JSON.stringify(playersData));
             renderPlayers();
         }
@@ -256,14 +309,6 @@
         updateCount();
     }
 
-    function shuffle(arr) {
-        for (let i = arr.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [arr[i], arr[j]] = [arr[j], arr[i]];
-        }
-        return arr;
-    }
-
     function generateAndSwitch() {
         let selected = [];
         playersData.forEach(p => {
@@ -271,191 +316,409 @@
             if (cb && cb.checked) selected.push(JSON.parse(JSON.stringify(p)));
         });
 
-        if (selected.length < 2) {
-            alert("Выберите хотя бы 2 игроков!");
-            return;
-        }
+        if (selected.length < 2) { alert("Выберите хотя бы 2 игроков!"); return; }
 
-        activePlayers = selected;
-        const numTeams = Math.ceil(selected.length / 5);
-        let teams = Array.from({ length: numTeams }, () => ({ players: [], score: 0 }));
+        const total = selected.length;
+        let numTeams = 2;
+        if (total >= 19) numTeams = 4;
+        else if (total >= 13) numTeams = 3;
+        else numTeams = 2;
 
-        // 1. Распределяем вратарей
-        let vrtList = shuffle(selected.filter(p => p.roles && p.roles.includes('ВРТ')));
-        let remaining = selected.filter(p => !vrtList.includes(p));
-
-        vrtList.forEach((p, idx) => {
-            let targetTeam = teams[idx % numTeams];
-            targetTeam.players.push(p);
-            targetTeam.score += p.rating;
+        let teams = Array.from({ length: numTeams }, (_, i) => {
+            let preset = clubPresets[i] || { name: `Команда ${i + 1}`, logo: defaultLogo };
+            return {
+                id: i + 1,
+                name: preset.name,
+                logo: preset.logo,
+                players: [],
+                played: 0, win: 0, draw: 0, loss: 0,
+                gf: 0, ga: 0, gd: 0, pts: 0
+            };
         });
 
-        // 2. Сортируем всех оставшихся по строго убыванию рейтинга
-        remaining.sort((a, b) => b.rating - a.rating);
+        let sorted = [...selected].sort((a, b) => b.rating - a.rating);
+        let teamIdx = 0, step = 1;
 
-        // 3. Разбиваем игроков на уровни (корзины) по размеру равным количеству команд
-        let buckets = [];
-        for (let i = 0; i < remaining.length; i += numTeams) {
-            let chunk = remaining.slice(i, i + numTeams);
-            buckets.push(shuffle(chunk)); // Перемешиваем внутри уровня для равенства
+        sorted.forEach(p => {
+            teams[teamIdx].players.push(p);
+            teamIdx += step;
+            if (teamIdx >= numTeams) { teamIdx = numTeams - 1; step = -1; }
+            else if (teamIdx < 0) { teamIdx = 0; step = 1; }
+        });
+
+        activeTeams = teams;
+
+        // Двухкруговая система матчей (Каждый с каждым по 2 раза)
+        activeMatches = [];
+        let matchId = 1;
+
+        // Первый круг
+        for (let i = 0; i < teams.length; i++) {
+            for (let j = i + 1; j < teams.length; j++) {
+                activeMatches.push({
+                    id: matchId++,
+                    round: 1,
+                    t1: teams[i].id,
+                    t2: teams[j].id,
+                    s1: null,
+                    s2: null,
+                    played: false,
+                    showDetails: false
+                });
+            }
         }
 
-        // 4. Поочередно отдаем игроков каждой команде по 1 человеку с каждого уровня!
-        let direction = true;
-        buckets.forEach(bucket => {
-            // Для гибкости распределения сортируем команды по текущей силе (очкам)
-            // И даем сильнейшего игрока из слота самой слабой на данный момент команде!
-            let sortedTeams = [...teams].sort((a, b) => {
-                if (a.players.length !== b.players.length) {
-                    return a.players.length - b.players.length; // сначала в ту, где меньше человек
+        // Второй круг (обратные матчи)
+        for (let i = 0; i < teams.length; i++) {
+            for (let j = i + 1; j < teams.length; j++) {
+                activeMatches.push({
+                    id: matchId++,
+                    round: 2,
+                    t1: teams[j].id,
+                    t2: teams[i].id,
+                    s1: null,
+                    s2: null,
+                    played: false,
+                    showDetails: false
+                });
+            }
+        }
+
+        renderLeagueTable();
+        renderMatches();
+        renderTeamsCards();
+
+        switchTab('teamsTab', document.querySelectorAll('.tab-btn')[1]);
+    }
+
+    function changeTeamPreset(teamId, selectedName) {
+        let team = activeTeams.find(t => t.id === teamId);
+        if (!team) return;
+
+        let foundPreset = clubPresets.find(p => p.name === selectedName);
+        if (foundPreset) {
+            team.name = foundPreset.name;
+            team.logo = foundPreset.logo;
+        } else {
+            team.name = selectedName;
+            team.logo = defaultLogo;
+        }
+
+        renderLeagueTable();
+        renderMatches();
+        renderTeamsCards();
+    }
+
+    function renderLeagueTable() {
+        const body = document.getElementById('leagueTableBody');
+        body.innerHTML = '';
+
+        let sortedTeams = [...activeTeams].sort((a, b) => {
+            if (b.pts !== a.pts) return b.pts - a.pts;
+            if (b.gd !== a.gd) return b.gd - a.gd;
+            return b.gf - a.gf;
+        });
+
+        sortedTeams.forEach((t, i) => {
+            body.innerHTML += `
+                <tr>
+                    <td>${i + 1}</td>
+                    <td class="team-cell">
+                        <img src="${t.logo}" class="team-logo" alt="">
+                        <span>${t.name}</span>
+                    </td>
+                    <td>${t.played}</td>
+                    <td>${t.win}</td>
+                    <td>${t.draw}</td>
+                    <td>${t.loss}</td>
+                    <td>${t.gf}-${t.ga}</td>
+                    <td>${t.gd > 0 ? '+' + t.gd : t.gd}</td>
+                    <td class="pts-cell">${t.pts}</td>
+                </tr>
+            `;
+        });
+    }
+
+    function renderMatches() {
+        const container = document.getElementById('matchesList');
+        container.innerHTML = '';
+
+        activeMatches.forEach(m => {
+            const t1 = activeTeams.find(t => t.id === m.t1);
+            const t2 = activeTeams.find(t => t.id === m.t2);
+
+            let detailsHtml = '';
+            if (m.showDetails) {
+                detailsHtml = generateGoalDetailsForm(m, t1, t2);
+            }
+
+            container.innerHTML += `
+                <div class="match-card">
+                    <span class="match-badge">Круг ${m.round}</span>
+                    <div class="match-main">
+                        <span class="match-team">
+                            <img src="${t1.logo}" class="team-logo" alt=""> ${t1.name}
+                        </span>
+                        <div class="match-score-inputs">
+                            <input type="number" id="ms1_${m.id}" value="${m.s1 !== null ? m.s1 : ''}" min="0">
+                            <span>:</span>
+                            <input type="number" id="ms2_${m.id}" value="${m.s2 !== null ? m.s2 : ''}" min="0">
+                        </div>
+                        <span class="match-team right">
+                            ${t2.name} <img src="${t2.logo}" class="team-logo" alt="">
+                        </span>
+                        <button class="match-btn" onclick="openMatchGoalsPrompt(${m.id})">✓</button>
+                    </div>
+                    ${detailsHtml}
+                </div>
+            `;
+        });
+    }
+
+    function openMatchGoalsPrompt(matchId) {
+        const m = activeMatches.find(item => item.id === matchId);
+        const val1 = parseInt(document.getElementById(`ms1_${matchId}`).value);
+        const val2 = parseInt(document.getElementById(`ms2_${matchId}`).value);
+
+        if (isNaN(val1) || isNaN(val2)) { alert("Введите счёт обеих команд!"); return; }
+
+        m.s1 = val1; m.s2 = val2; m.played = true;
+        m.showDetails = true;
+
+        recalculateLeague();
+        renderLeagueTable();
+        renderMatches();
+    }
+
+    function generateGoalDetailsForm(m, t1, t2) {
+        let html = `<div class="goal-events-container">
+            <div style="font-size:12px; font-weight:800; margin-bottom:8px; color:var(--primary-blue);">⚽ Укажите авторов голов и ассистентов:</div>`;
+
+        for (let i = 1; i <= m.s1; i++) {
+            html += createGoalRowHtml(t1, t2, `m_${m.id}_t1_g${i}`, `Гол ${i} (${t1.name})`);
+        }
+
+        for (let i = 1; i <= m.s2; i++) {
+            html += createGoalRowHtml(t2, t1, `m_${m.id}_t2_g${i}`, `Гол ${i} (${t2.name})`);
+        }
+
+        if (m.s1 === 0 && m.s2 === 0) {
+            html += `<div style="font-size:11px; color:var(--text-sub);">Без голов в матче (0:0)</div>`;
+        }
+
+        html += `<button class="btn btn-green" style="padding:8px; font-size:11px; margin-top:8px;" onclick="saveMatchGoalEvents(${m.id})">💾 Сохранить и высчитать MVP</button></div>`;
+        return html;
+    }
+
+    function createGoalRowHtml(teamScored, teamOpponent, prefix, labelText) {
+        let playerOptionsScorer = teamScored.players.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+        let assistOptions = `<option value="">-- Без ассиста --</option>` + teamScored.players.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+
+        return `
+            <div class="goal-row" id="row_${prefix}">
+                <span style="font-weight:800; font-size:11px; width:100%;">${labelText}:</span>
+                <select id="scorer_${prefix}">
+                    ${playerOptionsScorer}
+                </select>
+                <select id="assist_${prefix}">
+                    ${assistOptions}
+                </select>
+                <label>
+                    <input type="checkbox" id="owngoil_${prefix}" onchange="toggleOwnGoalSelect('${prefix}', ${teamScored.id}, ${teamOpponent.id})"> Автогол 🥊
+                </label>
+            </div>
+        `;
+    }
+
+    function toggleOwnGoalSelect(prefix, teamScoredId, teamOpponentId) {
+        const isOwnGoal = document.getElementById(`owngoil_${prefix}`).checked;
+        const scorerSelect = document.getElementById(`scorer_${prefix}`);
+        const teamOpponent = activeTeams.find(t => t.id === teamOpponentId);
+
+        if (isOwnGoal) {
+            scorerSelect.innerHTML = teamOpponent.players.map(p => `<option value="${p.id}">${p.name} (Автогол)</option>`).join('');
+            document.getElementById(`assist_${prefix}`).disabled = true;
+        } else {
+            const teamScored = activeTeams.find(t => t.id === teamScoredId);
+            scorerSelect.innerHTML = teamScored.players.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+            document.getElementById(`assist_${prefix}`).disabled = false;
+        }
+    }
+
+    function saveMatchGoalEvents(matchId) {
+        const m = activeMatches.find(item => item.id === matchId);
+        let matchPerformance = {}; 
+
+        const trackPerf = (pid, goals, assists) => {
+            if (!matchPerformance[pid]) matchPerformance[pid] = { goals: 0, assists: 0, pts: 0 };
+            matchPerformance[pid].goals += goals;
+            matchPerformance[pid].assists += assists;
+            matchPerformance[pid].pts += (goals * 2) + (assists * 1);
+        };
+
+        for (let i = 1; i <= m.s1; i++) {
+            processGoalEntry(`m_${m.id}_t1_g${i}`, trackPerf);
+        }
+        for (let i = 1; i <= m.s2; i++) {
+            processGoalEntry(`m_${m.id}_t2_g${i}`, trackPerf);
+        }
+
+        // Автоматический расчет MVP
+        let bestPlayerId = null;
+        let maxPts = -1;
+
+        Object.keys(matchPerformance).forEach(pid => {
+            if (matchPerformance[pid].pts > maxPts) {
+                maxPts = matchPerformance[pid].pts;
+                bestPlayerId = pid;
+            }
+        });
+
+        if (bestPlayerId && maxPts > 0) {
+            let mvpPlayer = playersData.find(x => x.id == bestPlayerId);
+            if (mvpPlayer) {
+                mvpPlayer.mvp = (mvpPlayer.mvp || 0) + 1;
+                mvpPlayer.rating = Math.min(100, mvpPlayer.rating + 2.0);
+                alert(`🏆 Автоматический MVP матча: ${mvpPlayer.name} (набрал ${maxPts} балла за действия в матче)!`);
+            }
+        } else {
+            alert("Статистика сохранена!");
+        }
+
+        m.showDetails = false;
+        localStorage.setItem('sport_time_players', JSON.stringify(playersData));
+        renderMatches();
+        renderPlayers();
+    }
+
+    function processGoalEntry(prefix, trackCallback) {
+        const scorerId = document.getElementById(`scorer_${prefix}`).value;
+        const assistId = document.getElementById(`assist_${prefix}`).value;
+        const isOwnGoal = document.getElementById(`owngoil_${prefix}`).checked;
+
+        if (!isOwnGoal && scorerId) {
+            let p = playersData.find(x => x.id == scorerId);
+            if (p) {
+                p.goals = (p.goals || 0) + 1;
+                p.rating = Math.min(100, p.rating + 1.0);
+                trackCallback(scorerId, 1, 0);
+            }
+        }
+
+        if (!isOwnGoal && assistId && assistId !== scorerId) {
+            let a = playersData.find(x => x.id == assistId);
+            if (a) {
+                a.assists = (a.assists || 0) + 1;
+                a.rating = Math.min(100, a.rating + 0.5);
+                trackCallback(assistId, 0, 1);
+            }
+        }
+    }
+
+    function recalculateLeague() {
+        activeTeams.forEach(t => {
+            t.played = 0; t.win = 0; t.draw = 0; t.loss = 0;
+            t.gf = 0; t.ga = 0; t.gd = 0; t.pts = 0;
+        });
+
+        activeMatches.forEach(m => {
+            if (m.played) {
+                const t1 = activeTeams.find(t => t.id === m.t1);
+                const t2 = activeTeams.find(t => t.id === m.t2);
+
+                t1.played++; t2.played++;
+                t1.gf += m.s1; t1.ga += m.s2;
+                t2.gf += m.s2; t2.ga += m.s1;
+
+                if (m.s1 > m.s2) {
+                    t1.win++; t1.pts += 3;
+                    t2.loss++;
+                } else if (m.s1 < m.s2) {
+                    t2.win++; t2.pts += 3;
+                    t1.loss++;
+                } else {
+                    t1.draw++; t1.pts += 1;
+                    t2.draw++; t2.pts += 1;
                 }
-                return a.score - b.score; // затем в ту, у которой меньше рейтинг
-            });
 
-            bucket.forEach((p, index) => {
-                let targetTeam = sortedTeams[index % sortedTeams.length];
-                targetTeam.players.push(p);
-                targetTeam.score += p.rating;
-            });
+                t1.gd = t1.gf - t1.ga;
+                t2.gd = t2.gf - t2.ga;
+            }
         });
+    }
 
+    function renderTeamsCards() {
         const res = document.getElementById('teamsResult');
         res.innerHTML = '';
-        teams.forEach((t, i) => {
+        activeTeams.forEach(t => {
+            let optionsHtml = clubPresets.map(p => `
+                <option value="${p.name}" ${p.name === t.name ? 'selected' : ''}>${p.name}</option>
+            `).join('');
+
             res.innerHTML += `
                 <div class="team-card">
                     <div class="team-header">
-                        <h3>🏆 Команда ${i + 1}</h3>
-                        <div class="team-meta">
-                            <span class="team-count">👥 ${t.players.length}</span>
-                            <span class="team-score">Σ ${t.score.toFixed(1)}</span>
+                        <div class="team-header-title">
+                            <img src="${t.logo}" class="team-logo" id="logo_img_${t.id}" alt="">
+                            <select class="team-select" onchange="changeTeamPreset(${t.id}, this.value)">
+                                ${optionsHtml}
+                            </select>
                         </div>
+                        <span class="team-score">👥 ${t.players.length} чел</span>
                     </div>
                     <ul class="team-list">
-                        ${t.players.map(p => {
-                            let badges = '';
-                            if (p.roles && p.roles.length > 0) {
-                                badges = p.roles.map(r => {
-                                    if (r === 'ВРТ') return `<span class="role-badge badge-vrt">🧤 ВРТ</span>`;
-                                    if (r === 'ЗАЩ') return `<span class="role-badge badge-zas">🛡️ ЗАЩ</span>`;
-                                    if (r === 'НАП') return `<span class="role-badge badge-nap">⚽ НАП</span>`;
-                                    return '';
-                                }).join('');
-                            }
-                            return `<li>
-                                <span>${p.name} <span class="role-badge-box">${badges}</span></span>
-                                <span style="color:var(--primary-blue)">⭐ ${p.rating.toFixed(1)}</span>
-                            </li>`;
-                        }).join('')}
+                        ${t.players.map(p => `<li><span>${p.name}</span><span style="color:var(--primary-blue)">⭐ ${p.rating.toFixed(1)}</span></li>`).join('')}
                     </ul>
                 </div>
             `;
         });
-
-        renderMatchForm();
-        switchTab('teamsTab', document.querySelectorAll('.tab-btn')[1]);
     }
 
-    function renderMatchForm() {
-        const form = document.getElementById('statsForm');
-        form.innerHTML = '';
-        matchStats = {};
+    function renderLeaderboard(type, btn) {
+        if(btn) {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
 
-        activePlayers.forEach(p => {
-            matchStats[p.id] = { goals: 0, assists: 0, ownGoals: 0, isMvp: false };
-            form.innerHTML += `
-                <div class="stat-card">
-                    <div class="stat-info">
-                        <span class="player-name">${p.name}</span>
-                        <span class="stat-details">Всего — ⚽ ${p.goals} | 👟 ${p.assists} | 💥 ${p.ownGoals} | 🏆 ${p.mvp || 0}</span>
-                    </div>
-                    <div class="stat-controls">
-                        <button class="mvp-btn" id="mvp_${p.id}" onclick="toggleMvp(${p.id})">🏆 MVP (+2.0)</button>
-                        <div class="stat-box">
-                            <span>⚽ (+1.0)</span>
-                            <div class="counter">
-                                <button onclick="changeStat(${p.id}, 'goals', -1)">-</button>
-                                <val id="g_${p.id}">0</val>
-                                <button onclick="changeStat(${p.id}, 'goals', 1)">+</button>
-                            </div>
-                        </div>
-                        <div class="stat-box">
-                            <span>👟 (+0.5)</span>
-                            <div class="counter">
-                                <button onclick="changeStat(${p.id}, 'assists', -1)">-</button>
-                                <val id="a_${p.id}">0</val>
-                                <button onclick="changeStat(${p.id}, 'assists', 1)">+</button>
-                            </div>
-                        </div>
-                        <div class="stat-box">
-                            <span>💥 (-1.0)</span>
-                            <div class="counter">
-                                <button onclick="changeStat(${p.id}, 'ownGoals', -1)">-</button>
-                                <val id="og_${p.id}">0</val>
-                                <button onclick="changeStat(${p.id}, 'ownGoals', 1)">+</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+        const body = document.getElementById('leaderboardBody');
+        const header = document.getElementById('statColHeader');
+        body.innerHTML = '';
+
+        let sorted = [...playersData];
+
+        if (type === 'goals') {
+            header.innerText = "⚽ Голы";
+            sorted.sort((a,b) => b.goals - a.goals);
+        } else if (type === 'assists') {
+            header.innerText = "👟 Пасы";
+            sorted.sort((a,b) => b.assists - a.assists);
+        } else if (type === 'points') {
+            header.innerText = "🔥 Г+П";
+            sorted.sort((a,b) => (b.goals + b.assists) - (a.goals + a.assists));
+        } else if (type === 'mvp') {
+            header.innerText = "🏆 MVP";
+            sorted.sort((a,b) => (b.mvp || 0) - (a.mvp || 0));
+        }
+
+        sorted.forEach((p, i) => {
+            let val = 0;
+            if (type === 'goals') val = p.goals;
+            if (type === 'assists') val = p.assists;
+            if (type === 'points') val = p.goals + p.assists;
+            if (type === 'mvp') val = p.mvp || 0;
+
+            body.innerHTML += `
+                <tr>
+                    <td class="rank rank-${i+1}">${i + 1}</td>
+                    <td><strong>${p.name}</strong></td>
+                    <td style="text-align:right; font-weight:900; color:var(--primary-blue);">${val}</td>
+                </tr>
             `;
         });
-
-        document.getElementById('saveStatsBtn').style.display = 'block';
-    }
-
-    function changeStat(id, type, delta) {
-        if (!matchStats[id]) return;
-        if (matchStats[id][type] + delta < 0) return;
-        
-        matchStats[id][type] += delta;
-        
-        let prefix = 'g_';
-        if (type === 'assists') prefix = 'a_';
-        if (type === 'ownGoals') prefix = 'og_';
-        
-        document.getElementById(`${prefix}${id}`).innerText = matchStats[id][type];
-    }
-
-    function toggleMvp(id) {
-        if (!matchStats[id]) return;
-        matchStats[id].isMvp = !matchStats[id].isMvp;
-        const btn = document.getElementById(`mvp_${id}`);
-        if (matchStats[id].isMvp) {
-            btn.classList.add('active');
-        } else {
-            btn.classList.remove('active');
-        }
-    }
-
-    function finishMatch() {
-        activePlayers.forEach(p => {
-            let target = playersData.find(item => item.id === p.id);
-            if (!target) return;
-
-            const st = matchStats[p.id] || { goals: 0, assists: 0, ownGoals: 0, isMvp: false };
-            if (st.goals > 0 || st.assists > 0 || st.ownGoals > 0 || st.isMvp) {
-                target.goals += st.goals;
-                target.assists += st.assists;
-                target.ownGoals = (target.ownGoals || 0) + st.ownGoals;
-                
-                if (st.isMvp) {
-                    target.mvp = (target.mvp || 0) + 1;
-                }
-
-                let mvpBonus = st.isMvp ? 2.0 : 0;
-                let delta = (st.goals * 1.0) + (st.assists * 0.5) - (st.ownGoals * 1.0) + mvpBonus;
-                target.rating = Math.min(100, Math.max(0.0, target.rating + delta));
-            }
-        });
-
-        localStorage.setItem('sport_time_players', JSON.stringify(playersData));
-        alert("Результативность и рейтинги обновлены!");
-        renderPlayers();
-        switchTab('playersTab', document.querySelectorAll('.tab-btn')[0]);
     }
 
     function resetChanges() {
-        if (confirm("Сбросить рейтинги и статистику к начальным значениям?")) {
+        if (confirm("Сбросить рейтинги и статистику?")) {
             localStorage.removeItem('sport_time_players');
             playersData = JSON.parse(JSON.stringify(initialPlayers));
             renderPlayers();
