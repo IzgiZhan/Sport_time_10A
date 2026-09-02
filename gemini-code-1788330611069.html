@@ -17,6 +17,8 @@
         button:hover { background: #0056b3; }
         .btn-success { background: #28a745; }
         .btn-success:hover { background: #218838; }
+        .btn-danger { background: #dc3545; margin-top: 20px; }
+        .btn-danger:hover { background: #c82333; }
         .teams { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); margin-top: 25px; gap: 20px; }
         .team { background: #e9ecef; padding: 15px; border-radius: 8px; }
         .team ul { list-style: none; padding: 0; }
@@ -42,10 +44,11 @@
         <div id="statsForm" class="player-list"></div>
         <button onclick="finishMatch()">Сохранить статистику и обновить рейтинги</button>
     </div>
+
+    <button class="btn-danger" onclick="resetAllData()">Сбросить всё к исходным рейтингам</button>
 </div>
 
 <script>
-    // Начальные рейтинги ровно как вы передавали
     const initialPlayers = [
         { id: 1, name: "Alim", rating: 3.5, goals: 0, assists: 0 },
         { id: 2, name: "Akhmet", rating: 2.0, goals: 0, assists: 0 },
@@ -78,6 +81,14 @@
 
     let playersData = JSON.parse(localStorage.getItem('sport_time_players')) || initialPlayers;
     let currentActivePlayers = [];
+
+    // Корректировка для Омара (-2 гола, -0.2 рейтинга)
+    let omar = playersData.find(p => p.name === "Omar");
+    if (omar && omar.goals >= 2) {
+        omar.goals -= 2;
+        omar.rating = Math.max(1.0, omar.rating - 0.2);
+        localStorage.setItem('sport_time_players', JSON.stringify(playersData));
+    }
 
     function renderPlayers() {
         const container = document.getElementById('players');
@@ -186,7 +197,6 @@
                 playerInDb.goals += newGoals;
                 playerInDb.assists += newAssists;
 
-                // За гол +0.1, за ассист +0.05
                 let bonus = (newGoals * 0.1) + (newAssists * 0.05);
                 playerInDb.rating += bonus;
             }
@@ -198,6 +208,15 @@
         document.getElementById('result').style.display = 'none';
         document.getElementById('matchFinishSection').style.display = 'none';
         renderPlayers();
+    }
+
+    function resetAllData() {
+        if (confirm("Точно сбросить все результаты к исходным значениям?")) {
+            localStorage.removeItem('sport_time_players');
+            playersData = JSON.parse(JSON.stringify(initialPlayers));
+            renderPlayers();
+            alert("Все рейтинги сброшены!");
+        }
     }
 
     renderPlayers();
