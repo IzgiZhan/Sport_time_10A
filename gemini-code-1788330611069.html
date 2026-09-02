@@ -12,7 +12,7 @@
         .player-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 6px; }
         .player-info { display: flex; align-items: center; gap: 8px; }
         .stats-inputs { display: flex; gap: 5px; align-items: center; }
-        .stats-inputs input { width: 45px; padding: 4px; text-align: center; border: 1px solid #ccc; border-radius: 4px; }
+        .stats-inputs input { width: 40px; padding: 4px; text-align: center; border: 1px solid #ccc; border-radius: 4px; }
         button { display: block; width: 100%; padding: 12px; background: #007bff; color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
         button:hover { background: #0056b3; }
         .btn-success { background: #28a745; }
@@ -40,7 +40,7 @@
     <div id="matchFinishSection" style="display:none; margin-top: 30px;">
         <hr style="border: 0; border-top: 1px solid #ccc; margin-bottom: 20px;">
         <h2>2. Внести результаты матча</h2>
-        <p style="text-align: center; color: #666; font-size: 14px;">Укажите забитые голы (+0,1) и ассисты (+0,05) для участников:</p>
+        <p style="text-align: center; color: #666; font-size: 14px;">Укажите голы (+0,1), ассисты (+0,05) и автоголы (-0,1) для участников:</p>
         <div id="statsForm" class="player-list"></div>
         <button onclick="finishMatch()">Сохранить статистику и обновить рейтинги</button>
     </div>
@@ -50,33 +50,33 @@
 
 <script>
     const initialPlayers = [
-        { id: 1, name: "Alim", rating: 3.5, goals: 0, assists: 0 },
-        { id: 2, name: "Akhmet", rating: 2.0, goals: 0, assists: 0 },
-        { id: 3, name: "Ali", rating: 1.0, goals: 0, assists: 0 },
-        { id: 4, name: "Omar", rating: 4.5, goals: 0, assists: 0 },
-        { id: 5, name: "Sultan", rating: 2.5, goals: 0, assists: 0 },
-        { id: 6, name: "Islam", rating: 4.0, goals: 0, assists: 0 },
-        { id: 7, name: "Ilfat", rating: 4.0, goals: 0, assists: 0 },
-        { id: 8, name: "Damir", rating: 1.0, goals: 0, assists: 0 },
-        { id: 9, name: "Madiyar", rating: 2.0, goals: 0, assists: 0 },
-        { id: 10, name: "Batyr", rating: 2.5, goals: 0, assists: 0 },
-        { id: 11, name: "Tamerlan", rating: 4.0, goals: 0, assists: 0 },
-        { id: 12, name: "Abdirasul", rating: 3.0, goals: 0, assists: 0 },
-        { id: 13, name: "Rakhman", rating: 3.0, goals: 0, assists: 0 },
-        { id: 14, name: "Akhmad", rating: 4.0, goals: 0, assists: 0 },
-        { id: 15, name: "Nurtas", rating: 2.5, goals: 0, assists: 0 },
-        { id: 16, name: "Bauyrzhan", rating: 3.5, goals: 0, assists: 0 },
-        { id: 17, name: "Azamat", rating: 1.5, goals: 0, assists: 0 },
-        { id: 18, name: "Arnat", rating: 3.5, goals: 0, assists: 0 },
-        { id: 19, name: "Ismail", rating: 4.5, goals: 0, assists: 0 },
-        { id: 20, name: "Dias", rating: 2.5, goals: 0, assists: 0 },
-        { id: 21, name: "Oraz", rating: 3.0, goals: 0, assists: 0 },
-        { id: 22, name: "Amir", rating: 1.5, goals: 0, assists: 0 },
-        { id: 23, name: "Yeramir", rating: 2.5, goals: 0, assists: 0 },
-        { id: 24, name: "Alseit abi", rating: 4.5, goals: 0, assists: 0 },
-        { id: 25, name: "Abduluahid agay", rating: 4.0, goals: 0, assists: 0 },
-        { id: 26, name: "Mark", rating: 1.5, goals: 0, assists: 0 },
-        { id: 27, name: "Abdullah", rating: 1.0, goals: 0, assists: 0 }
+        { id: 1, name: "Alim", rating: 3.5, goals: 0, assists: 0, ownGoals: 0 },
+        { id: 2, name: "Akhmet", rating: 2.0, goals: 0, assists: 0, ownGoals: 0 },
+        { id: 3, name: "Ali", rating: 1.0, goals: 0, assists: 0, ownGoals: 0 },
+        { id: 4, name: "Omar", rating: 4.5, goals: 0, assists: 0, ownGoals: 0 },
+        { id: 5, name: "Sultan", rating: 2.5, goals: 0, assists: 0, ownGoals: 0 },
+        { id: 6, name: "Islam", rating: 4.0, goals: 0, assists: 0, ownGoals: 0 },
+        { id: 7, name: "Ilfat", rating: 4.0, goals: 0, assists: 0, ownGoals: 0 },
+        { id: 8, name: "Damir", rating: 1.0, goals: 0, assists: 0, ownGoals: 0 },
+        { id: 9, name: "Madiyar", rating: 2.0, goals: 0, assists: 0, ownGoals: 0 },
+        { id: 10, name: "Batyr", rating: 2.5, goals: 0, assists: 0, ownGoals: 0 },
+        { id: 11, name: "Tamerlan", rating: 4.0, goals: 0, assists: 0, ownGoals: 0 },
+        { id: 12, name: "Abdirasul", rating: 3.0, goals: 0, assists: 0, ownGoals: 0 },
+        { id: 13, name: "Rakhman", rating: 3.0, goals: 0, assists: 0, ownGoals: 0 },
+        { id: 14, name: "Akhmad", rating: 4.0, goals: 0, assists: 0, ownGoals: 0 },
+        { id: 15, name: "Nurtas", rating: 2.5, goals: 0, assists: 0, ownGoals: 0 },
+        { id: 16, name: "Bauyrzhan", rating: 3.5, goals: 0, assists: 0, ownGoals: 0 },
+        { id: 17, name: "Azamat", rating: 1.5, goals: 0, assists: 0, ownGoals: 0 },
+        { id: 18, name: "Arnat", rating: 3.5, goals: 0, assists: 0, ownGoals: 0 },
+        { id: 19, name: "Ismail", rating: 4.5, goals: 0, assists: 0, ownGoals: 0 },
+        { id: 20, name: "Dias", rating: 2.5, goals: 0, assists: 0, ownGoals: 0 },
+        { id: 21, name: "Oraz", rating: 3.0, goals: 0, assists: 0, ownGoals: 0 },
+        { id: 22, name: "Amir", rating: 1.5, goals: 0, assists: 0, ownGoals: 0 },
+        { id: 23, name: "Yeramir", rating: 2.5, goals: 0, assists: 0, ownGoals: 0 },
+        { id: 24, name: "Alseit abi", rating: 4.5, goals: 0, assists: 0, ownGoals: 0 },
+        { id: 25, name: "Abduluahid agay", rating: 4.0, goals: 0, assists: 0, ownGoals: 0 },
+        { id: 26, name: "Mark", rating: 1.5, goals: 0, assists: 0, ownGoals: 0 },
+        { id: 27, name: "Abdullah", rating: 1.0, goals: 0, assists: 0, ownGoals: 0 }
     ];
 
     let playersData = JSON.parse(localStorage.getItem('sport_time_players')) || JSON.parse(JSON.stringify(initialPlayers));
@@ -88,6 +88,9 @@
         container.innerHTML = '';
 
         playersData.forEach((p) => {
+            // Поддержка старых записей из localStorage без ownGoals
+            if (p.ownGoals === undefined) p.ownGoals = 0;
+
             container.innerHTML += `
                 <div class="player-item">
                     <div class="player-info">
@@ -155,12 +158,14 @@
         activePlayers.forEach(p => {
             statsForm.innerHTML += `
                 <div class="player-item">
-                    <span><b>${p.name}</b> (Всего Г: ${p.goals}, А: ${p.assists})</span>
+                    <span><b>${p.name}</b> <br><small style="color:#555">(Г: ${p.goals}, А: ${p.assists}, АГ: ${p.ownGoals || 0})</small></span>
                     <div class="stats-inputs">
                         <label>Г:</label>
                         <input type="number" id="g_${p.id}" value="0" min="0">
                         <label>А:</label>
                         <input type="number" id="a_${p.id}" value="0" min="0">
+                        <label>АГ:</label>
+                        <input type="number" id="og_${p.id}" value="0" min="0">
                     </div>
                 </div>
             `;
@@ -174,12 +179,16 @@
 
             const newGoals = parseInt(document.getElementById(`g_${p.id}`).value) || 0;
             const newAssists = parseInt(document.getElementById(`a_${p.id}`).value) || 0;
+            const newOwnGoals = parseInt(document.getElementById(`og_${p.id}`).value) || 0;
 
-            if (newGoals > 0 || newAssists > 0) {
+            if (newGoals > 0 || newAssists > 0 || newOwnGoals > 0) {
                 playerInDb.goals += newGoals;
                 playerInDb.assists += newAssists;
-                let bonus = (newGoals * 0.1) + (newAssists * 0.05);
-                playerInDb.rating += bonus;
+                playerInDb.ownGoals = (playerInDb.ownGoals || 0) + newOwnGoals;
+
+                // Гол +0.1, Ассист +0.05, Автогол -0.1
+                let delta = (newGoals * 0.1) + (newAssists * 0.05) - (newOwnGoals * 0.1);
+                playerInDb.rating = Math.max(0.5, playerInDb.rating + delta); // Рейтинг не падает ниже 0.5
             }
         });
 
