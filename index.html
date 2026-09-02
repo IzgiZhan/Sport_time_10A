@@ -134,20 +134,19 @@
         <button id="saveStatsBtn" class="btn btn-blue" style="display:none;" onclick="finishMatch()">Сохранить результативность</button>
     </div>
 
-    <button class="btn btn-dark" onclick="resetChanges()">🔄 Сбросить данные к исходным</button>
+    <button class="btn btn-dark" onclick="resetChanges()">🔄 Сбросить данные к начальным</button>
 </div>
 
 <script>
-    // Позиции сохранены прямо в коде навсегда!
     const initialPlayers = [
         { id: 1, name: "Alim", rating: 35.0, roles: ["НАП"], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
         { id: 2, name: "Akhmet", rating: 20.0, roles: ["ЗАЩ"], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 3, name: "Ali", rating: 10.0, roles: [], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 4, name: "Omar", rating: 45.0, roles: ["НАП"], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
+        { id: 3, name: "Ali", rating: 0.0, roles: [], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
+        { id: 4, name: "Omar", rating: 50.0, roles: ["НАП"], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
         { id: 5, name: "Sultan", rating: 25.0, roles: ["ЗАЩ"], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
         { id: 6, name: "Islam", rating: 40.0, roles: ["ВРТ"], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
         { id: 7, name: "Ilfat", rating: 40.0, roles: ["НАП"], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 8, name: "Damir", rating: 10.0, roles: [], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
+        { id: 8, name: "Damir", rating: 0.0, roles: [], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
         { id: 9, name: "Madiyar", rating: 20.0, roles: ["ЗАЩ"], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
         { id: 10, name: "Batyr", rating: 25.0, roles: ["ВРТ"], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
         { id: 11, name: "Tamerlan", rating: 40.0, roles: ["НАП"], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
@@ -156,28 +155,28 @@
         { id: 14, name: "Akhmad", rating: 40.0, roles: ["ЗАЩ"], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
         { id: 15, name: "Nurtas", rating: 25.0, roles: [], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
         { id: 16, name: "Bauyrzhan", rating: 35.0, roles: ["НАП"], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 17, name: "Azamat", rating: 15.0, roles: ["ЗАЩ"], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
+        { id: 17, name: "Azamat", rating: 10.0, roles: ["ЗАЩ"], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
         { id: 18, name: "Arnat", rating: 35.0, roles: ["НАП"], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 19, name: "Ismail", rating: 45.0, roles: ["НАП"], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
+        { id: 19, name: "Ismail", rating: 50.0, roles: ["НАП"], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
         { id: 20, name: "Dias", rating: 25.0, roles: ["ЗАЩ"], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
         { id: 21, name: "Oraz", rating: 30.0, roles: ["ВРТ"], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 22, name: "Amir", rating: 15.0, roles: [], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
+        { id: 22, name: "Amir", rating: 10.0, roles: [], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
         { id: 23, name: "Yeramir", rating: 25.0, roles: ["ЗАЩ"], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 24, name: "Alseit abi", rating: 45.0, roles: ["НАП"], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
+        { id: 24, name: "Alseit abi", rating: 50.0, roles: ["НАП"], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
         { id: 25, name: "Abduluahid agay", rating: 40.0, roles: ["ЗАЩ"], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 26, name: "Mark", rating: 15.0, roles: [], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
-        { id: 27, name: "Abdullah", rating: 10.0, roles: [], goals: 0, assists: 0, ownGoals: 0, mvp: 0 }
+        { id: 26, name: "Mark", rating: 10.0, roles: [], goals: 0, assists: 0, ownGoals: 0, mvp: 0 },
+        { id: 27, name: "Abdullah", rating: 0.0, roles: [], goals: 0, assists: 0, ownGoals: 0, mvp: 0 }
     ];
 
     let savedData = JSON.parse(localStorage.getItem('sport_time_players'));
     let playersData;
 
     if (savedData) {
-        // Синхронизируем сохраненные роли с новыми дефолтными
         playersData = savedData.map(p => {
             let initP = initialPlayers.find(ip => ip.id === p.id);
-            if (initP && (!p.roles || p.roles.length === 0)) {
-                p.roles = initP.roles;
+            if (initP) {
+                p.rating = initP.rating;
+                if (!p.roles) p.roles = initP.roles;
             }
             return p;
         });
@@ -279,38 +278,46 @@
 
         activePlayers = selected;
         const numTeams = Math.ceil(selected.length / 5);
-        const maxPerTeam = Math.ceil(selected.length / numTeams);
-
         let teams = Array.from({ length: numTeams }, () => ({ players: [], score: 0 }));
 
+        // 1. Распределяем вратарей
         let vrtList = shuffle(selected.filter(p => p.roles && p.roles.includes('ВРТ')));
-        let isOnlyZas = p => p.roles && p.roles.includes('ЗАЩ') && !p.roles.includes('НАП') && !p.roles.includes('ВРТ');
-        let isOnlyNap = p => p.roles && p.roles.includes('НАП') && !p.roles.includes('ЗАЩ') && !p.roles.includes('ВРТ');
-        
-        let zasList = shuffle(selected.filter(isOnlyZas)).sort((a, b) => b.rating - a.rating);
-        let napList = shuffle(selected.filter(isOnlyNap)).sort((a, b) => b.rating - a.rating);
-        let othersList = shuffle(selected.filter(p => !vrtList.includes(p) && !zasList.includes(p) && !napList.includes(p))).sort((a, b) => b.rating - a.rating);
+        let remaining = selected.filter(p => !vrtList.includes(p));
 
-        function addPlayerToBestTeam(p) {
-            let availableTeams = teams.filter(t => t.players.length < maxPerTeam);
-            if (availableTeams.length === 0) availableTeams = teams;
-
-            availableTeams.sort((a, b) => a.score - b.score);
-            let targetTeam = availableTeams[0];
-
+        vrtList.forEach((p, idx) => {
+            let targetTeam = teams[idx % numTeams];
             targetTeam.players.push(p);
             targetTeam.score += p.rating;
+        });
+
+        // 2. Сортируем всех оставшихся по строго убыванию рейтинга
+        remaining.sort((a, b) => b.rating - a.rating);
+
+        // 3. Разбиваем игроков на уровни (корзины) по размеру равным количеству команд
+        let buckets = [];
+        for (let i = 0; i < remaining.length; i += numTeams) {
+            let chunk = remaining.slice(i, i + numTeams);
+            buckets.push(shuffle(chunk)); // Перемешиваем внутри уровня для равенства
         }
 
-        vrtList.forEach(p => addPlayerToBestTeam(p));
+        // 4. Поочередно отдаем игроков каждой команде по 1 человеку с каждого уровня!
+        let direction = true;
+        buckets.forEach(bucket => {
+            // Для гибкости распределения сортируем команды по текущей силе (очкам)
+            // И даем сильнейшего игрока из слота самой слабой на данный момент команде!
+            let sortedTeams = [...teams].sort((a, b) => {
+                if (a.players.length !== b.players.length) {
+                    return a.players.length - b.players.length; // сначала в ту, где меньше человек
+                }
+                return a.score - b.score; // затем в ту, у которой меньше рейтинг
+            });
 
-        let maxLen = Math.max(zasList.length, napList.length);
-        for (let i = 0; i < maxLen; i++) {
-            if (zasList[i]) addPlayerToBestTeam(zasList[i]);
-            if (napList[i]) addPlayerToBestTeam(napList[i]);
-        }
-
-        othersList.forEach(p => addPlayerToBestTeam(p));
+            bucket.forEach((p, index) => {
+                let targetTeam = sortedTeams[index % sortedTeams.length];
+                targetTeam.players.push(p);
+                targetTeam.score += p.rating;
+            });
+        });
 
         const res = document.getElementById('teamsResult');
         res.innerHTML = '';
@@ -437,7 +444,7 @@
 
                 let mvpBonus = st.isMvp ? 2.0 : 0;
                 let delta = (st.goals * 1.0) + (st.assists * 0.5) - (st.ownGoals * 1.0) + mvpBonus;
-                target.rating = Math.min(100, Math.max(5.0, target.rating + delta));
+                target.rating = Math.min(100, Math.max(0.0, target.rating + delta));
             }
         });
 
