@@ -6,15 +6,15 @@
     <title>Sport Time  - Tournament</title>
     <style>
         :root {
-            --bg-color: #f4f6fb;
+            --bg-color: #f4f6f9;
             --card-bg: #ffffff;
             --card-border: #e2e8f0;
-            --primary-red: #e63946;
-            --primary-green: #10b981;
-            --primary-blue: #2563eb;
-            --primary-gold: #d97706;
-            --text-main: #1e293b;
-            --text-sub: #64748b;
+            --primary-red: #e53e3e;
+            --primary-green: #38a169;
+            --primary-blue: #3182ce;
+            --primary-gold: #d69e2e;
+            --text-main: #1a202c;
+            --text-sub: #718096;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -28,9 +28,8 @@
         }
 
         header { 
-            background: rgba(255, 255, 255, 0.9); 
-            backdrop-filter: blur(12px); 
-            border-bottom: 2px solid var(--primary-red); 
+            background: #ffffff; 
+            border-bottom: 2px solid var(--primary-blue); 
             padding: 20px; 
             text-align: center; 
             position: sticky; 
@@ -43,12 +42,12 @@
             font-size: 26px; 
             font-weight: 900; 
             text-transform: uppercase; 
-            letter-spacing: 2px; 
+            letter-spacing: 1px; 
             color: var(--text-main); 
         }
         
         header h1 span { 
-            color: var(--primary-red); 
+            color: var(--primary-blue); 
         }
 
         .tabs { 
@@ -78,7 +77,7 @@
         .tab-btn.active { 
             color: var(--primary-blue); 
             border-bottom-color: var(--primary-blue); 
-            background: rgba(37, 99, 235, 0.08); 
+            background: #ebf8ff; 
         }
 
         .container { max-width: 800px; margin: 0 auto; padding: 16px; }
@@ -99,7 +98,7 @@
             text-transform: uppercase; 
             color: var(--primary-blue); 
             font-weight: 900; 
-            letter-spacing: 1.2px; 
+            letter-spacing: 1px; 
         }
 
         /* Players Grid */
@@ -122,18 +121,18 @@
         .player-info { display: flex; align-items: center; gap: 12px; }
         
         .player-info input[type="checkbox"] { 
-            width: 22px; 
-            height: 22px; 
-            accent-color: var(--primary-red); 
+            width: 20px; 
+            height: 20px; 
+            accent-color: var(--primary-blue); 
             cursor: pointer; 
         }
         
         .player-name { font-weight: 800; font-size: 16px; color: var(--text-main); }
         
         .player-rating { 
-            background: rgba(37, 99, 235, 0.08); 
+            background: #ebf8ff; 
             color: var(--primary-blue); 
-            border: 1px solid rgba(37, 99, 235, 0.2); 
+            border: 1px solid #bee3f8; 
             border-radius: 20px; 
             padding: 3px 10px; 
             font-size: 12px; 
@@ -144,7 +143,7 @@
         
         .role-btn { 
             border: 1px solid var(--card-border); 
-            background: #f8fafc; 
+            background: #f7fafc; 
             color: var(--text-sub); 
             font-size: 11px; 
             font-weight: 800; 
@@ -153,9 +152,9 @@
             cursor: pointer; 
         }
         
-        .role-btn.active[data-role="FWD"] { background: var(--primary-red); color: #fff; border-color: var(--primary-red); font-weight: 900; }
-        .role-btn.active[data-role="DEF"] { background: var(--primary-blue); color: #fff; border-color: var(--primary-blue); font-weight: 900; }
-        .role-btn.active[data-role="GK"] { background: var(--primary-gold); color: #fff; border-color: var(--primary-gold); font-weight: 900; }
+        .role-btn.active[data-role="FWD"] { background: var(--primary-red); color: #fff; border-color: var(--primary-red); }
+        .role-btn.active[data-role="DEF"] { background: var(--primary-blue); color: #fff; border-color: var(--primary-blue); }
+        .role-btn.active[data-role="GK"] { background: var(--primary-gold); color: #fff; border-color: var(--primary-gold); }
 
         .btn { 
             display: block; 
@@ -170,64 +169,82 @@
             cursor: pointer; 
             transition: all 0.2s ease-in-out; 
             margin-top: 16px; 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08); 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05); 
         }
         
-        .btn:hover { transform: translateY(-2px); filter: brightness(1.05); }
+        .btn:hover { transform: translateY(-1px); filter: brightness(0.95); }
         .btn:active { transform: translateY(0); }
-        .btn-green { background: linear-gradient(135deg, #10b981, #059669); color: #fff; }
-        .btn-blue { background: linear-gradient(135deg, #2563eb, #1d4ed8); color: #fff; }
-        .btn-dark { background: #e2e8f0; border: 1px solid #cbd5e1; color: var(--text-main); margin-top: 30px; font-size: 12px; font-weight: 800; }
+        .btn-green { background: var(--primary-green); color: #fff; }
+        .btn-blue { background: var(--primary-blue); color: #fff; }
+        .btn-dark { background: #edf2f7; border: 1px solid var(--card-border); color: var(--text-sub); margin-top: 30px; font-size: 12px; font-weight: 800; }
 
         /* Teams Cards */
         .teams-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px; margin-bottom: 20px; }
         .team-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
-        .team-header { background: #f8fafc; color: var(--text-main); padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; gap: 8px; border-bottom: 1px solid var(--card-border); }
+        .team-header { background: #f7fafc; color: var(--text-main); padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; gap: 8px; border-bottom: 1px solid var(--card-border); }
         .team-header-title { display: flex; align-items: center; gap: 10px; flex: 1; }
         .team-logo { width: 30px; height: 30px; object-fit: contain; background: #fff; border-radius: 50%; padding: 2px; border: 1px solid var(--card-border); }
-        .team-select { background: #ffffff; color: var(--text-main); border: 1px solid var(--card-border); font-weight: 800; font-size: 13px; border-radius: 8px; padding: 6px; width: 100%; outline: none; }
-        .team-score { font-size: 12px; font-weight: 900; background: rgba(230, 57, 70, 0.1); color: var(--primary-red); border: 1px solid rgba(230, 57, 70, 0.2); padding: 4px 8px; border-radius: 12px; }
+        .team-select { background: #fff; color: var(--text-main); border: 1px solid var(--card-border); font-weight: 800; font-size: 13px; border-radius: 8px; padding: 6px; width: 100%; outline: none; }
+        .team-score { font-size: 12px; font-weight: 900; background: #ebf8ff; color: var(--primary-blue); border: 1px solid #bee3f8; padding: 4px 8px; border-radius: 12px; }
         .team-list { list-style: none; }
         .team-list li { padding: 12px 14px; border-bottom: 1px solid var(--card-border); font-size: 14px; display: flex; justify-content: space-between; font-weight: 700; color: var(--text-main); }
-        .team-list li:last-child { border-bottom: none; }
 
         /* Round Nav */
         .round-nav { display: flex; align-items: center; justify-content: space-between; background: var(--card-bg); border: 1px solid var(--card-border); padding: 12px 16px; border-radius: 14px; margin-bottom: 16px; }
         .round-nav button { background: var(--primary-blue); color: #fff; border: none; padding: 10px 16px; font-weight: 900; font-size: 12px; border-radius: 8px; cursor: pointer; }
-        .round-nav button:disabled { background: #cbd5e1; cursor: not-allowed; }
-        .round-nav select { background: #f8fafc; border: 1px solid var(--card-border); font-weight: 900; font-size: 14px; color: var(--text-main); padding: 8px 12px; border-radius: 8px; outline: none; }
+        .round-nav button:disabled { background: var(--card-border); opacity: 0.5; cursor: not-allowed; }
+        .round-nav select { background: #fff; border: 1px solid var(--card-border); font-weight: 900; font-size: 14px; color: var(--text-main); padding: 8px 12px; border-radius: 8px; outline: none; }
 
         /* Table */
         .table-wrapper { overflow-x: auto; background: var(--card-bg); border-radius: 14px; border: 1px solid var(--card-border); margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
         .league-table { width: 100%; border-collapse: collapse; text-align: center; font-size: 14px; }
-        .league-table th { background: #f8fafc; color: var(--text-sub); padding: 14px 10px; font-weight: 800; text-transform: uppercase; font-size: 11px; border-bottom: 1px solid var(--card-border); }
-        .league-table td { padding: 14px 10px; border-bottom: 1px solid var(--card-border); font-weight: 700; color: var(--text-main); }
+        .league-table th { background: #f7fafc; color: var(--text-sub); padding: 14px 10px; font-weight: 800; text-transform: uppercase; font-size: 11px; border-bottom: 1px solid var(--card-border); }
+        .league-table td { padding: 14px 10px; border-bottom: 1px solid var(--card-border); font-weight: 700; }
         .team-cell { text-align: left; font-weight: 900; color: var(--text-main); display: flex; align-items: center; gap: 10px; }
-        .pts-cell { font-weight: 900; color: var(--primary-green); background: rgba(16, 185, 129, 0.08); }
+        .pts-cell { font-weight: 900; color: var(--primary-green); background: #f0fff4; }
 
         /* Matches */
         .match-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px; padding: 16px; margin-bottom: 14px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
-        .match-badge { font-size: 11px; font-weight: 900; color: #ffffff; background: var(--primary-blue); padding: 4px 10px; border-radius: 6px; align-self: flex-start; text-transform: uppercase; }
+        .match-badge { font-size: 11px; font-weight: 900; color: var(--primary-blue); background: #ebf8ff; padding: 4px 10px; border-radius: 6px; align-self: flex-start; text-transform: uppercase; border: 1px solid #bee3f8; }
         .match-main { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
         .match-team { flex: 1; font-size: 14px; font-weight: 800; display: flex; align-items: center; gap: 8px; color: var(--text-main); }
         .match-team.right { justify-content: flex-end; text-align: right; }
         .match-score-inputs { display: flex; align-items: center; gap: 8px; }
-        .match-score-inputs input { width: 44px; height: 44px; text-align: center; font-size: 20px; font-weight: 900; background: #f8fafc; border: 2px solid var(--card-border); color: var(--primary-gold); border-radius: 10px; outline: none; }
-        .match-score-inputs input:focus { border-color: var(--primary-blue); background: #ffffff; }
+        .match-score-inputs input { width: 44px; height: 44px; text-align: center; font-size: 20px; font-weight: 900; background: #f7fafc; border: 2px solid var(--card-border); color: var(--text-main); border-radius: 10px; outline: none; }
+        .match-score-inputs input:focus { border-color: var(--primary-blue); background: #fff; }
         .match-btn { background: var(--primary-green); color: #fff; border: none; padding: 12px 16px; border-radius: 10px; font-size: 13px; font-weight: 900; cursor: pointer; }
+
+        .goal-events-container { background: #f7fafc; border: 1px dashed var(--card-border); padding: 12px; border-radius: 12px; margin-top: 6px; }
+        .goal-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; background: #fff; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--card-border); }
+        .goal-row select { padding: 6px; border-radius: 8px; background: #fff; border: 1px solid var(--card-border); color: var(--text-main); font-size: 12px; font-weight: 700; outline: none; flex: 1; min-width: 120px; }
+        .goal-row label { font-size: 11px; font-weight: 800; color: var(--text-sub); }
+
+        .autogol-label {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 11px;
+            font-weight: 800;
+            color: var(--primary-red);
+            background: #fff5f5;
+            padding: 4px 8px;
+            border-radius: 6px;
+            border: 1px solid #fed7d7;
+            cursor: pointer;
+        }
 
         /* Leaderboard */
         .filter-bar { display: flex; gap: 8px; margin-bottom: 16px; overflow-x: auto; }
         .filter-btn { padding: 10px 18px; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 20px; font-size: 12px; font-weight: 800; color: var(--text-sub); cursor: pointer; white-space: nowrap; }
-        .filter-btn.active { background: var(--primary-red); color: #fff; border-color: var(--primary-red); }
+        .filter-btn.active { background: var(--primary-blue); color: #fff; border-color: var(--primary-blue); }
 
         .leader-table { width: 100%; border-collapse: collapse; background: var(--card-bg); border-radius: 14px; overflow: hidden; border: 1px solid var(--card-border); box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
-        .leader-table th, .leader-table td { padding: 14px 16px; text-align: left; font-size: 14px; font-weight: 700; border-bottom: 1px solid var(--card-border); color: var(--text-main); }
-        .leader-table th { background: #f8fafc; color: var(--text-sub); font-size: 11px; text-transform: uppercase; }
+        .leader-table th, .leader-table td { padding: 14px 16px; text-align: left; font-size: 14px; font-weight: 700; border-bottom: 1px solid var(--card-border); }
+        .leader-table th { background: #f7fafc; color: var(--text-sub); font-size: 11px; text-transform: uppercase; }
         .rank { font-weight: 900; width: 40px; text-align: center; color: var(--text-sub); }
-        .rank-1 { color: #d97706; font-size: 16px; }
-        .rank-2 { color: #64748b; font-size: 15px; }
-        .rank-3 { color: #b45309; font-size: 15px; }
+        .rank-1 { color: var(--primary-gold); font-size: 16px; }
+        .rank-2 { color: #718096; font-size: 15px; }
+        .rank-3 { color: #dd6b20; font-size: 15px; }
     </style>
 </head>
 <body>
@@ -399,12 +416,17 @@
     let totalRounds = 0;
     let baseCycleRounds = [];
 
+    function savePlayersData() {
+        localStorage.setItem('sport_time_players', JSON.stringify(playersData));
+    }
+
     function switchTab(tabId, btn) {
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.getElementById(tabId).classList.add('active');
         if(btn) btn.classList.add('active');
         if(tabId === 'leadersTab') renderLeaderboard('goals');
+        if(tabId === 'playersTab') renderPlayers();
     }
 
     function renderPlayers() {
@@ -445,7 +467,7 @@
             const idx = player.roles.indexOf(role);
             if (idx > -1) player.roles.splice(idx, 1);
             else player.roles.push(role);
-            localStorage.setItem('sport_time_players', JSON.stringify(playersData));
+            savePlayersData();
             renderPlayers();
         }
     }
@@ -510,18 +532,11 @@
         return schedule;
     }
 
-    function getRandomValidPresets(numTeams) {
-        let isClubTournament = Math.random() < 0.5;
-        let allowedType = isClubTournament ? 'club' : 'country';
-        let available = clubPresets.filter(p => p.type === allowedType).sort(() => Math.random() - 0.5);
-        return available.slice(0, numTeams);
-    }
-
     function generateAndSwitch() {
         let selected = [];
         playersData.forEach(p => {
             const cb = document.getElementById(`check_${p.id}`);
-            if (cb && cb.checked) selected.push(JSON.parse(JSON.stringify(p)));
+            if (cb && cb.checked) selected.push(p);
         });
 
         if (selected.length < 2) { alert("Please select at least 2 players!"); return; }
@@ -569,6 +584,13 @@
         renderTeamsCards();
 
         switchTab('teamsTab', document.querySelectorAll('.tab-btn')[1]);
+    }
+
+    function getRandomValidPresets(numTeams) {
+        let isClubTournament = Math.random() < 0.5;
+        let allowedType = isClubTournament ? 'club' : 'country';
+        let available = clubPresets.filter(p => p.type === allowedType).sort(() => Math.random() - 0.5);
+        return available.slice(0, numTeams);
     }
 
     function appendRoundToSchedule() {
@@ -716,6 +738,61 @@
             let val1 = m.s1 !== null ? m.s1 : '';
             let val2 = m.s2 !== null ? m.s2 : '';
 
+            let playersOptionsT1 = t1 ? t1.players.map(p => `<option value="${p.id}">${p.name}</option>`).join('') : '';
+            let playersOptionsT2 = t2 ? t2.players.map(p => `<option value="${p.id}">${p.name}</option>`).join('') : '';
+
+            let eventsHtml = '';
+            if (val1 !== '' && val2 !== '' && (parseInt(val1) > 0 || parseInt(val2) > 0)) {
+                let goalsCount1 = parseInt(val1) || 0;
+                let goalsCount2 = parseInt(val2) || 0;
+
+                eventsHtml += `<div class="goal-events-container">`;
+                
+                // Голы команды 1
+                for(let i=0; i < goalsCount1; i++) {
+                    eventsHtml += `
+                        <div class="goal-row">
+                            <span style="font-size:11px; font-weight:800; color:var(--primary-blue);">${t1.name} Goal #${i+1}:</span>
+                            <label>Scorer:</label>
+                            <select id="m_${m.id}_t1_g${i}_scorer">
+                                ${playersOptionsT1}
+                            </select>
+                            <label class="autogol-label">
+                                <input type="checkbox" id="m_${m.id}_t1_g${i}_og" onchange="toggleAutogolView(${m.id}, 't1', ${i})"> Автогол
+                            </label>
+                            <label>Assist:</label>
+                            <select id="m_${m.id}_t1_g${i}_assistant">
+                                <option value="">None</option>
+                                ${playersOptionsT1}
+                            </select>
+                        </div>
+                    `;
+                }
+
+                // Голы команды 2
+                for(let i=0; i < goalsCount2; i++) {
+                    eventsHtml += `
+                        <div class="goal-row">
+                            <span style="font-size:11px; font-weight:800; color:var(--primary-red);">${t2.name} Goal #${i+1}:</span>
+                            <label>Scorer:</label>
+                            <select id="m_${m.id}_t2_g${i}_scorer">
+                                ${playersOptionsT2}
+                            </select>
+                            <label class="autogol-label">
+                                <input type="checkbox" id="m_${m.id}_t2_g${i}_og" onchange="toggleAutogolView(${m.id}, 't2', ${i})"> Автогол
+                            </label>
+                            <label>Assist:</label>
+                            <select id="m_${m.id}_t2_g${i}_assistant">
+                                <option value="">None</option>
+                                ${playersOptionsT2}
+                            </select>
+                        </div>
+                    `;
+                }
+
+                eventsHtml += `</div>`;
+            }
+
             container.innerHTML += `
                 <div class="match-card">
                     <div class="match-badge">Match #${m.id} - Round ${m.tour}</div>
@@ -725,9 +802,9 @@
                             <span>${t1 ? t1.name : 'T1'}</span>
                         </div>
                         <div class="match-score-inputs">
-                            <input type="number" min="0" id="m_${m.id}_s1" value="${val1}">
+                            <input type="number" min="0" id="m_${m.id}_s1" value="${val1}" onchange="updateMatchEventsView(${m.id})">
                             <span>:</span>
-                            <input type="number" min="0" id="m_${m.id}_s2" value="${val2}">
+                            <input type="number" min="0" id="m_${m.id}_s2" value="${val2}" onchange="updateMatchEventsView(${m.id})">
                         </div>
                         <div class="match-team right">
                             <span>${t2 ? t2.name : 'T2'}</span>
@@ -735,10 +812,37 @@
                         </div>
                     </div>
                     
-                    <button class="match-btn" onclick="saveMatchResult(${m.id})">💾 Save Match</button>
+                    <div id="events_container_${m.id}">
+                        ${eventsHtml}
+                    </div>
+
+                    <button class="match-btn" onclick="saveMatchResult(${m.id})">💾 Save Match & Stats</button>
                 </div>
             `;
         });
+    }
+
+    function toggleAutogolView(matchId, teamTag, goalIdx) {
+        let isOg = document.getElementById(`m_${matchId}_${teamTag}_g${goalIdx}_og`).checked;
+        let assistSelect = document.getElementById(`m_${matchId}_${teamTag}_g${goalIdx}_assistant`);
+        if (isOg) {
+            assistSelect.value = "";
+            assistSelect.disabled = true;
+        } else {
+            assistSelect.disabled = false;
+        }
+    }
+
+    function updateMatchEventsView(matchId) {
+        let s1Val = document.getElementById(`m_${matchId}_s1`).value;
+        let s2Val = document.getElementById(`m_${matchId}_s2`).value;
+        let match = activeMatches.find(m => m.id === matchId);
+        if(!match) return;
+
+        match.s1 = s1Val !== '' ? parseInt(s1Val) : null;
+        match.s2 = s2Val !== '' ? parseInt(s2Val) : null;
+
+        renderCurrentRoundMatches();
     }
 
     function saveMatchResult(matchId) {
@@ -753,13 +857,109 @@
             return;
         }
 
-        match.s1 = parseInt(s1Input);
-        match.s2 = parseInt(s2Input);
+        let s1 = parseInt(s1Input);
+        let s2 = parseInt(s2Input);
+
+        let t1 = activeTeams.find(t => t.id === match.t1);
+        let t2 = activeTeams.find(t => t.id === match.t2);
+
+        let matchGoalsEvents = [];
+        
+        // Голы команды 1
+        for (let i = 0; i < s1; i++) {
+            let scorerId = parseInt(document.getElementById(`m_${matchId}_t1_g${i}_scorer`).value);
+            let isOg = document.getElementById(`m_${matchId}_t1_g${i}_og`).checked;
+            let assistantVal = document.getElementById(`m_${matchId}_t1_g${i}_assistant`).value;
+            let assistantId = (!isOg && assistantVal !== "") ? parseInt(assistantVal) : null;
+
+            if (!isOg && scorerId && assistantId && scorerId === assistantId) {
+                alert(`Автор гола и ассистент не могут быть одним лицом! (${t1.name}, Гол #${i+1})`);
+                return;
+            }
+
+            matchGoalsEvents.push({ scorerId, assistantId, isOg, teamId: t1.id });
+        }
+
+        // Голы команды 2
+        for (let i = 0; i < s2; i++) {
+            let scorerId = parseInt(document.getElementById(`m_${matchId}_t2_g${i}_scorer`).value);
+            let isOg = document.getElementById(`m_${matchId}_t2_g${i}_og`).checked;
+            let assistantVal = document.getElementById(`m_${matchId}_t2_g${i}_assistant`).value;
+            let assistantId = (!isOg && assistantVal !== "") ? parseInt(assistantVal) : null;
+
+            if (!isOg && scorerId && assistantId && scorerId === assistantId) {
+                alert(`Автор гола и ассистент не могут быть одним лицом! (${t2.name}, Гол #${i+1})`);
+                return;
+            }
+
+            matchGoalsEvents.push({ scorerId, assistantId, isOg, teamId: t2.id });
+        }
+
+        match.s1 = s1;
+        match.s2 = s2;
         match.played = true;
 
+        let matchScores = {}; 
+
+        matchGoalsEvents.forEach(e => {
+            let scorer = playersData.find(p => p.id === e.scorerId);
+            if (scorer) {
+                if (e.isOg) {
+                    // Автогол: -1.0 к рейтингу
+                    scorer.rating -= 1.0;
+                    matchScores[scorer.id] = (matchScores[scorer.id] || 0) - 1.0;
+                } else {
+                    // Гол: +1 гол, +2.0 к рейтингу
+                    scorer.goals += 1;
+                    scorer.rating += 2.0; 
+                    matchScores[scorer.id] = (matchScores[scorer.id] || 0) + 2.0;
+                }
+            }
+
+            // Ассистент
+            if (!e.isOg && e.assistantId) {
+                let assistant = playersData.find(p => p.id === e.assistantId);
+                if (assistant) {
+                    assistant.assists += 1;
+                    assistant.rating += 1.0; 
+                    matchScores[assistant.id] = (matchScores[assistant.id] || 0) + 1.0;
+                }
+            }
+        });
+
+        // Расчет MVP
+        let mvpPlayerId = null;
+        let maxPoints = -100;
+        let topPlayers = [];
+
+        Object.keys(matchScores).forEach(pId => {
+            let score = matchScores[pId];
+            if (score > maxPoints && score > 0) {
+                maxPoints = score;
+                topPlayers = [parseInt(pId)];
+            } else if (score === maxPoints && score > 0) {
+                topPlayers.push(parseInt(pId));
+            }
+        });
+
+        if (topPlayers.length > 0) {
+            let randomIndex = Math.floor(Math.random() * topPlayers.length);
+            mvpPlayerId = topPlayers[randomIndex];
+
+            let mvpPlayer = playersData.find(p => p.id === mvpPlayerId);
+            if (mvpPlayer) {
+                mvpPlayer.mvp += 1;
+                mvpPlayer.rating += 3.0;
+            }
+        }
+
+        savePlayersData();
         recalculateStandings();
         renderLeagueTable();
-        alert("Результат матча сохранен!");
+        renderTeamsCards();
+
+        let mvpName = mvpPlayerId ? playersData.find(p => p.id === mvpPlayerId)?.name : 'Никто';
+        alert(`Результат сохранен!\n🏆 MVP матча: ${mvpName} (+3 к рейтингу!)`);
     }
 
     function recalculateStandings() {
@@ -802,16 +1002,11 @@
         container.innerHTML = '';
 
         let currentTournamentType = activeTeams.length > 0 ? activeTeams[0].type : 'club';
-        let takenTeamNames = activeTeams.map(t => t.name);
+        let availablePresets = clubPresets.filter(p => p.type === currentTournamentType);
 
         activeTeams.forEach(t => {
             let totalRating = t.players.reduce((sum, p) => sum + p.rating, 0);
             
-            let availablePresets = clubPresets.filter(p => 
-                p.type === currentTournamentType && 
-                (!takenTeamNames.includes(p.name) || p.name === t.name)
-            );
-
             let optionsHtml = availablePresets.map(p => 
                 `<option value="${p.name}" ${p.name === t.name ? 'selected' : ''}>${p.name}</option>`
             ).join('');
@@ -877,7 +1072,10 @@
             body.innerHTML += `
                 <tr>
                     <td class="rank ${rankClass}">${index + 1}</td>
-                    <td style="font-weight:800;">${p.name}</td>
+                    <td style="font-weight:800;">
+                        ${p.name} 
+                        <span style="font-size:11px; color:var(--primary-blue); font-weight:normal;">(⭐${p.rating.toFixed(1)})</span>
+                    </td>
                     <td style="text-align:right; font-weight:900; color:var(--primary-gold);">${val}</td>
                 </tr>
             `;
@@ -885,7 +1083,7 @@
     }
 
     function resetChanges() {
-        if (confirm("Вы уверены, что хотите сбросить все данные турнира?")) {
+        if (confirm("Вы уверены, что хотите сбросить все данные турнира и статистику?")) {
             localStorage.removeItem('sport_time_players');
             playersData = JSON.parse(JSON.stringify(initialPlayers));
             activeTeams = [];
