@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -46,9 +46,7 @@
             color: var(--text-main); 
         }
         
-        header h1 span { 
-            color: var(--primary-blue); 
-        }
+        header h1 span { color: var(--primary-blue); }
 
         .tabs { 
             display: flex; 
@@ -81,7 +79,6 @@
         }
 
         .container { max-width: 800px; margin: 0 auto; padding: 16px; }
-
         .section { display: none; }
         .section.active { display: block; }
 
@@ -101,7 +98,6 @@
             letter-spacing: 1px; 
         }
 
-        /* Players Grid */
         .player-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
         
         .player-card { 
@@ -117,68 +113,23 @@
         }
         
         .player-card:hover { border-color: var(--primary-blue); }
-
         .player-info { display: flex; align-items: center; gap: 12px; }
-        
-        .player-info input[type="checkbox"] { 
-            width: 20px; 
-            height: 20px; 
-            accent-color: var(--primary-blue); 
-            cursor: pointer; 
-        }
-        
+        .player-info input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--primary-blue); cursor: pointer; }
         .player-name { font-weight: 800; font-size: 16px; color: var(--text-main); }
-        
-        .player-rating { 
-            background: #ebf8ff; 
-            color: var(--primary-blue); 
-            border: 1px solid #bee3f8; 
-            border-radius: 20px; 
-            padding: 3px 10px; 
-            font-size: 12px; 
-            font-weight: 900; 
-        }
+        .player-rating { background: #ebf8ff; color: var(--primary-blue); border: 1px solid #bee3f8; border-radius: 20px; padding: 3px 10px; font-size: 12px; font-weight: 900; }
 
         .role-selector { display: flex; gap: 6px; margin-top: 8px; }
-        
-        .role-btn { 
-            border: 1px solid var(--card-border); 
-            background: #f7fafc; 
-            color: var(--text-sub); 
-            font-size: 11px; 
-            font-weight: 800; 
-            padding: 5px 10px; 
-            border-radius: 8px; 
-            cursor: pointer; 
-        }
-        
+        .role-btn { border: 1px solid var(--card-border); background: #f7fafc; color: var(--text-sub); font-size: 11px; font-weight: 800; padding: 5px 10px; border-radius: 8px; cursor: pointer; }
         .role-btn.active[data-role="FWD"] { background: var(--primary-red); color: #fff; border-color: var(--primary-red); }
         .role-btn.active[data-role="DEF"] { background: var(--primary-blue); color: #fff; border-color: var(--primary-blue); }
         .role-btn.active[data-role="GK"] { background: var(--primary-gold); color: #fff; border-color: var(--primary-gold); }
 
-        .btn { 
-            display: block; 
-            width: 100%; 
-            padding: 16px; 
-            border: none; 
-            border-radius: 14px; 
-            font-size: 15px; 
-            font-weight: 900; 
-            text-transform: uppercase; 
-            letter-spacing: 1px;
-            cursor: pointer; 
-            transition: all 0.2s ease-in-out; 
-            margin-top: 16px; 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05); 
-        }
-        
+        .btn { display: block; width: 100%; padding: 16px; border: none; border-radius: 14px; font-size: 15px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; cursor: pointer; transition: all 0.2s ease-in-out; margin-top: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
         .btn:hover { transform: translateY(-1px); filter: brightness(0.95); }
-        .btn:active { transform: translateY(0); }
         .btn-green { background: var(--primary-green); color: #fff; }
         .btn-blue { background: var(--primary-blue); color: #fff; }
         .btn-dark { background: #edf2f7; border: 1px solid var(--card-border); color: var(--text-sub); margin-top: 30px; font-size: 12px; font-weight: 800; }
 
-        /* Teams Cards */
         .teams-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px; margin-bottom: 20px; }
         .team-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
         .team-header { background: #f7fafc; color: var(--text-main); padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; gap: 8px; border-bottom: 1px solid var(--card-border); }
@@ -189,13 +140,11 @@
         .team-list { list-style: none; }
         .team-list li { padding: 12px 14px; border-bottom: 1px solid var(--card-border); font-size: 14px; display: flex; justify-content: space-between; font-weight: 700; color: var(--text-main); }
 
-        /* Round Nav */
         .round-nav { display: flex; align-items: center; justify-content: space-between; background: var(--card-bg); border: 1px solid var(--card-border); padding: 12px 16px; border-radius: 14px; margin-bottom: 16px; }
         .round-nav button { background: var(--primary-blue); color: #fff; border: none; padding: 10px 16px; font-weight: 900; font-size: 12px; border-radius: 8px; cursor: pointer; }
         .round-nav button:disabled { background: var(--card-border); opacity: 0.5; cursor: not-allowed; }
         .round-nav select { background: #fff; border: 1px solid var(--card-border); font-weight: 900; font-size: 14px; color: var(--text-main); padding: 8px 12px; border-radius: 8px; outline: none; }
 
-        /* Table */
         .table-wrapper { overflow-x: auto; background: var(--card-bg); border-radius: 14px; border: 1px solid var(--card-border); margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
         .league-table { width: 100%; border-collapse: collapse; text-align: center; font-size: 14px; }
         .league-table th { background: #f7fafc; color: var(--text-sub); padding: 14px 10px; font-weight: 800; text-transform: uppercase; font-size: 11px; border-bottom: 1px solid var(--card-border); }
@@ -203,7 +152,6 @@
         .team-cell { text-align: left; font-weight: 900; color: var(--text-main); display: flex; align-items: center; gap: 10px; }
         .pts-cell { font-weight: 900; color: var(--primary-green); background: #f0fff4; }
 
-        /* Matches */
         .match-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px; padding: 16px; margin-bottom: 14px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
         .match-badge { font-size: 11px; font-weight: 900; color: var(--primary-blue); background: #ebf8ff; padding: 4px 10px; border-radius: 6px; align-self: flex-start; text-transform: uppercase; border: 1px solid #bee3f8; }
         .match-main { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
@@ -211,7 +159,6 @@
         .match-team.right { justify-content: flex-end; text-align: right; }
         .match-score-inputs { display: flex; align-items: center; gap: 8px; }
         .match-score-inputs input { width: 44px; height: 44px; text-align: center; font-size: 20px; font-weight: 900; background: #f7fafc; border: 2px solid var(--card-border); color: var(--text-main); border-radius: 10px; outline: none; }
-        .match-score-inputs input:focus { border-color: var(--primary-blue); background: #fff; }
         .match-btn { background: var(--primary-green); color: #fff; border: none; padding: 12px 16px; border-radius: 10px; font-size: 13px; font-weight: 900; cursor: pointer; }
 
         .goal-events-container { background: #f7fafc; border: 1px dashed var(--card-border); padding: 12px; border-radius: 12px; margin-top: 6px; }
@@ -219,21 +166,15 @@
         .goal-row select { padding: 6px; border-radius: 8px; background: #fff; border: 1px solid var(--card-border); color: var(--text-main); font-size: 12px; font-weight: 700; outline: none; flex: 1; min-width: 120px; }
         .goal-row label { font-size: 11px; font-weight: 800; color: var(--text-sub); }
 
-        .autogol-label {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            font-size: 11px;
-            font-weight: 800;
-            color: var(--primary-red);
-            background: #fff5f5;
-            padding: 4px 8px;
-            border-radius: 6px;
-            border: 1px solid #fed7d7;
-            cursor: pointer;
-        }
+        .autogol-label { display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 800; color: var(--primary-red); background: #fff5f5; padding: 4px 8px; border-radius: 6px; border: 1px solid #fed7d7; cursor: pointer; }
 
-        /* Leaderboard */
+        .match-result-summary { background: #f7fafc; border: 1px solid var(--card-border); border-radius: 12px; padding: 12px; margin-top: 4px; }
+        .match-goals-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 8px; text-align: left; }
+        .team-goals-column { display: flex; flex-direction: column; gap: 4px; }
+        .team-goals-column.right { text-align: right; }
+        .goal-item { font-size: 11px; color: var(--text-sub); font-weight: 700; line-height: 1.3; }
+        .mvp-banner { text-align: center; margin-top: 12px; font-size: 12px; font-weight: 900; color: var(--primary-gold); background: #fffaf0; border: 1px solid #feebc8; padding: 6px; border-radius: 8px; }
+
         .filter-bar { display: flex; gap: 8px; margin-bottom: 16px; overflow-x: auto; }
         .filter-btn { padding: 10px 18px; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 20px; font-size: 12px; font-weight: 800; color: var(--text-sub); cursor: pointer; white-space: nowrap; }
         .filter-btn.active { background: var(--primary-blue); color: #fff; border-color: var(--primary-blue); }
@@ -255,7 +196,7 @@
 
 <div class="tabs">
     <button class="tab-btn active" onclick="switchTab('playersTab', this)">👥 Players</button>
-    <button class="tab-btn" onclick="switchTab('teamsTab', this)">⚔️ Tournament & Games</button>
+    <button class="tab-btn" onclick="switchTab('teamsTab', this)">⚔️ Matches & Table</button>
     <button class="tab-btn" onclick="switchTab('leadersTab', this)">🏆 Leaderboard</button>
 </div>
 
@@ -266,16 +207,19 @@
             <button onclick="selectAll(true)" style="background:none; border:none; color:var(--primary-blue); font-size:13px; font-weight:900; cursor:pointer;">Select All</button>
         </div>
         <div class="player-grid" id="playersList"></div>
-        <button class="btn btn-green" onclick="generateAndSwitch()">🔄 Start Infinite Tournament</button>
+        <button class="btn btn-green" onclick="generateAndSwitch()">🚀 Generate Teams & Start Tournament</button>
     </div>
 
     <div id="teamsTab" class="section">
-        <div style="margin-bottom: 15px;">
-            <button class="btn btn-blue" style="margin-top:0;" onclick="balanceByRatingOnly()">⚖️ Rebalance by Rating</button>
+        <div class="section-header" style="margin-top:0;">
+            <span class="section-title">⚙️ Squads & Clubs</span>
         </div>
+        <button class="btn btn-blue" style="margin-top:0; margin-bottom: 20px;" onclick="generateAndSwitch()">Balance teams</button>
+        
+        <div id="teamsResult" class="teams-container"></div>
 
         <div class="section-header">
-            <span class="section-title">📊 Standings Table</span>
+            <span class="section-title">📊 League Standings</span>
         </div>
         <div class="table-wrapper">
             <table class="league-table">
@@ -289,17 +233,17 @@
                         <th>L</th>
                         <th>GF-GA</th>
                         <th>GD</th>
-                        <th>PTS</th>
+                        <th>Pts</th>
                     </tr>
                 </thead>
                 <tbody id="leagueTableBody">
-                    <tr><td colspan="9" style="padding:20px; color:var(--text-sub);">Click "Start Infinite Tournament"</td></tr>
+                    <tr><td colspan="9" style="padding:20px; color:var(--text-sub);">Click "Generate Teams" to start</td></tr>
                 </tbody>
             </table>
         </div>
 
         <div class="section-header" style="margin-top:20px;">
-            <span class="section-title">📅 Match Fixtures</span>
+            <span class="section-title">📅 Match Schedule</span>
         </div>
 
         <div class="round-nav" id="roundNavControls" style="display:none;">
@@ -309,15 +253,10 @@
         </div>
 
         <div id="matchesList">
-            <p style="text-align:center; color:var(--text-sub); padding:10px; font-weight:700;">Start tournament to generate matches.</p>
+            <p style="text-align:center; color:var(--text-sub); padding:10px; font-weight:700;">Start the tournament to create matches.</p>
         </div>
 
-        <button class="btn btn-green" id="addNextRoundBtn" style="display:none; margin-top: 10px;" onclick="generateNextRoundManual()">➕ Add Next Round</button>
-
-        <div class="section-header" style="margin-top:30px;">
-            <span class="section-title">⚙️ Squads & Clubs</span>
-        </div>
-        <div id="teamsResult" class="teams-container"></div>
+        <button class="btn btn-green" id="addNextRoundBtn" style="display:none; margin-top: 10px;" onclick="generateNextRoundManual()">Next round</button>
     </div>
 
     <div id="leadersTab" class="section">
@@ -359,55 +298,48 @@
         { name: "Inter Milan", type: "club", logo: "https://upload.wikimedia.org/wikipedia/commons/0/05/FC_Internazionale_Milano_2021.svg" },
         { name: "AC Milan", type: "club", logo: "https://upload.wikimedia.org/wikipedia/commons/d/d0/AC_Milan_logo.svg" },
         { name: "Borussia Dortmund", type: "club", logo: "https://upload.wikimedia.org/wikipedia/commons/6/67/Borussia_Dortmund_logo.svg" },
-        { name: "France 🇫🇷", type: "country", logo: "https://upload.wikimedia.org/wikipedia/commons/c/c3/Flag_of_France.svg" },
-        { name: "Portugal 🇵🇹", type: "country", logo: "https://upload.wikimedia.org/wikipedia/commons/5/5c/Flag_of_Portugal.svg" },
-        { name: "Spain 🇪🇸", type: "country", logo: "https://upload.wikimedia.org/wikipedia/commons/9/9a/Flag_of_Spain.svg" },
-        { name: "England 🏴󠁧󠁢󠁥󠁮󠁧󠁿", type: "country", logo: "https://upload.wikimedia.org/wikipedia/en/a/ae/Flag_of_England.svg" },
-        { name: "Brazil 🇧🇷", type: "country", logo: "https://upload.wikimedia.org/wikipedia/commons/0/05/Flag_of_Brazil.svg" },
-        { name: "Argentina 🇦🇷", type: "country", logo: "https://upload.wikimedia.org/wikipedia/commons/1/1a/Flag_of_Argentina.svg" },
-        { name: "Kazakhstan 🇰🇿", type: "country", logo: "https://upload.wikimedia.org/wikipedia/commons/d/d3/Flag_of_Kazakhstan.svg" }
+        { name: "France <span style='font-size:11px; color:var(--text-sub); font-weight:600;'>FRA</span>", type: "country", logo: "https://flagcdn.com/w160/fr.png" },
+        { name: "Portugal <span style='font-size:11px; color:var(--text-sub); font-weight:600;'>POR</span>", type: "country", logo: "https://flagcdn.com/w160/pt.png" },
+        { name: "Spain <span style='font-size:11px; color:var(--text-sub); font-weight:600;'>ESP</span>", type: "country", logo: "https://flagcdn.com/w160/es.png" },
+        { name: "England <span style='font-size:11px; color:var(--text-sub); font-weight:600;'>ENG</span>", type: "country", logo: "https://flagcdn.com/w160/gb-eng.png" },
+        { name: "Brazil <span style='font-size:11px; color:var(--text-sub); font-weight:600;'>BRA</span>", type: "country", logo: "https://flagcdn.com/w160/br.png" },
+        { name: "Argentina <span style='font-size:11px; color:var(--text-sub); font-weight:600;'>ARG</span>", type: "country", logo: "https://flagcdn.com/w160/ar.png" },
+        { name: "Kazakhstan <span style='font-size:11px; color:var(--text-sub); font-weight:600;'>KAZ</span>", type: "country", logo: "https://flagcdn.com/w160/kz.png" }
     ];
 
     const defaultLogo = "https://upload.wikimedia.org/wikipedia/commons/d/d3/Soccerball.svg";
 
-    function preloadClubLogos() {
-        clubPresets.forEach(preset => {
-            const img = new Image();
-            img.src = preset.logo;
-        });
-    }
-
     const initialPlayers = [
-        { id: 1, name: "Alim", rating: 35.0, roles: ["FWD"], goals: 0, assists: 0, mvp: 0 },
-        { id: 2, name: "Akhmet", rating: 20.0, roles: ["DEF"], goals: 0, assists: 0, mvp: 0 },
-        { id: 3, name: "Ali", rating: 0.0, roles: [], goals: 0, assists: 0, mvp: 0 },
-        { id: 4, name: "Omar", rating: 50.0, roles: ["FWD"], goals: 0, assists: 0, mvp: 0 },
-        { id: 5, name: "Sultan", rating: 30.0, roles: ["DEF"], goals: 0, assists: 0, mvp: 0 },
-        { id: 6, name: "Islam", rating: 40.0, roles: ["GK"], goals: 0, assists: 0, mvp: 0 },
-        { id: 7, name: "Ilfat", rating: 40.0, roles: ["FWD"], goals: 0, assists: 0, mvp: 0 },
-        { id: 8, name: "Damir", rating: 0.0, roles: [], goals: 0, assists: 0, mvp: 0 },
-        { id: 9, name: "Madiyar", rating: 20.0, roles: ["DEF"], goals: 0, assists: 0, mvp: 0 },
-        { id: 10, name: "Batyr", rating: 25.0, roles: ["GK"], goals: 0, assists: 0, mvp: 0 },
-        { id: 11, name: "Tamerlan", rating: 40.0, roles: ["FWD"], goals: 0, assists: 0, mvp: 0 },
-        { id: 12, name: "Abdirasul", rating: 30.0, roles: ["DEF"], goals: 0, assists: 0, mvp: 0 },
-        { id: 13, name: "Rakhman", rating: 30.0, roles: ["FWD"], goals: 0, assists: 0, mvp: 0 },
-        { id: 14, name: "Akhmad", rating: 40.0, roles: ["DEF"], goals: 0, assists: 0, mvp: 0 },
-        { id: 15, name: "Nurtas", rating: 25.0, roles: [], goals: 0, assists: 0, mvp: 0 },
-        { id: 16, name: "Bauyrzhan", rating: 35.0, roles: ["FWD"], goals: 0, assists: 0, mvp: 0 },
-        { id: 17, name: "Azamat", rating: 10.0, roles: ["DEF"], goals: 0, assists: 0, mvp: 0 },
-        { id: 18, name: "Arnat", rating: 35.0, roles: ["FWD"], goals: 0, assists: 0, mvp: 0 },
-        { id: 19, name: "Ismail", rating: 50.0, roles: ["FWD"], goals: 0, assists: 0, mvp: 0 },
-        { id: 20, name: "Dias", rating: 25.0, roles: ["DEF"], goals: 0, assists: 0, mvp: 0 },
-        { id: 21, name: "Oraz", rating: 30.0, roles: ["GK"], goals: 0, assists: 0, mvp: 0 },
-        { id: 22, name: "Amir", rating: 10.0, roles: [], goals: 0, assists: 0, mvp: 0 },
-        { id: 23, name: "Yeramir", rating: 25.0, roles: ["DEF"], goals: 0, assists: 0, mvp: 0 },
-        { id: 24, name: "Alseit abi", rating: 50.0, roles: ["FWD"], goals: 0, assists: 0, mvp: 0 },
-        { id: 25, name: "Abduluahid agay", rating: 40.0, roles: ["DEF"], goals: 0, assists: 0, mvp: 0 },
-        { id: 26, name: "Mark", rating: 10.0, roles: [], goals: 0, assists: 0, mvp: 0 },
-        { id: 27, name: "Abdullah", rating: 0.0, roles: [], goals: 0, assists: 0, mvp: 0 }
+        { id: 1, name: "Omar", rating: 50.0, roles: ["GK", "DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
+        { id: 2, name: "Ismail", rating: 50.0, roles: ["GK", "DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
+        { id: 3, name: "Alseit abi", rating: 50.0, roles: ["GK", "DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
+        { id: 4, name: "Islam", rating: 40.0, roles: ["DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
+        { id: 5, name: "Ilfat", rating: 40.0, roles: ["DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
+        { id: 6, name: "Tamerlan", rating: 40.0, roles: ["DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
+        { id: 7, name: "Akhmad", rating: 40.0, roles: ["GK", "DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
+        { id: 8, name: "Abduluahid agay", rating: 40.0, roles: ["DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
+        { id: 9, name: "Alim", rating: 35.0, roles: ["DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
+        { id: 10, name: "Bauyrzhan", rating: 35.0, roles: ["GK", "DEF"], goals: 0, assists: 0, mvp: 0 },
+        { id: 11, name: "Arnat", rating: 35.0, roles: ["DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
+        { id: 12, name: "Sultan", rating: 30.0, roles: ["DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
+        { id: 13, name: "Abdirasul", rating: 30.0, roles: ["GK", "DEF"], goals: 0, assists: 0, mvp: 0 },
+        { id: 14, name: "Rakhman", rating: 30.0, roles: ["GK", "DEF"], goals: 0, assists: 0, mvp: 0 },
+        { id: 15, name: "Oraz", rating: 30.0, roles: ["GK", "FWD"], goals: 0, assists: 0, mvp: 0 },
+        { id: 16, name: "Batyr", rating: 25.0, roles: ["FWD"], goals: 0, assists: 0, mvp: 0 },
+        { id: 17, name: "Nurtas", rating: 25.0, roles: ["FWD"], goals: 0, assists: 0, mvp: 0 },
+        { id: 18, name: "Dias", rating: 25.0, roles: ["FWD"], goals: 0, assists: 0, mvp: 0 },
+        { id: 19, name: "Yeramir", rating: 25.0, roles: ["DEF"], goals: 0, assists: 0, mvp: 0 },
+        { id: 20, name: "Akhmet", rating: 20.0, roles: ["DEF"], goals: 0, assists: 0, mvp: 0 },
+        { id: 21, name: "Madiyar", rating: 20.0, roles: ["DEF"], goals: 0, assists: 0, mvp: 0 },
+        { id: 22, name: "Azamat", rating: 10.0, roles: ["DEF"], goals: 0, assists: 0, mvp: 0 },
+        { id: 23, name: "Amir", rating: 10.0, roles: ["DEF"], goals: 0, assists: 0, mvp: 0 },
+        { id: 24, name: "Mark", rating: 10.0, roles: ["DEF"], goals: 0, assists: 0, mvp: 0 },
+        { id: 25, name: "Ali", rating: 0.0, roles: ["DEF"], goals: 0, assists: 0, mvp: 0 },
+        { id: 26, name: "Damir", rating: 0.0, roles: ["DEF"], goals: 0, assists: 0, mvp: 0 },
+        { id: 27, name: "Abdullah", rating: 0.0, roles: ["DEF"], goals: 0, assists: 0, mvp: 0 }
     ];
 
-    let savedData = JSON.parse(localStorage.getItem('sport_time_players'));
+    let savedData = JSON.parse(localStorage.getItem('sport_time_players_v3'));
     let playersData = savedData || JSON.parse(JSON.stringify(initialPlayers));
 
     let activeTeams = [];
@@ -417,7 +349,7 @@
     let baseCycleRounds = [];
 
     function savePlayersData() {
-        localStorage.setItem('sport_time_players', JSON.stringify(playersData));
+        localStorage.setItem('sport_time_players_v3', JSON.stringify(playersData));
     }
 
     function switchTab(tabId, btn) {
@@ -444,14 +376,14 @@
                     <div class="player-info">
                         <input type="checkbox" id="check_${p.id}" value="${p.id}" checked onchange="updateCount()">
                         <div>
-                            <div style="display:flex; align-items:center; gap:8px;">
+                            <div style="display:flex; align-items:center; gap:6px;">
                                 <span class="player-name">${p.name}</span>
                                 <span class="player-rating">⭐ ${p.rating.toFixed(1)}</span>
                             </div>
                             <div class="role-selector">
                                 <button class="role-btn ${isNap ? 'active' : ''}" data-role="FWD" onclick="toggleRole(${p.id}, 'FWD')">⚽ FWD</button>
                                 <button class="role-btn ${isZas ? 'active' : ''}" data-role="DEF" onclick="toggleRole(${p.id}, 'DEF')">🛡️ DEF</button>
-                                <button class="role-btn ${isVrt ? 'active' : ''}" data-role="GK" onclick="toggleRole(${p.id}, 'GK')">🧤 GK</button>
+                                <button class="role-btn ${isVrt ? 'active' : ''}" data-role="GK" onclick="toggleRole(${p.id}, 'GK')">GK</button>
                             </div>
                         </div>
                     </div>
@@ -482,22 +414,38 @@
         updateCount();
     }
 
-    function distributeFairly(players, numTeams) {
-        let sorted = [...players].sort((a, b) => b.rating - a.rating);
+    function distributeBalancedWithRoles(players, numTeams) {
         let teamLists = Array.from({ length: numTeams }, () => []);
+        let unassigned = [...players].sort((a, b) => b.rating - a.rating);
 
+        const assignRoleToAllTeams = (roleName) => {
+            for (let t = 0; t < numTeams; t++) {
+                if (!teamLists[t].some(p => p.roles.includes(roleName))) {
+                    let candidateIdx = unassigned.findIndex(p => p.roles.includes(roleName));
+                    if (candidateIdx !== -1) {
+                        teamLists[t].push(unassigned[candidateIdx]);
+                        unassigned.splice(candidateIdx, 1);
+                    }
+                }
+            }
+        };
+
+        assignRoleToAllTeams('GK');
+        assignRoleToAllTeams('DEF');
+        assignRoleToAllTeams('FWD');
+
+        let currentTeam = 0;
         let direction = 1;
-        let currentTeamIndex = 0;
 
-        sorted.forEach(player => {
-            teamLists[currentTeamIndex].push(player);
-            currentTeamIndex += direction;
+        unassigned.forEach(player => {
+            teamLists[currentTeam].push(player);
+            currentTeam += direction;
 
-            if (currentTeamIndex >= numTeams) {
-                currentTeamIndex = numTeams - 1;
+            if (currentTeam >= numTeams) {
+                currentTeam = numTeams - 1;
                 direction = -1;
-            } else if (currentTeamIndex < 0) {
-                currentTeamIndex = 0;
+            } else if (currentTeam < 0) {
+                currentTeam = 0;
                 direction = 1;
             }
         });
@@ -507,9 +455,7 @@
 
     function buildBaseCycleSchedule(teams) {
         let teamIds = teams.map(t => t.id);
-        if (teamIds.length % 2 !== 0) {
-            teamIds.push(null);
-        }
+        if (teamIds.length % 2 !== 0) teamIds.push(null);
 
         let numTeams = teamIds.length;
         let numRounds = numTeams - 1;
@@ -520,32 +466,24 @@
             for (let i = 0; i < numTeams / 2; i++) {
                 let home = teamIds[i];
                 let away = teamIds[numTeams - 1 - i];
-
-                if (home !== null && away !== null) {
-                    roundMatches.push({ t1: home, t2: away });
-                }
+                if (home !== null && away !== null) roundMatches.push({ t1: home, t2: away });
             }
             schedule.push(roundMatches);
             teamIds.splice(1, 0, teamIds.pop());
         }
-
         return schedule;
     }
 
     function generateAndSwitch() {
-        let selected = [];
-        playersData.forEach(p => {
+        let selected = playersData.filter(p => {
             const cb = document.getElementById(`check_${p.id}`);
-            if (cb && cb.checked) selected.push(p);
+            return cb && cb.checked;
         });
 
         if (selected.length < 2) { alert("Please select at least 2 players!"); return; }
 
         const total = selected.length;
-        let numTeams = 2;
-        if (total >= 16) numTeams = 4;
-        else if (total >= 12) numTeams = 3;
-        else numTeams = 2;
+        let numTeams = total >= 16 ? 4 : total >= 12 ? 3 : 2;
 
         let selectedPresets = getRandomValidPresets(numTeams);
 
@@ -562,17 +500,14 @@
             };
         });
 
-        let distributed = distributeFairly(selected, numTeams);
-        distributed.forEach((teamPlayers, idx) => {
-            teams[idx].players = teamPlayers;
-        });
+        let distributed = distributeBalancedWithRoles(selected, numTeams);
+        distributed.forEach((teamPlayers, idx) => { teams[idx].players = teamPlayers; });
 
         activeTeams = teams;
         activeMatches = [];
         totalRounds = 0;
 
         baseCycleRounds = buildBaseCycleSchedule(activeTeams);
-
         appendRoundToSchedule();
 
         currentDisplayedRound = 1;
@@ -596,26 +531,14 @@
     function appendRoundToSchedule() {
         totalRounds++;
         let matchIdStart = activeMatches.length + 1;
-        
         let cycleIndex = (totalRounds - 1) % baseCycleRounds.length;
         let templateMatches = baseCycleRounds[cycleIndex];
-        
         let isReverseCycle = Math.floor((totalRounds - 1) / baseCycleRounds.length) % 2 === 1;
 
         templateMatches.forEach((m, idx) => {
             let t1 = isReverseCycle ? m.t2 : m.t1;
             let t2 = isReverseCycle ? m.t1 : m.t2;
-
-            activeMatches.push({
-                id: matchIdStart + idx,
-                tour: totalRounds,
-                t1: t1,
-                t2: t2,
-                s1: null,
-                s2: null,
-                played: false,
-                goalsDetails: []
-            });
+            activeMatches.push({ id: matchIdStart + idx, tour: totalRounds, t1, t2, s1: null, s2: null, played: false, goalsDetails: [], mvpId: null });
         });
     }
 
@@ -651,26 +574,6 @@
         }
     }
 
-    function balanceByRatingOnly() {
-        if (!activeTeams || activeTeams.length === 0) {
-            generateAndSwitch();
-            return;
-        }
-
-        let allPlayers = [];
-        activeTeams.forEach(t => {
-            allPlayers.push(...t.players);
-            t.players = [];
-        });
-
-        let distributed = distributeFairly(allPlayers, activeTeams.length);
-        distributed.forEach((teamPlayers, idx) => {
-            activeTeams[idx].players = teamPlayers;
-        });
-
-        renderTeamsCards();
-    }
-
     function changeTeamPreset(teamId, selectedName) {
         let team = activeTeams.find(t => t.id === teamId);
         if (!team) return;
@@ -704,16 +607,9 @@
             body.innerHTML += `
                 <tr>
                     <td>${i + 1}</td>
-                    <td class="team-cell">
-                        <img src="${t.logo}" class="team-logo" alt="">
-                        <span>${t.name}</span>
-                    </td>
-                    <td>${t.played}</td>
-                    <td>${t.win}</td>
-                    <td>${t.draw}</td>
-                    <td>${t.loss}</td>
-                    <td>${t.gf}-${t.ga}</td>
-                    <td>${t.gd > 0 ? '+' + t.gd : t.gd}</td>
+                    <td class="team-cell"><img src="${t.logo}" class="team-logo" alt=""><span>${t.name}</span></td>
+                    <td>${t.played}</td><td>${t.win}</td><td>${t.draw}</td><td>${t.loss}</td>
+                    <td>${t.gf}-${t.ga}</td><td>${t.gd > 0 ? '+' + t.gd : t.gd}</td>
                     <td class="pts-cell">${t.pts}</td>
                 </tr>
             `;
@@ -725,9 +621,8 @@
         container.innerHTML = '';
 
         let roundMatches = activeMatches.filter(m => m.tour === currentDisplayedRound);
-
         if (roundMatches.length === 0) {
-            container.innerHTML = `<p style="text-align:center; color:var(--text-sub);">Нет матчей в этом раунде.</p>`;
+            container.innerHTML = `<p style="text-align:center; color:var(--text-sub);">No matches in this round.</p>`;
             return;
         }
 
@@ -735,102 +630,102 @@
             let t1 = activeTeams.find(t => t.id === m.t1);
             let t2 = activeTeams.find(t => t.id === m.t2);
 
-            let val1 = m.s1 !== null ? m.s1 : '';
-            let val2 = m.s2 !== null ? m.s2 : '';
+            if (m.played) {
+                let t1Goals = m.goalsDetails ? m.goalsDetails.filter(g => g.teamId === t1.id) : [];
+                let t2Goals = m.goalsDetails ? m.goalsDetails.filter(g => g.teamId === t2.id) : [];
 
-            let playersOptionsT1 = t1 ? t1.players.map(p => `<option value="${p.id}">${p.name}</option>`).join('') : '';
-            let playersOptionsT2 = t2 ? t2.players.map(p => `<option value="${p.id}">${p.name}</option>`).join('') : '';
+                let renderGoalItem = (g) => {
+                    let scorerName = playersData.find(p => p.id === g.scorerId)?.name || 'Unknown';
+                    let assistName = g.assistantId ? playersData.find(p => p.id === g.assistantId)?.name : null;
+                    if (g.isOg) return `<div class="goal-item">⚽ ${scorerName} (OG)</div>`;
+                    if (assistName) return `<div class="goal-item">⚽ ${scorerName} (${assistName})</div>`;
+                    return `<div class="goal-item">⚽ ${scorerName}</div>`;
+                };
 
-            let eventsHtml = '';
-            if (val1 !== '' && val2 !== '' && (parseInt(val1) > 0 || parseInt(val2) > 0)) {
-                let goalsCount1 = parseInt(val1) || 0;
-                let goalsCount2 = parseInt(val2) || 0;
+                let t1GoalsHtml = t1Goals.map(renderGoalItem).join('');
+                let t2GoalsHtml = t2Goals.map(renderGoalItem).join('');
 
-                eventsHtml += `<div class="goal-events-container">`;
-                
-                // Голы команды 1
-                for(let i=0; i < goalsCount1; i++) {
-                    eventsHtml += `
-                        <div class="goal-row">
-                            <span style="font-size:11px; font-weight:800; color:var(--primary-blue);">${t1.name} Goal #${i+1}:</span>
-                            <label>Scorer:</label>
-                            <select id="m_${m.id}_t1_g${i}_scorer">
-                                ${playersOptionsT1}
-                            </select>
-                            <label class="autogol-label">
-                                <input type="checkbox" id="m_${m.id}_t1_g${i}_og" onchange="toggleAutogolView(${m.id}, 't1', ${i})"> Автогол
-                            </label>
-                            <label>Assist:</label>
-                            <select id="m_${m.id}_t1_g${i}_assistant">
-                                <option value="">None</option>
-                                ${playersOptionsT1}
-                            </select>
+                let mvpPlayer = m.mvpId ? playersData.find(p => p.id === m.mvpId) : null;
+                let mvpHtml = mvpPlayer ? `<div class="mvp-banner">🏆 MVP: ${mvpPlayer.name}</div>` : '';
+
+                container.innerHTML += `
+                    <div class="match-card">
+                        <div class="match-badge">Match #${m.id} - Round ${m.tour}</div>
+                        <div class="match-main">
+                            <div class="match-team"><img src="${t1 ? t1.logo : defaultLogo}" class="team-logo" alt=""><span>${t1 ? t1.name : 'T1'}</span></div>
+                            <div style="font-size:24px; font-weight:900; color:var(--primary-blue);">${m.s1} : ${m.s2}</div>
+                            <div class="match-team right"><span>${t2 ? t2.name : 'T2'}</span><img src="${t2 ? t2.logo : defaultLogo}" class="team-logo" alt=""></div>
                         </div>
-                    `;
+                        <div class="match-result-summary">
+                            <div class="match-goals-grid">
+                                <div class="team-goals-column">${t1GoalsHtml}</div>
+                                <div class="team-goals-column right">${t2GoalsHtml}</div>
+                            </div>
+                            ${mvpHtml}
+                        </div>
+                    </div>
+                `;
+            } else {
+                let val1 = m.s1 !== null ? m.s1 : '';
+                let val2 = m.s2 !== null ? m.s2 : '';
+
+                let playersOptionsT1 = t1 ? t1.players.map(p => `<option value="${p.id}">${p.name}</option>`).join('') : '';
+                let playersOptionsT2 = t2 ? t2.players.map(p => `<option value="${p.id}">${p.name}</option>`).join('') : '';
+
+                let eventsHtml = '';
+                if (val1 !== '' && val2 !== '' && (parseInt(val1) > 0 || parseInt(val2) > 0)) {
+                    let goalsCount1 = parseInt(val1) || 0;
+                    let goalsCount2 = parseInt(val2) || 0;
+
+                    eventsHtml += `<div class="goal-events-container">`;
+                    for(let i=0; i < goalsCount1; i++) {
+                        eventsHtml += `
+                            <div class="goal-row">
+                                <span style="font-size:11px; font-weight:800; color:var(--primary-blue);">${t1.name} Goal #${i+1}:</span>
+                                <label>Scorer:</label><select id="m_${m.id}_t1_g${i}_scorer">${playersOptionsT1}</select>
+                                <label class="autogol-label"><input type="checkbox" id="m_${m.id}_t1_g${i}_og" onchange="toggleAutogolView(${m.id}, 't1', ${i})"> Own Goal</label>
+                                <label>Assist:</label><select id="m_${m.id}_t1_g${i}_assistant"><option value="">None</option>${playersOptionsT1}</select>
+                            </div>
+                        `;
+                    }
+                    for(let i=0; i < goalsCount2; i++) {
+                        eventsHtml += `
+                            <div class="goal-row">
+                                <span style="font-size:11px; font-weight:800; color:var(--primary-red);">${t2.name} Goal #${i+1}:</span>
+                                <label>Scorer:</label><select id="m_${m.id}_t2_g${i}_scorer">${playersOptionsT2}</select>
+                                <label class="autogol-label"><input type="checkbox" id="m_${m.id}_t2_g${i}_og" onchange="toggleAutogolView(${m.id}, 't2', ${i})"> Own Goal</label>
+                                <label>Assist:</label><select id="m_${m.id}_t2_g${i}_assistant"><option value="">None</option>${playersOptionsT2}</select>
+                            </div>
+                        `;
+                    }
+                    eventsHtml += `</div>`;
                 }
 
-                // Голы команды 2
-                for(let i=0; i < goalsCount2; i++) {
-                    eventsHtml += `
-                        <div class="goal-row">
-                            <span style="font-size:11px; font-weight:800; color:var(--primary-red);">${t2.name} Goal #${i+1}:</span>
-                            <label>Scorer:</label>
-                            <select id="m_${m.id}_t2_g${i}_scorer">
-                                ${playersOptionsT2}
-                            </select>
-                            <label class="autogol-label">
-                                <input type="checkbox" id="m_${m.id}_t2_g${i}_og" onchange="toggleAutogolView(${m.id}, 't2', ${i})"> Автогол
-                            </label>
-                            <label>Assist:</label>
-                            <select id="m_${m.id}_t2_g${i}_assistant">
-                                <option value="">None</option>
-                                ${playersOptionsT2}
-                            </select>
+                container.innerHTML += `
+                    <div class="match-card">
+                        <div class="match-badge">Match #${m.id} - Round ${m.tour}</div>
+                        <div class="match-main">
+                            <div class="match-team"><img src="${t1 ? t1.logo : defaultLogo}" class="team-logo" alt=""><span>${t1 ? t1.name : 'T1'}</span></div>
+                            <div class="match-score-inputs">
+                                <input type="number" min="0" id="m_${m.id}_s1" value="${val1}" onchange="updateMatchEventsView(${m.id})">
+                                <span>:</span>
+                                <input type="number" min="0" id="m_${m.id}_s2" value="${val2}" onchange="updateMatchEventsView(${m.id})">
+                            </div>
+                            <div class="match-team right"><span>${t2 ? t2.name : 'T2'}</span><img src="${t2 ? t2.logo : defaultLogo}" class="team-logo" alt=""></div>
                         </div>
-                    `;
-                }
-
-                eventsHtml += `</div>`;
+                        <div id="events_container_${m.id}">${eventsHtml}</div>
+                        <button class="match-btn" onclick="saveMatchResult(${m.id})">End match</button>
+                    </div>
+                `;
             }
-
-            container.innerHTML += `
-                <div class="match-card">
-                    <div class="match-badge">Match #${m.id} - Round ${m.tour}</div>
-                    <div class="match-main">
-                        <div class="match-team">
-                            <img src="${t1 ? t1.logo : defaultLogo}" class="team-logo" alt="">
-                            <span>${t1 ? t1.name : 'T1'}</span>
-                        </div>
-                        <div class="match-score-inputs">
-                            <input type="number" min="0" id="m_${m.id}_s1" value="${val1}" onchange="updateMatchEventsView(${m.id})">
-                            <span>:</span>
-                            <input type="number" min="0" id="m_${m.id}_s2" value="${val2}" onchange="updateMatchEventsView(${m.id})">
-                        </div>
-                        <div class="match-team right">
-                            <span>${t2 ? t2.name : 'T2'}</span>
-                            <img src="${t2 ? t2.logo : defaultLogo}" class="team-logo" alt="">
-                        </div>
-                    </div>
-                    
-                    <div id="events_container_${m.id}">
-                        ${eventsHtml}
-                    </div>
-
-                    <button class="match-btn" onclick="saveMatchResult(${m.id})">💾 Save Match & Stats</button>
-                </div>
-            `;
         });
     }
 
     function toggleAutogolView(matchId, teamTag, goalIdx) {
         let isOg = document.getElementById(`m_${matchId}_${teamTag}_g${goalIdx}_og`).checked;
         let assistSelect = document.getElementById(`m_${matchId}_${teamTag}_g${goalIdx}_assistant`);
-        if (isOg) {
-            assistSelect.value = "";
-            assistSelect.disabled = true;
-        } else {
-            assistSelect.disabled = false;
-        }
+        if (isOg) { assistSelect.value = ""; assistSelect.disabled = true; } 
+        else { assistSelect.disabled = false; }
     }
 
     function updateMatchEventsView(matchId) {
@@ -841,7 +736,6 @@
 
         match.s1 = s1Val !== '' ? parseInt(s1Val) : null;
         match.s2 = s2Val !== '' ? parseInt(s2Val) : null;
-
         renderCurrentRoundMatches();
     }
 
@@ -852,94 +746,58 @@
         let s1Input = document.getElementById(`m_${matchId}_s1`).value;
         let s2Input = document.getElementById(`m_${matchId}_s2`).value;
 
-        if (s1Input === '' || s2Input === '') {
-            alert("Пожалуйста, введите счет для обеих команд.");
-            return;
-        }
+        if (s1Input === '' || s2Input === '') { alert("Please enter scores for both teams."); return; }
 
         let s1 = parseInt(s1Input);
         let s2 = parseInt(s2Input);
-
         let t1 = activeTeams.find(t => t.id === match.t1);
         let t2 = activeTeams.find(t => t.id === match.t2);
 
         let matchGoalsEvents = [];
-        
-        // Голы команды 1
         for (let i = 0; i < s1; i++) {
             let scorerId = parseInt(document.getElementById(`m_${matchId}_t1_g${i}_scorer`).value);
             let isOg = document.getElementById(`m_${matchId}_t1_g${i}_og`).checked;
             let assistantVal = document.getElementById(`m_${matchId}_t1_g${i}_assistant`).value;
             let assistantId = (!isOg && assistantVal !== "") ? parseInt(assistantVal) : null;
 
-            if (!isOg && scorerId && assistantId && scorerId === assistantId) {
-                alert(`Автор гола и ассистент не могут быть одним лицом! (${t1.name}, Гол #${i+1})`);
-                return;
-            }
-
+            if (!isOg && scorerId && assistantId && scorerId === assistantId) { alert(`Scorer and Assistant cannot be the same player! (${t1.name}, Goal #${i+1})`); return; }
             matchGoalsEvents.push({ scorerId, assistantId, isOg, teamId: t1.id });
         }
 
-        // Голы команды 2
         for (let i = 0; i < s2; i++) {
             let scorerId = parseInt(document.getElementById(`m_${matchId}_t2_g${i}_scorer`).value);
             let isOg = document.getElementById(`m_${matchId}_t2_g${i}_og`).checked;
             let assistantVal = document.getElementById(`m_${matchId}_t2_g${i}_assistant`).value;
             let assistantId = (!isOg && assistantVal !== "") ? parseInt(assistantVal) : null;
 
-            if (!isOg && scorerId && assistantId && scorerId === assistantId) {
-                alert(`Автор гола и ассистент не могут быть одним лицом! (${t2.name}, Гол #${i+1})`);
-                return;
-            }
-
+            if (!isOg && scorerId && assistantId && scorerId === assistantId) { alert(`Scorer and Assistant cannot be the same player! (${t2.name}, Goal #${i+1})`); return; }
             matchGoalsEvents.push({ scorerId, assistantId, isOg, teamId: t2.id });
         }
 
-        match.s1 = s1;
-        match.s2 = s2;
-        match.played = true;
-
+        match.s1 = s1; match.s2 = s2; match.played = true;
+        match.goalsDetails = matchGoalsEvents;
         let matchScores = {}; 
 
         matchGoalsEvents.forEach(e => {
             let scorer = playersData.find(p => p.id === e.scorerId);
             if (scorer) {
-                if (e.isOg) {
-                    // Автогол: -1.0 к рейтингу
-                    scorer.rating -= 1.0;
-                    matchScores[scorer.id] = (matchScores[scorer.id] || 0) - 1.0;
-                } else {
-                    // Гол: +1 гол, +2.0 к рейтингу
-                    scorer.goals += 1;
-                    scorer.rating += 2.0; 
-                    matchScores[scorer.id] = (matchScores[scorer.id] || 0) + 2.0;
-                }
+                if (e.isOg) { scorer.rating -= 1.0; matchScores[scorer.id] = (matchScores[scorer.id] || 0) - 1.0; } 
+                else { scorer.goals += 1; scorer.rating += 2.0; matchScores[scorer.id] = (matchScores[scorer.id] || 0) + 2.0; }
             }
-
-            // Ассистент
             if (!e.isOg && e.assistantId) {
                 let assistant = playersData.find(p => p.id === e.assistantId);
-                if (assistant) {
-                    assistant.assists += 1;
-                    assistant.rating += 1.0; 
-                    matchScores[assistant.id] = (matchScores[assistant.id] || 0) + 1.0;
-                }
+                if (assistant) { assistant.assists += 1; assistant.rating += 1.0; matchScores[assistant.id] = (matchScores[assistant.id] || 0) + 1.0; }
             }
         });
 
-        // Расчет MVP
         let mvpPlayerId = null;
         let maxPoints = -100;
         let topPlayers = [];
 
         Object.keys(matchScores).forEach(pId => {
             let score = matchScores[pId];
-            if (score > maxPoints && score > 0) {
-                maxPoints = score;
-                topPlayers = [parseInt(pId)];
-            } else if (score === maxPoints && score > 0) {
-                topPlayers.push(parseInt(pId));
-            }
+            if (score > maxPoints && score > 0) { maxPoints = score; topPlayers = [parseInt(pId)]; } 
+            else if (score === maxPoints && score > 0) { topPlayers.push(parseInt(pId)); }
         });
 
         if (topPlayers.length > 0) {
@@ -947,26 +805,20 @@
             mvpPlayerId = topPlayers[randomIndex];
 
             let mvpPlayer = playersData.find(p => p.id === mvpPlayerId);
-            if (mvpPlayer) {
-                mvpPlayer.mvp += 1;
-                mvpPlayer.rating += 3.0;
-            }
+            if (mvpPlayer) { mvpPlayer.mvp += 1; mvpPlayer.rating += 3.0; }
         }
+
+        match.mvpId = mvpPlayerId;
 
         savePlayersData();
         recalculateStandings();
         renderLeagueTable();
+        renderCurrentRoundMatches();
         renderTeamsCards();
-
-        let mvpName = mvpPlayerId ? playersData.find(p => p.id === mvpPlayerId)?.name : 'Никто';
-        alert(`Результат сохранен!\n🏆 MVP матча: ${mvpName} (+3 к рейтингу!)`);
     }
 
     function recalculateStandings() {
-        activeTeams.forEach(t => {
-            t.played = 0; t.win = 0; t.draw = 0; t.loss = 0;
-            t.gf = 0; t.ga = 0; t.gd = 0; t.pts = 0;
-        });
+        activeTeams.forEach(t => { t.played = 0; t.win = 0; t.draw = 0; t.loss = 0; t.gf = 0; t.ga = 0; t.gd = 0; t.pts = 0; });
 
         activeMatches.forEach(m => {
             if (m.played) {
@@ -978,23 +830,14 @@
                     t1.gf += m.s1; t1.ga += m.s2;
                     t2.gf += m.s2; t2.ga += m.s1;
 
-                    if (m.s1 > m.s2) {
-                        t1.win++; t1.pts += 3;
-                        t2.loss++;
-                    } else if (m.s1 < m.s2) {
-                        t2.win++; t2.pts += 3;
-                        t1.loss++;
-                    } else {
-                        t1.draw++; t1.pts += 1;
-                        t2.draw++; t2.pts += 1;
-                    }
+                    if (m.s1 > m.s2) { t1.win++; t1.pts += 3; t2.loss++; } 
+                    else if (m.s1 < m.s2) { t2.win++; t2.pts += 3; t1.loss++; } 
+                    else { t1.draw++; t1.pts += 1; t2.draw++; t2.pts += 1; }
                 }
             }
         });
 
-        activeTeams.forEach(t => {
-            t.gd = t.gf - t.ga;
-        });
+        activeTeams.forEach(t => { t.gd = t.gf - t.ga; });
     }
 
     function renderTeamsCards() {
@@ -1005,11 +848,8 @@
         let availablePresets = clubPresets.filter(p => p.type === currentTournamentType);
 
         activeTeams.forEach(t => {
-            let totalRating = t.players.reduce((sum, p) => sum + p.rating, 0);
-            
-            let optionsHtml = availablePresets.map(p => 
-                `<option value="${p.name}" ${p.name === t.name ? 'selected' : ''}>${p.name}</option>`
-            ).join('');
+            let avgRating = t.players.length > 0 ? (t.players.reduce((sum, p) => sum + p.rating, 0) / t.players.length) : 0;
+            let optionsHtml = availablePresets.map(p => `<option value="${p.name.replace(/<[^>]*>?/gm, '')}" ${p.name.replace(/<[^>]*>?/gm, '') === t.name.replace(/<[^>]*>?/gm, '') ? 'selected' : ''}>${p.name}</option>`).join('');
 
             let playersListHtml = t.players.map(p => `
                 <li>
@@ -1023,15 +863,11 @@
                     <div class="team-header">
                         <div class="team-header-title">
                             <img src="${t.logo}" class="team-logo" alt="">
-                            <select class="team-select" onchange="changeTeamPreset(${t.id}, this.value)">
-                                ${optionsHtml}
-                            </select>
+                            <select class="team-select" onchange="changeTeamPreset(${t.id}, this.value)">${optionsHtml}</select>
                         </div>
-                        <span class="team-score">⭐ ${totalRating.toFixed(1)}</span>
+                        <span class="team-score" title="Average Rating">Avg ⭐ ${avgRating.toFixed(1)}</span>
                     </div>
-                    <ul class="team-list">
-                        ${playersListHtml}
-                    </ul>
+                    <ul class="team-list">${playersListHtml}</ul>
                 </div>
             `;
         });
@@ -1048,34 +884,19 @@
         body.innerHTML = '';
 
         let sorted = [...playersData];
-
-        if (metric === 'goals') {
-            header.innerText = 'Goals ⚽';
-            sorted.sort((a, b) => b.goals - a.goals);
-        } else if (metric === 'assists') {
-            header.innerText = 'Assists 👟';
-            sorted.sort((a, b) => b.assists - a.assists);
-        } else if (metric === 'points') {
-            header.innerText = 'G + A 🔥';
-            sorted.sort((a, b) => (b.goals + b.assists) - (a.goals + a.assists));
-        } else if (metric === 'mvp') {
-            header.innerText = 'MVP 🏆';
-            sorted.sort((a, b) => b.mvp - a.mvp);
-        }
+        if (metric === 'goals') { header.innerText = 'Goals ⚽'; sorted.sort((a, b) => b.goals - a.goals); } 
+        else if (metric === 'assists') { header.innerText = 'Assists 👟'; sorted.sort((a, b) => b.assists - a.assists); } 
+        else if (metric === 'points') { header.innerText = 'G + A 🔥'; sorted.sort((a, b) => (b.goals + b.assists) - (a.goals + a.assists)); } 
+        else if (metric === 'mvp') { header.innerText = 'MVP 🏆'; sorted.sort((a, b) => b.mvp - a.mvp); }
 
         sorted.forEach((p, index) => {
             let rankClass = index === 0 ? 'rank-1' : index === 1 ? 'rank-2' : index === 2 ? 'rank-3' : '';
-            let val = metric === 'goals' ? p.goals :
-                      metric === 'assists' ? p.assists :
-                      metric === 'points' ? (p.goals + p.assists) : p.mvp;
+            let val = metric === 'goals' ? p.goals : metric === 'assists' ? p.assists : metric === 'points' ? (p.goals + p.assists) : p.mvp;
 
             body.innerHTML += `
                 <tr>
                     <td class="rank ${rankClass}">${index + 1}</td>
-                    <td style="font-weight:800;">
-                        ${p.name} 
-                        <span style="font-size:11px; color:var(--primary-blue); font-weight:normal;">(⭐${p.rating.toFixed(1)})</span>
-                    </td>
+                    <td style="font-weight:800;">${p.name} <span style="font-size:11px; color:var(--primary-blue); font-weight:normal;">(⭐${p.rating.toFixed(1)})</span></td>
                     <td style="text-align:right; font-weight:900; color:var(--primary-gold);">${val}</td>
                 </tr>
             `;
@@ -1083,15 +904,15 @@
     }
 
     function resetChanges() {
-        if (confirm("Вы уверены, что хотите сбросить все данные турнира и статистику?")) {
-            localStorage.removeItem('sport_time_players');
+        if (confirm("Are you sure you want to reset all tournament data and player stats?")) {
+            localStorage.removeItem('sport_time_players_v3');
             playersData = JSON.parse(JSON.stringify(initialPlayers));
             activeTeams = [];
             activeMatches = [];
             renderPlayers();
-            document.getElementById('leagueTableBody').innerHTML = `<tr><td colspan="9" style="padding:20px; color:var(--text-sub);">Click "Start Infinite Tournament"</td></tr>`;
-            document.getElementById('matchesList').innerHTML = `<p style="text-align:center; color:var(--text-sub); padding:10px; font-weight:700;">Start tournament to generate matches.</p>`;
-            document.getElementById('teamsResult').innerHTML = '';
+            document.getElementById('leagueTableBody').innerHTML = `<tr><td colspan="9" style="padding:20px; color:var(--text-sub);">Click "Generate Teams" to start</td></tr>`;
+            document.getElementById('matchesList').innerHTML = `<p style="text-align:center; color:var(--text-sub); padding:10px; font-weight:700;">Start the tournament to create matches.</p>`;
+            document.getElementById('teamsResult').innerHTML = ``;
             document.getElementById('roundNavControls').style.display = 'none';
             document.getElementById('addNextRoundBtn').style.display = 'none';
             switchTab('playersTab', document.querySelectorAll('.tab-btn')[0]);
@@ -1099,7 +920,6 @@
     }
 
     window.onload = function() {
-        preloadClubLogos();
         renderPlayers();
     };
 </script>
