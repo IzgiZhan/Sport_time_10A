@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sport Time - Tournament</title>
+    <title>Sport Time 10A - Tournament</title>
     <link rel="manifest" href="manifest.json">
     <style>
         :root {
@@ -16,9 +16,23 @@
             --primary-gold: #d69e2e;
             --text-main: #1a202c;
             --text-sub: #718096;
+            --input-bg: #f7fafc;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        [data-theme="dark"] {
+            --bg-color: #1a202c;
+            --card-bg: #2d3748;
+            --card-border: #4a5568;
+            --primary-red: #fc8181;
+            --primary-green: #68d391;
+            --primary-blue: #63b3ed;
+            --primary-gold: #f6e05e;
+            --text-main: #f7fafc;
+            --text-sub: #a0aec0;
+            --input-bg: #1a202c;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; transition: background-color 0.2s, border-color 0.2s, color 0.2s; }
         
         body { 
             font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
@@ -29,10 +43,12 @@
         }
 
         header { 
-            background: #ffffff; 
+            background: var(--card-bg); 
             border-bottom: 2px solid var(--primary-blue); 
             padding: 20px; 
-            text-align: center; 
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             position: sticky; 
             top: 0; 
             z-index: 100; 
@@ -49,9 +65,23 @@
         
         header h1 span { color: var(--primary-blue); }
 
+        .theme-toggle-btn {
+            background: var(--input-bg);
+            border: 1px solid var(--card-border);
+            color: var(--text-main);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
         .tabs { 
             display: flex; 
-            background: #ffffff; 
+            background: var(--card-bg); 
             border-bottom: 1px solid var(--card-border); 
             overflow-x: auto; 
         }
@@ -76,7 +106,7 @@
         .tab-btn.active { 
             color: var(--primary-blue); 
             border-bottom-color: var(--primary-blue); 
-            background: #ebf8ff; 
+            background: rgba(49, 130, 206, 0.1); 
         }
 
         .container { max-width: 800px; margin: 0 auto; padding: 16px; }
@@ -136,7 +166,7 @@
             border: 1px solid var(--card-border);
             font-weight: 900;
             font-size: 14px;
-            background: #f7fafc;
+            background: var(--input-bg);
             color: var(--text-main);
             outline: none;
             cursor: pointer;
@@ -160,10 +190,10 @@
         .player-info { display: flex; align-items: center; gap: 12px; }
         .player-info input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--primary-blue); cursor: pointer; }
         .player-name { font-weight: 800; font-size: 16px; color: var(--text-main); }
-        .player-rating { background: #ebf8ff; color: var(--primary-blue); border: 1px solid #bee3f8; border-radius: 20px; padding: 3px 10px; font-size: 12px; font-weight: 900; }
+        .player-rating { background: rgba(49, 130, 206, 0.15); color: var(--primary-blue); border: 1px solid var(--card-border); border-radius: 20px; padding: 3px 10px; font-size: 12px; font-weight: 900; }
 
         .role-selector { display: flex; gap: 6px; margin-top: 8px; }
-        .role-btn { border: 1px solid var(--card-border); background: #f7fafc; color: var(--text-sub); font-size: 11px; font-weight: 800; padding: 5px 10px; border-radius: 8px; cursor: pointer; }
+        .role-btn { border: 1px solid var(--card-border); background: var(--input-bg); color: var(--text-sub); font-size: 11px; font-weight: 800; padding: 5px 10px; border-radius: 8px; cursor: pointer; }
         .role-btn.active[data-role="FWD"] { background: var(--primary-red); color: #fff; border-color: var(--primary-red); }
         .role-btn.active[data-role="DEF"] { background: var(--primary-blue); color: #fff; border-color: var(--primary-blue); }
         .role-btn.active[data-role="GK"] { background: var(--primary-gold); color: #fff; border-color: var(--primary-gold); }
@@ -172,55 +202,62 @@
         .btn:hover { transform: translateY(-1px); filter: brightness(0.95); }
         .btn-green { background: var(--primary-green); color: #fff; }
         .btn-blue { background: var(--primary-blue); color: #fff; }
-        .btn-dark { background: #edf2f7; border: 1px solid var(--card-border); color: var(--text-sub); margin-top: 30px; font-size: 12px; font-weight: 800; }
+        .btn-dark { background: var(--card-bg); border: 1px solid var(--card-border); color: var(--text-sub); margin-top: 30px; font-size: 12px; font-weight: 800; }
 
         .teams-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px; margin-bottom: 20px; }
         .team-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
-        .team-header { background: #f7fafc; color: var(--text-main); padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; gap: 8px; border-bottom: 1px solid var(--card-border); }
+        .team-header { background: var(--input-bg); color: var(--text-main); padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; gap: 8px; border-bottom: 1px solid var(--card-border); }
         .team-header-title { display: flex; align-items: center; gap: 10px; flex: 1; }
         .team-logo { width: 30px; height: 30px; object-fit: contain; background: #fff; border-radius: 50%; padding: 2px; border: 1px solid var(--card-border); }
-        .team-select { background: #fff; color: var(--text-main); border: 1px solid var(--card-border); font-weight: 800; font-size: 13px; border-radius: 8px; padding: 6px; width: 100%; outline: none; }
-        .team-score { font-size: 12px; font-weight: 900; background: #ebf8ff; color: var(--primary-blue); border: 1px solid #bee3f8; padding: 4px 8px; border-radius: 12px; }
+        .team-select { background: var(--card-bg); color: var(--text-main); border: 1px solid var(--card-border); font-weight: 800; font-size: 13px; border-radius: 8px; padding: 6px; width: 100%; outline: none; }
+        .team-score { font-size: 12px; font-weight: 900; background: rgba(49, 130, 206, 0.15); color: var(--primary-blue); border: 1px solid var(--card-border); padding: 4px 8px; border-radius: 12px; }
         .team-list { list-style: none; }
         .team-list li { padding: 12px 14px; border-bottom: 1px solid var(--card-border); font-size: 14px; display: flex; justify-content: space-between; font-weight: 700; color: var(--text-main); }
 
         .round-nav { display: flex; align-items: center; justify-content: space-between; background: var(--card-bg); border: 1px solid var(--card-border); padding: 12px 16px; border-radius: 14px; margin-bottom: 16px; }
         .round-nav button { background: var(--primary-blue); color: #fff; border: none; padding: 10px 16px; font-weight: 900; font-size: 12px; border-radius: 8px; cursor: pointer; }
         .round-nav button:disabled { background: var(--card-border); opacity: 0.5; cursor: not-allowed; }
-        .round-nav select { background: #fff; border: 1px solid var(--card-border); font-weight: 900; font-size: 14px; color: var(--text-main); padding: 8px 12px; border-radius: 8px; outline: none; }
+        .round-nav select { background: var(--input-bg); border: 1px solid var(--card-border); font-weight: 900; font-size: 14px; color: var(--text-main); padding: 8px 12px; border-radius: 8px; outline: none; }
 
         .table-wrapper { overflow-x: auto; background: var(--card-bg); border-radius: 14px; border: 1px solid var(--card-border); margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
         .league-table { width: 100%; border-collapse: collapse; text-align: center; font-size: 14px; }
-        .league-table th { background: #f7fafc; color: var(--text-sub); padding: 14px 10px; font-weight: 800; text-transform: uppercase; font-size: 11px; border-bottom: 1px solid var(--card-border); }
+        .league-table th { background: var(--input-bg); color: var(--text-sub); padding: 14px 10px; font-weight: 800; text-transform: uppercase; font-size: 11px; border-bottom: 1px solid var(--card-border); }
         .league-table td { padding: 14px 10px; border-bottom: 1px solid var(--card-border); font-weight: 700; }
         .team-cell { text-align: left; font-weight: 900; color: var(--text-main); display: flex; align-items: center; gap: 10px; }
         .team-cell span.country-code { font-size: 10px; font-weight: 700; color: var(--text-sub); text-transform: uppercase; margin-left: -4px; }
-        .pts-cell { font-weight: 900; color: var(--primary-green); background: #f0fff4; }
+        .pts-cell { font-weight: 900; color: var(--primary-green); background: rgba(56, 161, 105, 0.1); }
+
+        /* Streak Form Styles */
+        .form-streak { display: flex; gap: 4px; align-items: center; justify-content: center; }
+        .streak-badge { width: 18px; height: 18px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 900; color: #fff; }
+        .streak-w { background: var(--primary-green); }
+        .streak-d { background: var(--primary-gold); }
+        .streak-l { background: var(--primary-red); }
 
         .match-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px; padding: 16px; margin-bottom: 14px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
-        .match-badge { font-size: 11px; font-weight: 900; color: var(--primary-blue); background: #ebf8ff; padding: 4px 10px; border-radius: 6px; align-self: flex-start; text-transform: uppercase; border: 1px solid #bee3f8; }
+        .match-badge { font-size: 11px; font-weight: 900; color: var(--primary-blue); background: rgba(49, 130, 206, 0.15); padding: 4px 10px; border-radius: 6px; align-self: flex-start; text-transform: uppercase; border: 1px solid var(--card-border); }
         .match-main { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
         .match-team { flex: 1; font-size: 14px; font-weight: 800; display: flex; align-items: center; gap: 8px; color: var(--text-main); }
         .match-team span.country-code { font-size: 10px; font-weight: 700; color: var(--text-sub); text-transform: uppercase; margin-left: -4px; }
         .match-team.right { justify-content: flex-end; text-align: right; }
         .match-team.right span.country-code { margin-left: 0; margin-right: -4px; }
         .match-score-inputs { display: flex; align-items: center; gap: 8px; }
-        .match-score-inputs input { width: 44px; height: 44px; text-align: center; font-size: 20px; font-weight: 900; background: #f7fafc; border: 2px solid var(--card-border); color: var(--text-main); border-radius: 10px; outline: none; }
+        .match-score-inputs input { width: 44px; height: 44px; text-align: center; font-size: 20px; font-weight: 900; background: var(--input-bg); border: 2px solid var(--card-border); color: var(--text-main); border-radius: 10px; outline: none; }
         .match-btn { background: var(--primary-green); color: #fff; border: none; padding: 12px 16px; border-radius: 10px; font-size: 13px; font-weight: 900; cursor: pointer; }
 
-        .goal-events-container { background: #f7fafc; border: 1px dashed var(--card-border); padding: 12px; border-radius: 12px; margin-top: 6px; }
-        .goal-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; background: #fff; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--card-border); }
-        .goal-row select { padding: 6px; border-radius: 8px; background: #fff; border: 1px solid var(--card-border); color: var(--text-main); font-size: 12px; font-weight: 700; outline: none; flex: 1; min-width: 120px; }
+        .goal-events-container { background: var(--input-bg); border: 1px dashed var(--card-border); padding: 12px; border-radius: 12px; margin-top: 6px; }
+        .goal-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; background: var(--card-bg); padding: 8px 10px; border-radius: 10px; border: 1px solid var(--card-border); }
+        .goal-row select { padding: 6px; border-radius: 8px; background: var(--input-bg); border: 1px solid var(--card-border); color: var(--text-main); font-size: 12px; font-weight: 700; outline: none; flex: 1; min-width: 120px; }
         .goal-row label { font-size: 11px; font-weight: 800; color: var(--text-sub); }
 
-        .autogol-label { display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 800; color: var(--primary-red); background: #fff5f5; padding: 4px 8px; border-radius: 6px; border: 1px solid #fed7d7; cursor: pointer; }
+        .autogol-label { display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 800; color: var(--primary-red); background: rgba(229, 62, 62, 0.1); padding: 4px 8px; border-radius: 6px; border: 1px solid var(--card-border); cursor: pointer; }
 
-        .match-result-summary { background: #f7fafc; border: 1px solid var(--card-border); border-radius: 12px; padding: 12px; margin-top: 4px; }
+        .match-result-summary { background: var(--input-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 12px; margin-top: 4px; }
         .match-goals-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 8px; text-align: left; }
         .team-goals-column { display: flex; flex-direction: column; gap: 4px; }
         .team-goals-column.right { text-align: right; }
         .goal-item { font-size: 11px; color: var(--text-sub); font-weight: 700; line-height: 1.3; }
-        .mvp-banner { text-align: center; margin-top: 12px; font-size: 12px; font-weight: 900; color: var(--primary-gold); background: #fffaf0; border: 1px solid #feebc8; padding: 6px; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 6px; }
+        .mvp-banner { text-align: center; margin-top: 12px; font-size: 12px; font-weight: 900; color: var(--primary-gold); background: rgba(214, 158, 46, 0.1); border: 1px solid var(--card-border); padding: 6px; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 6px; }
 
         .filter-bar { display: flex; gap: 8px; margin-bottom: 16px; overflow-x: auto; }
         .filter-btn { padding: 10px 18px; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 20px; font-size: 12px; font-weight: 800; color: var(--text-sub); cursor: pointer; white-space: nowrap; }
@@ -228,17 +265,18 @@
 
         .leader-table { width: 100%; border-collapse: collapse; background: var(--card-bg); border-radius: 14px; overflow: hidden; border: 1px solid var(--card-border); box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
         .leader-table th, .leader-table td { padding: 14px 16px; text-align: left; font-size: 14px; font-weight: 700; border-bottom: 1px solid var(--card-border); }
-        .leader-table th { background: #f7fafc; color: var(--text-sub); font-size: 11px; text-transform: uppercase; }
+        .leader-table th { background: var(--input-bg); color: var(--text-sub); font-size: 11px; text-transform: uppercase; }
         .rank { font-weight: 900; width: 40px; text-align: center; color: var(--text-sub); }
         .rank-1 { color: var(--primary-gold); font-size: 16px; }
         .rank-2 { color: #718096; font-size: 15px; }
         .rank-3 { color: #dd6b20; font-size: 15px; }
     </style>
 </head>
-<body>
+<body data-theme="light">
 
 <header>
     <h1>Sport Time <span>10A</span> ⚽</h1>
+    <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Toggle Dark/Light Mode">🌙</button>
 </header>
 
 <div class="tabs">
@@ -288,10 +326,11 @@
                         <th>GF-GA</th>
                         <th>GD</th>
                         <th>Pts</th>
+                        <th>Form</th>
                     </tr>
                 </thead>
                 <tbody id="leagueTableBody">
-                    <tr><td colspan="9" style="padding:20px; color:var(--text-sub);">Start the tournament first</td></tr>
+                    <tr><td colspan="10" style="padding:20px; color:var(--text-sub);">Start the tournament first</td></tr>
                 </tbody>
             </table>
         </div>
@@ -365,7 +404,6 @@
 
     const defaultLogo = "https://upload.wikimedia.org/wikipedia/commons/d/d3/Soccerball.svg";
     const worldCupTrophyImg = "https://upload.wikimedia.org/wikipedia/commons/3/37/World_Cup_%28trophy%29.png";
-    const championsLeagueTrophyImg = "https://upload.wikimedia.org/wikipedia/en/c/c2/UEFA_Champions_League_Logo.svg";
 
     const initialPlayers = [
         { id: 1, name: "Mark", rating: 0.5, roles: ["DEF"], goals: 0, assists: 0, mvp: 0 },
@@ -394,17 +432,37 @@
         { id: 24, name: "Alseit abi", rating: 5.0, roles: ["GK", "DEF", "FWD"], goals: 0, assists: 0, mvp: 0 }
     ];
 
-    let savedData = JSON.parse(localStorage.getItem('sport_time_players_v14'));
+    let savedData = JSON.parse(localStorage.getItem('sport_time_players_v15'));
     let playersData = savedData || JSON.parse(JSON.stringify(initialPlayers));
 
-    let activeTeams = [];
-    let activeMatches = [];
-    let currentDisplayedRound = 1;
-    let totalRounds = 0;
+    let activeTeams = JSON.parse(localStorage.getItem('sport_time_teams_v15')) || [];
+    let activeMatches = JSON.parse(localStorage.getItem('sport_time_matches_v15')) || [];
+    let currentDisplayedRound = parseInt(localStorage.getItem('sport_time_round_v15')) || 1;
+    let totalRounds = parseInt(localStorage.getItem('sport_time_total_rounds_v15')) || 0;
     let baseCycleRounds = [];
 
-    function savePlayersData() {
-        localStorage.setItem('sport_time_players_v14', JSON.stringify(playersData));
+    function saveData() {
+        localStorage.setItem('sport_time_players_v15', JSON.stringify(playersData));
+        localStorage.setItem('sport_time_teams_v15', JSON.stringify(activeTeams));
+        localStorage.setItem('sport_time_matches_v15', JSON.stringify(activeMatches));
+        localStorage.setItem('sport_time_round_v15', currentDisplayedRound);
+        localStorage.setItem('sport_time_total_rounds_v15', totalRounds);
+    }
+
+    // Theme Switcher Logic
+    function toggleTheme() {
+        const body = document.body;
+        const currentTheme = body.getAttribute('data-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        body.setAttribute('data-theme', newTheme);
+        localStorage.setItem('sport_time_theme', newTheme);
+        document.getElementById('themeToggleBtn').innerText = newTheme === 'dark' ? '☀️' : '🌙';
+    }
+
+    function initTheme() {
+        const savedTheme = localStorage.getItem('sport_time_theme') || 'light';
+        document.body.setAttribute('data-theme', savedTheme);
+        document.getElementById('themeToggleBtn').innerText = savedTheme === 'dark' ? '☀️' : '🌙';
     }
 
     function switchTab(tabId, btn) {
@@ -454,7 +512,7 @@
             const idx = player.roles.indexOf(role);
             if (idx > -1) player.roles.splice(idx, 1);
             else player.roles.push(role);
-            savePlayersData();
+            saveData();
             renderPlayers();
         }
     }
@@ -469,96 +527,34 @@
         updateCount();
     }
 
-    // Advanced Balanced Distribution Algorithm (Optimized Snake Draft + Iterative Swapping)
     function distributeEquallyFlexible(players, numTeams) {
         let sorted = [...players].sort((a, b) => b.rating - a.rating);
         let teamLists = Array.from({ length: numTeams }, () => []);
         let teamSums = Array(numTeams).fill(0);
 
-        // 1. Initial Snake Draft Distribution
         sorted.forEach((player, idx) => {
             let targetTeam = 0;
             let roundNum = Math.floor(idx / numTeams);
             if (roundNum % 2 === 0) {
                 let minSum = Infinity;
                 for (let i = 0; i < numTeams; i++) {
-                    if (teamSums[i] < minSum) {
-                        minSum = teamSums[i];
-                        targetTeam = i;
-                    }
+                    if (teamSums[i] < minSum) { minSum = teamSums[i]; targetTeam = i; }
                 }
             } else {
                 let minSum = Infinity;
                 for (let i = numTeams - 1; i >= 0; i--) {
-                    if (teamSums[i] < minSum) {
-                        minSum = teamSums[i];
-                        targetTeam = i;
-                    }
+                    if (teamSums[i] < minSum) { minSum = teamSums[i]; targetTeam = i; }
                 }
             }
             teamLists[targetTeam].push(player);
             teamSums[targetTeam] += player.rating;
         });
-
-        // 2. Iterative Optimization (Swapping distinct players between heaviest and lightest teams to fix average discrepancies)
-        let improved = true;
-        let iterations = 0;
-        while (improved && iterations < 100) {
-            improved = false;
-            iterations++;
-
-            // Find team with max average and min average
-            let avgs = teamLists.map(t => t.reduce((s, p) => s + p.rating, 0) / t.length);
-            let maxIdx = 0, minIdx = 0;
-            for (let i = 1; i < numTeams; i++) {
-                if (avgs[i] > avgs[maxIdx]) maxIdx = i;
-                if (avgs[i] < avgs[minIdx]) minIdx = i;
-            }
-
-            if (avgs[maxIdx] - avgs[minIdx] < 0.02) break; // Already balanced enough
-
-            // Try to find a pair of players to swap (one from maxIdx, one from minIdx)
-            let bestSwapDiff = avgs[maxIdx] - avgs[minIdx];
-            let bestP1Idx = -1, bestP2Idx = -1;
-
-            for (let i = 0; i < teamLists[maxIdx].length; i++) {
-                for (let j = 0; j < teamLists[minIdx].length; j++) {
-                    let p1 = teamLists[maxIdx][i];
-                    let p2 = teamLists[minIdx][j];
-
-                    if (p1.rating > p2.rating) {
-                        let newSumMax = (teamSums[maxIdx] - p1.rating + p2.rating);
-                        let newSumMin = (teamSums[minIdx] - p2.rating + p1.rating);
-                        let newAvgMax = newSumMax / teamLists[maxIdx].length;
-                        let newAvgMin = newSumMin / teamLists[minIdx].length;
-                        let newDiff = Math.abs(newAvgMax - newAvgMin);
-
-                        if (newDiff < bestSwapDiff) {
-                            bestSwapDiff = newDiff;
-                            bestP1Idx = i;
-                            bestP2Idx = j;
-                            improved = true;
-                        }
-                    }
-                }
-            }
-
-            if (improved) {
-                let temp = teamLists[maxIdx][bestP1Idx];
-                teamLists[maxIdx][bestP1Idx] = teamLists[minIdx][bestP2Idx];
-                teamLists[minIdx][bestP2Idx] = temp;
-                teamSums[maxIdx] = teamLists[maxIdx].reduce((s, p) => s + p.rating, 0);
-                teamSums[minIdx] = teamLists[minIdx].reduce((s, p) => s + p.rating, 0);
-            }
-        }
-
         return teamLists;
     }
 
     function buildBaseCycleSchedule(teams) {
         let teamIds = teams.map(t => t.id);
         if (teamIds.length % 2 !== 0) teamIds.push(null);
-
         let numTeams = teamIds.length;
         let numRounds = numTeams - 1;
         let schedule = [];
@@ -615,6 +611,7 @@
         currentDisplayedRound = 1;
         document.getElementById('addNextRoundBtn').style.display = 'block';
 
+        saveData();
         setupRoundSelectOptions();
         renderLeagueTable();
         renderCurrentRoundMatches();
@@ -625,19 +622,14 @@
 
     function balanceExistingTeams() {
         if (activeTeams.length === 0) { alert("No active teams to balance!"); return; }
-
         let allActivePlayers = [];
-        activeTeams.forEach(t => {
-            allActivePlayers = allActivePlayers.concat(t.players);
-        });
+        activeTeams.forEach(t => { allActivePlayers = allActivePlayers.concat(t.players); });
 
         let numTeams = activeTeams.length;
         let distributed = distributeEquallyFlexible(allActivePlayers, numTeams);
 
-        activeTeams.forEach((t, idx) => {
-            t.players = distributed[idx];
-        });
-
+        activeTeams.forEach((t, idx) => { t.players = distributed[idx]; });
+        saveData();
         renderTeamsCards();
     }
 
@@ -658,6 +650,7 @@
             let t2 = isReverseCycle ? m.t1 : m.t2;
             activeMatches.push({ id: matchIdStart + idx, tour: totalRounds, t1, t2, s1: null, s2: null, played: false, goalsDetails: [], mvpId: null });
         });
+        saveData();
     }
 
     function generateNextRoundManual() {
@@ -680,6 +673,7 @@
 
     function selectRound(tourNum) {
         currentDisplayedRound = parseInt(tourNum);
+        saveData();
         renderCurrentRoundMatches();
     }
 
@@ -688,6 +682,7 @@
         if (newRound >= 1 && newRound <= totalRounds) {
             currentDisplayedRound = newRound;
             document.getElementById('roundSelect').value = currentDisplayedRound;
+            saveData();
             renderCurrentRoundMatches();
         }
     }
@@ -707,15 +702,47 @@
             team.code = selectedName.substring(0,3).toLowerCase();
             team.logo = defaultLogo;
         }
-
+        saveData();
         renderLeagueTable();
         renderCurrentRoundMatches();
         renderTeamsCards();
     }
 
+    // Функция для расчета формы команды по сыгранным матчам
+    function getTeamFormStreak(teamId) {
+        let teamMatches = activeMatches
+            .filter(m => m.played && (m.t1 === teamId || m.t2 === teamId))
+            .sort((a, b) => a.tour - b.tour); // Сортировка по хронологии раундов
+
+        let lastMatches = teamMatches.slice(-5); // Берем последние до 5 матчей
+        if (lastMatches.length === 0) return '<span style="color:var(--text-sub); font-size:11px;">-</span>';
+
+        let streakHtml = '<div class="form-streak">';
+        lastMatches.forEach(m => {
+            let isHome = m.t1 === teamId;
+            let myScore = isHome ? m.s1 : m.s2;
+            let oppScore = isHome ? m.s2 : m.s1;
+
+            if (myScore > oppScore) {
+                streakHtml += '<span class="streak-badge streak-w" title="Win">W</span>';
+            } else if (myScore === oppScore) {
+                streakHtml += '<span class="streak-badge streak-d" title="Draw">D</span>';
+            } else {
+                streakHtml += '<span class="streak-badge streak-l" title="Loss">L</span>';
+            }
+        });
+        streakHtml += '</div>';
+        return streakHtml;
+    }
+
     function renderLeagueTable() {
         const body = document.getElementById('leagueTableBody');
         body.innerHTML = '';
+
+        if(activeTeams.length === 0) {
+            body.innerHTML = `<tr><td colspan="10" style="padding:20px; color:var(--text-sub);">Start the tournament first</td></tr>`;
+            return;
+        }
 
         let sortedTeams = [...activeTeams].sort((a, b) => {
             if (b.pts !== a.pts) return b.pts - a.pts;
@@ -737,6 +764,7 @@
                     <td>${t.played}</td><td>${t.win}</td><td>${t.draw}</td><td>${t.loss}</td>
                     <td>${t.gf}-${t.ga}</td><td>${t.gd > 0 ? '+' + t.gd : t.gd}</td>
                     <td class="pts-cell">${t.pts}</td>
+                    <td>${getTeamFormStreak(t.id)}</td>
                 </tr>
             `;
         });
@@ -933,14 +961,8 @@
         } else {
             assistSelect.disabled = false;
             let availableAssistPlayers = scoringTeam.players.filter(p => p.id != currentScorerVal);
-            
             assistSelect.innerHTML = '<option value="">None</option>' + availableAssistPlayers.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
-            
-            if (currentAssistVal == currentScorerVal) {
-                assistSelect.value = "";
-            } else {
-                assistSelect.value = currentAssistVal;
-            }
+            assistSelect.value = (currentAssistVal == currentScorerVal) ? "" : currentAssistVal;
         }
     }
 
@@ -952,6 +974,7 @@
 
         match.s1 = s1Val !== '' ? parseInt(s1Val) : null;
         match.s2 = s2Val !== '' ? parseInt(s2Val) : null;
+        saveData();
         renderCurrentRoundMatches();
     }
 
@@ -1029,10 +1052,7 @@
         if (topPlayers.length === 1) {
             mvpPlayerId = topPlayers[0];
         } else if (topPlayers.length > 1) {
-            let winningTeamId = null;
-            if (s1 > s2) winningTeamId = t1.id;
-            else if (s2 > s1) winningTeamId = t2.id;
-
+            let winningTeamId = (s1 > s2) ? t1.id : (s2 > s1) ? t2.id : null;
             let candidatePlayers = topPlayers;
             if (winningTeamId !== null) {
                 let winnersFromTop = topPlayers.filter(pId => {
@@ -1042,13 +1062,9 @@
                     if (winningTeamId === t2.id && inT2) return true;
                     return false;
                 });
-                if (winnersFromTop.length > 0) {
-                    candidatePlayers = winnersFromTop;
-                }
+                if (winnersFromTop.length > 0) candidatePlayers = winnersFromTop;
             }
-
-            let randomIndex = Math.floor(Math.random() * candidatePlayers.length);
-            mvpPlayerId = candidatePlayers[randomIndex];
+            mvpPlayerId = candidatePlayers[Math.floor(Math.random() * candidatePlayers.length)];
         }
 
         if (mvpPlayerId) {
@@ -1061,7 +1077,7 @@
 
         match.mvpId = mvpPlayerId;
 
-        savePlayersData();
+        saveData();
         recalculateStandings();
         renderLeagueTable();
         renderCurrentRoundMatches();
@@ -1089,6 +1105,7 @@
         });
 
         activeTeams.forEach(t => { t.gd = t.gf - t.ga; });
+        saveData();
     }
 
     function renderTeamsCards() {
@@ -1102,8 +1119,7 @@
             let avgRating = t.players.length > 0 ? (t.players.reduce((sum, p) => sum + p.rating, 0) / t.players.length) : 0;
             let optionsHtml = availablePresets.map(p => {
                 let cleanName = p.name;
-                let cleanCurrentName = t.name;
-                return `<option value="${cleanName}" ${cleanName === cleanCurrentName ? 'selected' : ''}>${p.name}</option>`;
+                return `<option value="${cleanName}" ${cleanName === t.name ? 'selected' : ''}>${p.name}</option>`;
             }).join('');
 
             let playersListHtml = t.players.map(p => `
@@ -1163,12 +1179,20 @@
 
     function resetChanges() {
         if (confirm("Are you sure you want to reset all tournament data and player stats?")) {
-            localStorage.removeItem('sport_time_players_v14');
+            localStorage.removeItem('sport_time_players_v15');
+            localStorage.removeItem('sport_time_teams_v15');
+            localStorage.removeItem('sport_time_matches_v15');
+            localStorage.removeItem('sport_time_round_v15');
+            localStorage.removeItem('sport_time_total_rounds_v15');
+            
             playersData = JSON.parse(JSON.stringify(initialPlayers));
             activeTeams = [];
             activeMatches = [];
+            totalRounds = 0;
+            currentDisplayedRound = 1;
+
             renderPlayers();
-            document.getElementById('leagueTableBody').innerHTML = `<tr><td colspan="9" style="padding:20px; color:var(--text-sub);">Start the tournament first</td></tr>`;
+            document.getElementById('leagueTableBody').innerHTML = `<tr><td colspan="10" style="padding:20px; color:var(--text-sub);">Start the tournament first</td></tr>`;
             document.getElementById('matchesList').innerHTML = `<p style="text-align:center; color:var(--text-sub); padding:10px; font-weight:700;">Start the tournament to create matches.</p>`;
             document.getElementById('teamsResult').innerHTML = ``;
             document.getElementById('roundNavControls').style.display = 'none';
@@ -1178,7 +1202,15 @@
     }
 
     window.onload = function() {
+        initTheme();
         renderPlayers();
+        if (activeTeams.length > 0) {
+            setupRoundSelectOptions();
+            recalculateStandings();
+            renderLeagueTable();
+            renderCurrentRoundMatches();
+            renderTeamsCards();
+        }
     };
 </script>
 </body>
