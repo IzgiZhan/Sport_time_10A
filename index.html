@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sport Time  - Tournament</title>
+    <title>Sport Time - Tournament</title>
     <style>
         :root {
             --bg-color: #f4f6f9;
@@ -96,6 +96,17 @@
             color: var(--primary-blue); 
             font-weight: 900; 
             letter-spacing: 1px; 
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .title-trophy-icon {
+            width: 18px;
+            height: 18px;
+            object-fit: contain;
+            display: inline-block;
+            vertical-align: middle;
         }
 
         .tournament-type-selector {
@@ -182,13 +193,16 @@
         .league-table th { background: #f7fafc; color: var(--text-sub); padding: 14px 10px; font-weight: 800; text-transform: uppercase; font-size: 11px; border-bottom: 1px solid var(--card-border); }
         .league-table td { padding: 14px 10px; border-bottom: 1px solid var(--card-border); font-weight: 700; }
         .team-cell { text-align: left; font-weight: 900; color: var(--text-main); display: flex; align-items: center; gap: 10px; }
+        .team-cell span.country-code { font-size: 10px; font-weight: 700; color: var(--text-sub); text-transform: uppercase; margin-left: -4px; }
         .pts-cell { font-weight: 900; color: var(--primary-green); background: #f0fff4; }
 
         .match-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px; padding: 16px; margin-bottom: 14px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
         .match-badge { font-size: 11px; font-weight: 900; color: var(--primary-blue); background: #ebf8ff; padding: 4px 10px; border-radius: 6px; align-self: flex-start; text-transform: uppercase; border: 1px solid #bee3f8; }
         .match-main { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
         .match-team { flex: 1; font-size: 14px; font-weight: 800; display: flex; align-items: center; gap: 8px; color: var(--text-main); }
+        .match-team span.country-code { font-size: 10px; font-weight: 700; color: var(--text-sub); text-transform: uppercase; margin-left: -4px; }
         .match-team.right { justify-content: flex-end; text-align: right; }
+        .match-team.right span.country-code { margin-left: 0; margin-right: -4px; }
         .match-score-inputs { display: flex; align-items: center; gap: 8px; }
         .match-score-inputs input { width: 44px; height: 44px; text-align: center; font-size: 20px; font-weight: 900; background: #f7fafc; border: 2px solid var(--card-border); color: var(--text-main); border-radius: 10px; outline: none; }
         .match-btn { background: var(--primary-green); color: #fff; border: none; padding: 12px 16px; border-radius: 10px; font-size: 13px; font-weight: 900; cursor: pointer; }
@@ -205,7 +219,7 @@
         .team-goals-column { display: flex; flex-direction: column; gap: 4px; }
         .team-goals-column.right { text-align: right; }
         .goal-item { font-size: 11px; color: var(--text-sub); font-weight: 700; line-height: 1.3; }
-        .mvp-banner { text-align: center; margin-top: 12px; font-size: 12px; font-weight: 900; color: var(--primary-gold); background: #fffaf0; border: 1px solid #feebc8; padding: 6px; border-radius: 8px; }
+        .mvp-banner { text-align: center; margin-top: 12px; font-size: 12px; font-weight: 900; color: var(--primary-gold); background: #fffaf0; border: 1px solid #feebc8; padding: 6px; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 6px; }
 
         .filter-bar { display: flex; gap: 8px; margin-bottom: 16px; overflow-x: auto; }
         .filter-btn { padding: 10px 18px; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 20px; font-size: 12px; font-weight: 800; color: var(--text-sub); cursor: pointer; white-space: nowrap; }
@@ -237,8 +251,8 @@
         <div class="tournament-type-selector">
             <label for="tournamentTypeSelect">Tournament Mode</label>
             <select id="tournamentTypeSelect">
-                <option value="country">World Cup 🏆</option>
-                <option value="club">Champions League 🌟</option>
+                <option value="country">World Cup <img src="https://upload.wikimedia.org/wikipedia/commons/3/37/World_Cup_%28trophy%29.png" class="title-trophy-icon" alt=""></option>
+                <option value="club">Champions League <img src="https://upload.wikimedia.org/wikipedia/en/c/c2/UEFA_Champions_League_Logo.svg" class="title-trophy-icon" alt=""></option>
             </select>
         </div>
         <div class="section-header">
@@ -306,7 +320,9 @@
             <button class="filter-btn active" onclick="renderLeaderboard('goals', this)">⚽ Top Scorers</button>
             <button class="filter-btn" onclick="renderLeaderboard('assists', this)">👟 Top Assists</button>
             <button class="filter-btn" onclick="renderLeaderboard('points', this)">🔥 Goal + Assist</button>
-            <button class="filter-btn" onclick="renderLeaderboard('mvp', this)">🏆 MVP</button>
+            <button class="filter-btn" onclick="renderLeaderboard('mvp', this)">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/3/37/World_Cup_%28trophy%29.png" style="width:14px; height:14px; vertical-align:middle; margin-right:4px;" alt=""> MVP
+            </button>
         </div>
         <table class="leader-table">
             <thead>
@@ -325,57 +341,59 @@
 
 <script>
     const clubPresets = [
-        { name: "Real Madrid", type: "club", logo: "https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg" },
-        { name: "FC Barcelona", type: "club", logo: "https://upload.wikimedia.org/wikipedia/en/4/47/FC_Barcelona_%28crest%29.svg" },
-        { name: "Manchester City", type: "club", logo: "https://upload.wikimedia.org/wikipedia/en/e/eb/Manchester_City_FC_badge.svg" },
-        { name: "Bayern Munich", type: "club", logo: "https://upload.wikimedia.org/wikipedia/commons/1/1b/FC_Bayern_M%C3%BCnchen_logo_%282017%29.svg" },
-        { name: "PSG", type: "club", logo: "https://upload.wikimedia.org/wikipedia/en/a/a7/Paris_Saint-Germain_F.C..svg" },
-        { name: "Liverpool", type: "club", logo: "https://upload.wikimedia.org/wikipedia/en/0/0c/Liverpool_FC.svg" },
-        { name: "Arsenal", type: "club", logo: "https://upload.wikimedia.org/wikipedia/en/5/53/Arsenal_FC.svg" },
-        { name: "Manchester United", type: "club", logo: "https://upload.wikimedia.org/wikipedia/en/7/7a/Manchester_United_FC_crest.svg" },
-        { name: "Chelsea", type: "club", logo: "https://upload.wikimedia.org/wikipedia/en/c/cc/Chelsea_FC.svg" },
-        { name: "Inter Milan", type: "club", logo: "https://upload.wikimedia.org/wikipedia/commons/0/05/FC_Internazionale_Milano_2021.svg" },
-        { name: "AC Milan", type: "club", logo: "https://upload.wikimedia.org/wikipedia/commons/d/d0/AC_Milan_logo.svg" },
-        { name: "Borussia Dortmund", type: "club", logo: "https://upload.wikimedia.org/wikipedia/commons/6/67/Borussia_Dortmund_logo.svg" },
-        { name: "France", type: "country", logo: "https://flagcdn.com/w160/fr.png" },
-        { name: "Portugal", type: "country", logo: "https://flagcdn.com/w160/pt.png" },
-        { name: "Spain", type: "country", logo: "https://flagcdn.com/w160/es.png" },
-        { name: "England", type: "country", logo: "https://flagcdn.com/w160/gb-eng.png" },
-        { name: "Brazil", type: "country", logo: "https://flagcdn.com/w160/br.png" },
-        { name: "Argentina", type: "country", logo: "https://flagcdn.com/w160/ar.png" },
-        { name: "Kazakhstan", type: "country", logo: "https://flagcdn.com/w160/kz.png" }
+        { name: "Real Madrid", type: "club", code: "rma", logo: "https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg" },
+        { name: "FC Barcelona", type: "club", code: "bar", logo: "https://upload.wikimedia.org/wikipedia/en/4/47/FC_Barcelona_%28crest%29.svg" },
+        { name: "Manchester City", type: "club", code: "mci", logo: "https://upload.wikimedia.org/wikipedia/en/e/eb/Manchester_City_FC_badge.svg" },
+        { name: "Bayern Munich", type: "club", code: "bay", logo: "https://upload.wikimedia.org/wikipedia/commons/1/1b/FC_Bayern_M%C3%BCnchen_logo_%282017%29.svg" },
+        { name: "PSG", type: "club", code: "psg", logo: "https://upload.wikimedia.org/wikipedia/en/a/a7/Paris_Saint-Germain_F.C..svg" },
+        { name: "Liverpool", type: "club", code: "liv", logo: "https://upload.wikimedia.org/wikipedia/en/0/0c/Liverpool_FC.svg" },
+        { name: "Arsenal", type: "club", code: "ars", logo: "https://upload.wikimedia.org/wikipedia/en/5/53/Arsenal_FC.svg" },
+        { name: "Manchester United", type: "club", code: "mun", logo: "https://upload.wikimedia.org/wikipedia/en/7/7a/Manchester_United_FC_crest.svg" },
+        { name: "Chelsea", type: "club", code: "che", logo: "https://upload.wikimedia.org/wikipedia/en/c/cc/Chelsea_FC.svg" },
+        { name: "Inter Milan", type: "club", code: "int", logo: "https://upload.wikimedia.org/wikipedia/commons/0/05/FC_Internazionale_Milano_2021.svg" },
+        { name: "AC Milan", type: "club", code: "mil", logo: "https://upload.wikimedia.org/wikipedia/commons/d/d0/AC_Milan_logo.svg" },
+        { name: "Borussia Dortmund", type: "club", code: "dor", logo: "https://upload.wikimedia.org/wikipedia/commons/6/67/Borussia_Dortmund_logo.svg" },
+        { name: "France", type: "country", code: "fra", logo: "https://flagcdn.com/w160/fr.png" },
+        { name: "Portugal", type: "country", code: "por", logo: "https://flagcdn.com/w160/pt.png" },
+        { name: "Spain", type: "country", code: "esp", logo: "https://flagcdn.com/w160/es.png" },
+        { name: "England", type: "country", code: "eng", logo: "https://flagcdn.com/w160/gb-eng.png" },
+        { name: "Brazil", type: "country", code: "bra", logo: "https://flagcdn.com/w160/br.png" },
+        { name: "Argentina", type: "country", code: "arg", logo: "https://flagcdn.com/w160/ar.png" },
+        { name: "Kazakhstan", type: "country", code: "kaz", logo: "https://flagcdn.com/w160/kz.png" }
     ];
 
     const defaultLogo = "https://upload.wikimedia.org/wikipedia/commons/d/d3/Soccerball.svg";
+    const worldCupTrophyImg = "https://upload.wikimedia.org/wikipedia/commons/3/37/World_Cup_%28trophy%29.png";
+    const championsLeagueTrophyImg = "https://upload.wikimedia.org/wikipedia/en/c/c2/UEFA_Champions_League_Logo.svg";
 
     const initialPlayers = [
-        { id: 1, name: "Mark", rating: 1.0, roles: ["DEF"], goals: 0, assists: 0, mvp: 0 },
-        { id: 2, name: "Amir", rating: 1.0, roles: ["DEF"], goals: 0, assists: 0, mvp: 0 },
-        { id: 3, name: "Azamat", rating: 1.0, roles: ["DEF"], goals: 0, assists: 0, mvp: 0 },
-        { id: 4, name: "Akhmet", rating: 2.0, roles: ["DEF"], goals: 0, assists: 0, mvp: 0 },
-        { id: 5, name: "Madiyar", rating: 2.0, roles: ["DEF"], goals: 0, assists: 0, mvp: 0 },
-        { id: 6, name: "Yeramir", rating: 2.5, roles: ["DEF"], goals: 0, assists: 0, mvp: 0 },
-        { id: 7, name: "Dias", rating: 2.5, roles: ["FWD"], goals: 0, assists: 0, mvp: 0 },
-        { id: 8, name: "Batyr", rating: 2.5, roles: ["FWD"], goals: 0, assists: 0, mvp: 0 },
-        { id: 9, name: "Nurtas", rating: 2.5, roles: ["FWD"], goals: 0, assists: 0, mvp: 0 },
-        { id: 10, name: "Oraz", rating: 3.0, roles: ["GK", "FWD"], goals: 0, assists: 0, mvp: 0 },
-        { id: 11, name: "Rakhman", rating: 3.0, roles: ["GK", "DEF"], goals: 0, assists: 0, mvp: 0 },
-        { id: 12, name: "Abdirasul", rating: 3.0, roles: ["GK", "DEF"], goals: 0, assists: 0, mvp: 0 },
-        { id: 13, name: "Sultan", rating: 3.0, roles: ["DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
+        { id: 1, name: "Mark", rating: 0.5, roles: ["DEF"], goals: 0, assists: 0, mvp: 0 },
+        { id: 2, name: "Amir", rating: 0.5, roles: ["DEF"], goals: 0, assists: 0, mvp: 0 },
+        { id: 3, name: "Azamat", rating: 0.5, roles: ["DEF"], goals: 0, assists: 0, mvp: 0 },
+        { id: 4, name: "Akhmet", rating: 1.25, roles: ["DEF"], goals: 0, assists: 0, mvp: 0 },
+        { id: 5, name: "Madiyar", rating: 1.25, roles: ["DEF"], goals: 0, assists: 0, mvp: 0 },
+        { id: 6, name: "Yeramir", rating: 2.0, roles: ["DEF"], goals: 0, assists: 0, mvp: 0 },
+        { id: 7, name: "Dias", rating: 2.0, roles: ["FWD"], goals: 0, assists: 0, mvp: 0 },
+        { id: 8, name: "Batyr", rating: 2.0, roles: ["FWD"], goals: 0, assists: 0, mvp: 0 },
+        { id: 9, name: "Nurtas", rating: 2.0, roles: ["FWD"], goals: 0, assists: 0, mvp: 0 },
+        { id: 10, name: "Oraz", rating: 2.75, roles: ["GK", "FWD"], goals: 0, assists: 0, mvp: 0 },
+        { id: 11, name: "Rakhman", rating: 2.75, roles: ["GK", "DEF"], goals: 0, assists: 0, mvp: 0 },
+        { id: 12, name: "Abdirasul", rating: 2.75, roles: ["GK", "DEF"], goals: 0, assists: 0, mvp: 0 },
+        { id: 13, name: "Sultan", rating: 2.75, roles: ["DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
         { id: 14, name: "Arnat", rating: 3.5, roles: ["DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
         { id: 15, name: "Bauyrzhan", rating: 3.5, roles: ["GK", "DEF"], goals: 0, assists: 0, mvp: 0 },
         { id: 16, name: "Alim", rating: 3.5, roles: ["DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
-        { id: 17, name: "Abduluahid agay", rating: 3.5, roles: ["DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
-        { id: 18, name: "Ilfat", rating: 4.0, roles: ["DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
-        { id: 19, name: "Tamerlan", rating: 4.0, roles: ["DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
-        { id: 20, name: "Akhmad", rating: 4.0, roles: ["GK", "DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
-        { id: 21, name: "Islam", rating: 4.0, roles: ["DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
+        { id: 17, name: "Abduluahid agay", rating: 4.25, roles: ["DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
+        { id: 18, name: "Ilfat", rating: 4.25, roles: ["DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
+        { id: 19, name: "Tamerlan", rating: 4.25, roles: ["DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
+        { id: 20, name: "Akhmad", rating: 4.25, roles: ["GK", "DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
+        { id: 21, name: "Islam", rating: 4.25, roles: ["DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
         { id: 22, name: "Ismail", rating: 5.0, roles: ["GK", "DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
         { id: 23, name: "Omar", rating: 5.0, roles: ["GK", "DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
         { id: 24, name: "Alseit abi", rating: 5.0, roles: ["GK", "DEF", "FWD"], goals: 0, assists: 0, mvp: 0 }
     ];
 
-    let savedData = JSON.parse(localStorage.getItem('sport_time_players_v13'));
+    let savedData = JSON.parse(localStorage.getItem('sport_time_players_v14'));
     let playersData = savedData || JSON.parse(JSON.stringify(initialPlayers));
 
     let activeTeams = [];
@@ -385,7 +403,7 @@
     let baseCycleRounds = [];
 
     function savePlayersData() {
-        localStorage.setItem('sport_time_players_v13', JSON.stringify(playersData));
+        localStorage.setItem('sport_time_players_v14', JSON.stringify(playersData));
     }
 
     function switchTab(tabId, btn) {
@@ -450,61 +468,88 @@
         updateCount();
     }
 
+    // Advanced Balanced Distribution Algorithm (Optimized Snake Draft + Iterative Swapping)
     function distributeEquallyFlexible(players, numTeams) {
+        let sorted = [...players].sort((a, b) => b.rating - a.rating);
         let teamLists = Array.from({ length: numTeams }, () => []);
-        let sortedPlayers = [...players].sort((a, b) => b.rating - a.rating);
+        let teamSums = Array(numTeams).fill(0);
 
-        if (numTeams === 4) {
-            let top5 = sortedPlayers.filter(p => p.rating === 5.0);
-            let top4 = sortedPlayers.filter(p => p.rating === 4.0);
+        // 1. Initial Snake Draft Distribution
+        sorted.forEach((player, idx) => {
+            let targetTeam = 0;
+            let roundNum = Math.floor(idx / numTeams);
+            if (roundNum % 2 === 0) {
+                let minSum = Infinity;
+                for (let i = 0; i < numTeams; i++) {
+                    if (teamSums[i] < minSum) {
+                        minSum = teamSums[i];
+                        targetTeam = i;
+                    }
+                }
+            } else {
+                let minSum = Infinity;
+                for (let i = numTeams - 1; i >= 0; i--) {
+                    if (teamSums[i] < minSum) {
+                        minSum = teamSums[i];
+                        targetTeam = i;
+                    }
+                }
+            }
+            teamLists[targetTeam].push(player);
+            teamSums[targetTeam] += player.rating;
+        });
 
-            for (let t = 0; t < 3; t++) {
-                if (top5.length > 0) {
-                    teamLists[t].push(top5[0]);
-                    sortedPlayers = sortedPlayers.filter(p => p.id !== top5[0].id);
-                    top5.shift();
+        // 2. Iterative Optimization (Swapping distinct players between heaviest and lightest teams to fix average discrepancies)
+        let improved = true;
+        let iterations = 0;
+        while (improved && iterations < 100) {
+            improved = false;
+            iterations++;
+
+            // Find team with max average and min average
+            let avgs = teamLists.map(t => t.reduce((s, p) => s + p.rating, 0) / t.length);
+            let maxIdx = 0, minIdx = 0;
+            for (let i = 1; i < numTeams; i++) {
+                if (avgs[i] > avgs[maxIdx]) maxIdx = i;
+                if (avgs[i] < avgs[minIdx]) minIdx = i;
+            }
+
+            if (avgs[maxIdx] - avgs[minIdx] < 0.02) break; // Already balanced enough
+
+            // Try to find a pair of players to swap (one from maxIdx, one from minIdx)
+            let bestSwapDiff = avgs[maxIdx] - avgs[minIdx];
+            let bestP1Idx = -1, bestP2Idx = -1;
+
+            for (let i = 0; i < teamLists[maxIdx].length; i++) {
+                for (let j = 0; j < teamLists[minIdx].length; j++) {
+                    let p1 = teamLists[maxIdx][i];
+                    let p2 = teamLists[minIdx][j];
+
+                    if (p1.rating > p2.rating) {
+                        let newSumMax = (teamSums[maxIdx] - p1.rating + p2.rating);
+                        let newSumMin = (teamSums[minIdx] - p2.rating + p1.rating);
+                        let newAvgMax = newSumMax / teamLists[maxIdx].length;
+                        let newAvgMin = newSumMin / teamLists[minIdx].length;
+                        let newDiff = Math.abs(newAvgMax - newAvgMin);
+
+                        if (newDiff < bestSwapDiff) {
+                            bestSwapDiff = newDiff;
+                            bestP1Idx = i;
+                            bestP2Idx = j;
+                            improved = true;
+                        }
+                    }
                 }
             }
 
-            for (let t = 0; t < 2; t++) {
-                if (top4.length > 0) {
-                    let best4 = top4.sort((a, b) => b.rating - a.rating)[0];
-                    teamLists[3].push(best4);
-                    sortedPlayers = sortedPlayers.filter(p => p.id !== best4.id);
-                    top4 = top4.filter(p => p.id !== best4.id);
-                }
+            if (improved) {
+                let temp = teamLists[maxIdx][bestP1Idx];
+                teamLists[maxIdx][bestP1Idx] = teamLists[minIdx][bestP2Idx];
+                teamLists[minIdx][bestP2Idx] = temp;
+                teamSums[maxIdx] = teamLists[maxIdx].reduce((s, p) => s + p.rating, 0);
+                teamSums[minIdx] = teamLists[minIdx].reduce((s, p) => s + p.rating, 0);
             }
         }
-
-        let totalRemaining = sortedPlayers.length;
-        let baseCountPerTeam = Math.floor((totalRemaining + teamLists.reduce((acc, t) => acc + t.length, 0)) / numTeams);
-
-        let currentTeam = 0;
-        let direction = 1;
-
-        sortedPlayers.forEach(player => {
-            while (teamLists[currentTeam].length >= baseCountPerTeam && teamLists.some(t => t.length < baseCountPerTeam)) {
-                currentTeam += direction;
-                if (currentTeam >= numTeams) {
-                    currentTeam = numTeams - 1;
-                    direction = -1;
-                } else if (currentTeam < 0) {
-                    currentTeam = 0;
-                    direction = 1;
-                }
-            }
-
-            teamLists[currentTeam].push(player);
-
-            currentTeam += direction;
-            if (currentTeam >= numTeams) {
-                currentTeam = numTeams - 1;
-                direction = -1;
-            } else if (currentTeam < 0) {
-                currentTeam = 0;
-                direction = 1;
-            }
-        });
 
         return teamLists;
     }
@@ -546,11 +591,12 @@
         let selectedPresets = getRandomValidPresets(numTeams, selectedType);
 
         let teams = Array.from({ length: numTeams }, (_, i) => {
-            let preset = selectedPresets[i] || { name: `Team ${i + 1}`, type: selectedType, logo: defaultLogo };
+            let preset = selectedPresets[i] || { name: `Team ${i + 1}`, type: selectedType, code: `t${i+1}`, logo: defaultLogo };
             return {
                 id: i + 1,
                 name: preset.name,
                 type: preset.type,
+                code: preset.code || preset.name.substring(0,3).toLowerCase(),
                 logo: preset.logo,
                 players: distributed[i],
                 played: 0, win: 0, draw: 0, loss: 0,
@@ -653,9 +699,11 @@
         if (foundPreset) {
             team.name = foundPreset.name;
             team.type = foundPreset.type;
+            team.code = foundPreset.code;
             team.logo = foundPreset.logo;
         } else {
             team.name = selectedName;
+            team.code = selectedName.substring(0,3).toLowerCase();
             team.logo = defaultLogo;
         }
 
@@ -678,7 +726,13 @@
             body.innerHTML += `
                 <tr>
                     <td>${i + 1}</td>
-                    <td class="team-cell"><img src="${t.logo}" class="team-logo" alt=""><span>${t.name}</span></td>
+                    <td class="team-cell">
+                        <img src="${t.logo}" class="team-logo" alt="">
+                        <div style="display:flex; flex-direction:column; line-height:1.2;">
+                            <span>${t.name}</span>
+                            <span class="country-code">${t.code || ''}</span>
+                        </div>
+                    </td>
                     <td>${t.played}</td><td>${t.win}</td><td>${t.draw}</td><td>${t.loss}</td>
                     <td>${t.gf}-${t.ga}</td><td>${t.gd > 0 ? '+' + t.gd : t.gd}</td>
                     <td class="pts-cell">${t.pts}</td>
@@ -717,15 +771,27 @@
                 let t2GoalsHtml = t2Goals.map(renderGoalItem).join('');
 
                 let mvpPlayer = m.mvpId ? playersData.find(p => p.id === m.mvpId) : null;
-                let mvpHtml = mvpPlayer ? `<div class="mvp-banner">🏆 MVP: ${mvpPlayer.name}</div>` : '';
+                let mvpHtml = mvpPlayer ? `<div class="mvp-banner"><img src="${worldCupTrophyImg}" style="width:16px; height:16px; object-fit:contain;" alt=""> MVP: ${mvpPlayer.name}</div>` : '';
 
                 container.innerHTML += `
                     <div class="match-card">
                         <div class="match-badge">Match #${m.id} - Round ${m.tour}</div>
                         <div class="match-main">
-                            <div class="match-team"><img src="${t1 ? t1.logo : defaultLogo}" class="team-logo" alt=""><span>${t1 ? t1.name : 'T1'}</span></div>
+                            <div class="match-team">
+                                <img src="${t1 ? t1.logo : defaultLogo}" class="team-logo" alt="">
+                                <div style="display:flex; flex-direction:column; line-height:1.2;">
+                                    <span>${t1 ? t1.name : 'T1'}</span>
+                                    <span class="country-code">${t1 ? t1.code : ''}</span>
+                                </div>
+                            </div>
                             <div style="font-size:24px; font-weight:900; color:var(--primary-blue);">${m.s1} : ${m.s2}</div>
-                            <div class="match-team right"><span>${t2 ? t2.name : 'T2'}</span><img src="${t2 ? t2.logo : defaultLogo}" class="team-logo" alt=""></div>
+                            <div class="match-team right">
+                                <div style="display:flex; flex-direction:column; line-height:1.2; text-align:right;">
+                                    <span>${t2 ? t2.name : 'T2'}</span>
+                                    <span class="country-code">${t2 ? t2.code : ''}</span>
+                                </div>
+                                <img src="${t2 ? t2.logo : defaultLogo}" class="team-logo" alt="">
+                            </div>
                         </div>
                         <div class="match-result-summary">
                             <div class="match-goals-grid">
@@ -795,13 +861,25 @@
                     <div class="match-card">
                         <div class="match-badge">Match #${m.id} - Round ${m.tour}</div>
                         <div class="match-main">
-                            <div class="match-team"><img src="${t1 ? t1.logo : defaultLogo}" class="team-logo" alt=""><span>${t1 ? t1.name : 'T1'}</span></div>
+                            <div class="match-team">
+                                <img src="${t1 ? t1.logo : defaultLogo}" class="team-logo" alt="">
+                                <div style="display:flex; flex-direction:column; line-height:1.2;">
+                                    <span>${t1 ? t1.name : 'T1'}</span>
+                                    <span class="country-code">${t1 ? t1.code : ''}</span>
+                                </div>
+                            </div>
                             <div class="match-score-inputs">
                                 <input type="number" min="0" id="m_${m.id}_s1" value="${val1}" onchange="updateMatchEventsView(${m.id})">
                                 <span>:</span>
                                 <input type="number" min="0" id="m_${m.id}_s2" value="${val2}" onchange="updateMatchEventsView(${m.id})">
                             </div>
-                            <div class="match-team right"><span>${t2 ? t2.name : 'T2'}</span><img src="${t2 ? t2.logo : defaultLogo}" class="team-logo" alt=""></div>
+                            <div class="match-team right">
+                                <div style="display:flex; flex-direction:column; line-height:1.2; text-align:right;">
+                                    <span>${t2 ? t2.name : 'T2'}</span>
+                                    <span class="country-code">${t2 ? t2.code : ''}</span>
+                                </div>
+                                <img src="${t2 ? t2.logo : defaultLogo}" class="team-logo" alt="">
+                            </div>
                         </div>
                         <div id="events_container_${m.id}">${eventsHtml}</div>
                         <button class="match-btn" onclick="saveMatchResult(${m.id})">End match</button>
@@ -1063,7 +1141,10 @@
         if (metric === 'goals') { header.innerText = 'Goals ⚽'; sorted.sort((a, b) => b.goals - a.goals); } 
         else if (metric === 'assists') { header.innerText = 'Assists 👟'; sorted.sort((a, b) => b.assists - a.assists); } 
         else if (metric === 'points') { header.innerText = 'G + A 🔥'; sorted.sort((a, b) => (b.goals + b.assists) - (a.goals + a.assists)); } 
-        else if (metric === 'mvp') { header.innerText = 'MVP 🏆'; sorted.sort((a, b) => b.mvp - a.mvp); }
+        else if (metric === 'mvp') { 
+            header.innerHTML = `<img src="${worldCupTrophyImg}" style="width:14px; height:14px; vertical-align:middle; margin-right:4px;" alt=""> MVP`; 
+            sorted.sort((a, b) => b.mvp - a.mvp); 
+        }
 
         sorted.forEach((p, index) => {
             let rankClass = index === 0 ? 'rank-1' : index === 1 ? 'rank-2' : index === 2 ? 'rank-3' : '';
@@ -1081,7 +1162,7 @@
 
     function resetChanges() {
         if (confirm("Are you sure you want to reset all tournament data and player stats?")) {
-            localStorage.removeItem('sport_time_players_v13');
+            localStorage.removeItem('sport_time_players_v14');
             playersData = JSON.parse(JSON.stringify(initialPlayers));
             activeTeams = [];
             activeMatches = [];
