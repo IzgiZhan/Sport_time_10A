@@ -598,6 +598,11 @@
         if(tabId === 'playersTab') renderPlayers();
     }
 
+    function formatRating(value) {
+        const n = Number(value);
+        return Number.isFinite(n) ? n.toFixed(2).replace(/0+$/, "").replace(/\.$/, "") : "0";
+    }
+
     function renderPlayers() {
         const container = document.getElementById('playersList');
         container.innerHTML = '';
@@ -615,7 +620,7 @@
                         <div>
                             <div style="display:flex; align-items:center; gap:6px;">
                                 <span class="player-name">${p.name}</span>
-                                <span class="player-rating">⭐ ${p.rating.toFixed(2)} &nbsp; ⚡ ${p.speed || 3}</span>
+                                <span class="player-rating">⭐ ${formatRating(p.rating)} &nbsp; ⚡ ${p.speed || 3}</span>
                             </div>
                             <div class="role-display">
                                 ${isNap ? '<span class="role-fwd">⚽ FWD</span>' : ''}
@@ -1383,7 +1388,7 @@
             let playersListHtml = sortedTeamPlayers.map(p => `
                 <li>
                     <span>${p.name}</span>
-                    <span style="color:var(--primary-blue);">⭐ ${p.rating.toFixed(2)}</span>
+                    <span style="color:var(--primary-blue);">⭐ ${formatRating(p.rating)}</span>
                 </li>
             `).join('');
 
@@ -1428,7 +1433,7 @@
             body.innerHTML += `
                 <tr>
                     <td class="rank ${rankClass}">${index + 1}</td>
-                    <td style="font-weight:800;">${p.name} <span style="font-size:11px; color:var(--primary-blue); font-weight:normal;">(⭐${p.rating.toFixed(2)})</span></td>
+                    <td style="font-weight:800;">${p.name} <span style="font-size:11px; color:var(--primary-blue); font-weight:normal;">(⭐${formatRating(p.rating)})</span></td>
                     <td style="text-align:right; font-weight:900; color:var(--primary-gold);">${val}</td>
                 </tr>
             `;
