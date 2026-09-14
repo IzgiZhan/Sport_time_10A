@@ -70,12 +70,25 @@
         .admin-modal { display:none; position:fixed; inset:0; z-index:1000; background:rgba(0,0,0,.55); padding:20px; overflow:auto; }
         .admin-modal.show { display:flex; align-items:flex-start; justify-content:center; }
         .admin-panel { width:min(720px,100%); margin-top:30px; background:var(--card-bg); border:1px solid var(--card-border); border-radius:16px; padding:18px; box-shadow:0 15px 50px rgba(0,0,0,.25); }
-        .admin-player { display:grid; grid-template-columns:1.5fr .8fr .8fr auto; gap:8px; align-items:center; padding:10px 0; border-bottom:1px solid var(--card-border); }
+        .admin-player { display:grid; grid-template-columns:1.5fr .7fr .7fr 1.4fr auto; gap:8px; align-items:center; padding:12px 0; border-bottom:1px solid var(--card-border); }
+        .admin-player-roles { display:flex; gap:5px; flex-wrap:wrap; }
+        .admin-role-btn { border:1px solid var(--card-border); background:var(--input-bg); color:var(--text-sub); padding:7px 8px; border-radius:8px; cursor:pointer; font-size:10px; font-weight:900; transition:all .15s; }
+        .admin-role-btn:hover { border-color:var(--primary-blue); }
+        .admin-role-btn.active[data-role="FWD"] { background:var(--primary-red); color:#fff; border-color:var(--primary-red); }
+        .admin-role-btn.active[data-role="DEF"] { background:var(--primary-blue); color:#fff; border-color:var(--primary-blue); }
+        .admin-role-btn.active[data-role="GK"] { background:var(--primary-gold); color:#fff; border-color:var(--primary-gold); }
+        .admin-roles-title { font-size:10px; color:var(--text-sub); font-weight:900; text-transform:uppercase; margin-bottom:5px; }
+        .role-display { display:flex; gap:5px; margin-top:8px; }
+        .role-display span { padding:4px 8px; border-radius:7px; font-size:10px; font-weight:900; color:#fff; }
+        .role-display .role-fwd { background:var(--primary-red); }
+        .role-display .role-def { background:var(--primary-blue); }
+        .role-display .role-gk { background:var(--primary-gold); }
+        .admin-heading { display:grid; grid-template-columns:1.5fr .7fr .7fr 1.4fr auto; gap:8px; margin:4px 0 0; padding:0 0 6px; color:var(--text-sub); font-size:10px; font-weight:900; text-transform:uppercase; letter-spacing:.5px; }
         .admin-player input { width:100%; padding:9px; border:1px solid var(--card-border); border-radius:8px; background:var(--input-bg); color:var(--text-main); font-weight:700; }
         .admin-player button { border:1px solid var(--card-border); background:var(--input-bg); color:var(--text-main); padding:9px 10px; border-radius:8px; cursor:pointer; font-weight:900; }
         .admin-add { display:grid; grid-template-columns:1.5fr .8fr .8fr auto; gap:8px; margin-top:14px; }
         .admin-add input { padding:10px; border:1px solid var(--card-border); border-radius:8px; background:var(--input-bg); color:var(--text-main); }
-        @media(max-width:600px){ .admin-player,.admin-add{grid-template-columns:1fr 1fr 1fr;} .admin-player button,.admin-add button{grid-column:1/-1;} }
+        @media(max-width:700px){ .admin-player,.admin-add,.admin-heading{grid-template-columns:1fr 1fr;} .admin-player-roles,.admin-player button,.admin-add button{grid-column:1/-1;} .admin-heading{display:none;} }
 
         .theme-toggle-btn {
             background: var(--input-bg);
@@ -397,7 +410,8 @@
       <span class="section-title">🔐 Admin Panel</span>
       <button class="admin-btn" onclick="closeAdmin()">✕</button>
     </div>
-    <p style="color:var(--text-sub);font-size:12px;margin-bottom:12px;">Here you can change ⭐ rating and ⚡ speed, as well as add and remove players.</p>
+    <p style="color:var(--text-sub);font-size:12px;margin-bottom:14px;">Manage player name, ⭐ rating, ⚡ speed and positions. Changes are saved automatically.</p>
+    <div class="admin-heading"><span>Player</span><span>Rating</span><span>Speed</span><span>Positions</span><span></span></div>
     <div id="adminPlayersList"></div>
     <div class="admin-add">
       <input id="newPlayerName" placeholder="Player name">
@@ -421,7 +435,7 @@
         { name: "Manchester United", type: "club", code: "mun", logo: "https://upload.wikimedia.org/wikipedia/en/7/7a/Manchester_United_FC_crest.svg" },
         { name: "Chelsea", type: "club", code: "che", logo: "https://upload.wikimedia.org/wikipedia/en/c/cc/Chelsea_FC.svg" },
         { name: "Inter Milan", type: "club", code: "int", logo: "https://upload.wikimedia.org/wikipedia/commons/0/05/FC_Internazionale_Milano_2021.svg" },
-        { name: "AC Milan", type: "club", code: "mil", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/AC_Milan_logo.svg/120px-AC_Milan_logo.svg.png" },
+        { name: "AC Milan", type: "club", code: "mil", logo: "https://upload.wikimedia.org/wikipedia/commons/d/d0/AC_Milan_logo.svg" },
         { name: "Borussia Dortmund", type: "club", code: "dor", logo: "https://upload.wikimedia.org/wikipedia/commons/6/67/Borussia_Dortmund_logo.svg" },
         { name: "France", type: "country", code: "fra", logo: "https://flagcdn.com/w160/fr.png" },
         { name: "Portugal", type: "country", code: "por", logo: "https://flagcdn.com/w160/pt.png" },
@@ -506,18 +520,40 @@
 
     function renderAdminPlayers() {
         const box = document.getElementById("adminPlayersList");
-        box.innerHTML = playersData.map(p => `
+        box.innerHTML = playersData.map(p => {
+          if (!Array.isArray(p.roles)) p.roles = [];
+          return `
           <div class="admin-player">
-            <input value="${p.name.replace(/"/g,'&quot;')}" placeholder="Player name" title="Player name" onchange="adminUpdateName(${p.id}, this.value)">
+            <div><input value="${p.name.replace(/"/g,'&quot;')}" placeholder="Player name" title="Player name" onchange="adminUpdateName(${p.id}, this.value)"></div>
             <input type="number" min="0" max="5" step="0.25" value="${p.rating}" placeholder="Rating" title="Rating" onchange="adminUpdateRating(${p.id}, this.value)">
             <input type="number" min="1" max="5" step="1" value="${p.speed || 3}" placeholder="Speed" title="Speed" onchange="adminUpdateSpeed(${p.id}, this.value)">
+            <div>
+              <div class="admin-roles-title">Positions</div>
+              <div class="admin-player-roles">
+                <button type="button" class="admin-role-btn ${p.roles.includes('FWD') ? 'active' : ''}" data-role="FWD" onclick="adminToggleRole(${p.id}, 'FWD')">⚽ FWD</button>
+                <button type="button" class="admin-role-btn ${p.roles.includes('DEF') ? 'active' : ''}" data-role="DEF" onclick="adminToggleRole(${p.id}, 'DEF')">🛡️ DEF</button>
+                <button type="button" class="admin-role-btn ${p.roles.includes('GK') ? 'active' : ''}" data-role="GK" onclick="adminToggleRole(${p.id}, 'GK')">🧤 GK</button>
+              </div>
+            </div>
             <button onclick="deletePlayerAdmin(${p.id})">🗑️ Delete</button>
-          </div>`).join("");
+          </div>`;
+        }).join("");
     }
 
     function adminUpdateName(id, value) { const p=playersData.find(x=>x.id===id); if(p && value.trim()){p.name=value.trim();saveData();renderPlayers();renderTeamsCards();renderCurrentRoundMatches();renderAdminPlayers();} }
     function adminUpdateRating(id, value) { const p=playersData.find(x=>x.id===id); if(p){p.rating=Math.max(0,Math.min(5,parseFloat(value)||0));saveData();renderPlayers();} }
     function adminUpdateSpeed(id, value) { const p=playersData.find(x=>x.id===id); if(p){p.speed=Math.max(1,Math.min(5,parseInt(value)||1));saveData();renderPlayers();} }
+    function adminToggleRole(id, role) {
+        const p = playersData.find(x => x.id === id);
+        if (!p) return;
+        if (!Array.isArray(p.roles)) p.roles = [];
+        const idx = p.roles.indexOf(role);
+        if (idx >= 0) p.roles.splice(idx, 1);
+        else p.roles.push(role);
+        saveData();
+        renderPlayers();
+        renderAdminPlayers();
+    }
     function addPlayerAdmin() {
         const name=document.getElementById("newPlayerName").value.trim();
         const rating=parseFloat(document.getElementById("newPlayerRating").value);
@@ -581,10 +617,10 @@
                                 <span class="player-name">${p.name}</span>
                                 <span class="player-rating">⭐ ${p.rating.toFixed(2)} &nbsp; ⚡ ${p.speed || 3}</span>
                             </div>
-                            <div class="role-selector">
-                                <button class="role-btn ${isNap ? 'active' : ''}" data-role="FWD" onclick="toggleRole(${p.id}, 'FWD')">⚽ FWD</button>
-                                <button class="role-btn ${isZas ? 'active' : ''}" data-role="DEF" onclick="toggleRole(${p.id}, 'DEF')">🛡️ DEF</button>
-                                <button class="role-btn ${isVrt ? 'active' : ''}" data-role="GK" onclick="toggleRole(${p.id}, 'GK')">GK</button>
+                            <div class="role-display">
+                                ${isNap ? '<span class="role-fwd">⚽ FWD</span>' : ''}
+                                ${isZas ? '<span class="role-def">🛡️ DEF</span>' : ''}
+                                ${isVrt ? '<span class="role-gk">🧤 GK</span>' : ''}
                             </div>
                         </div>
                     </div>
@@ -594,15 +630,9 @@
         updateCount();
     }
 
+    // Positions are managed only from the Admin Panel.
     function toggleRole(id, role) {
-        let player = playersData.find(p => p.id === id);
-        if (player) {
-            const idx = player.roles.indexOf(role);
-            if (idx > -1) player.roles.splice(idx, 1);
-            else player.roles.push(role);
-            saveData();
-            renderPlayers();
-        }
+        openAdmin();
     }
 
     function updateCount() {
