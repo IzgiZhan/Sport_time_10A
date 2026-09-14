@@ -405,6 +405,7 @@
       <input id="newPlayerSpeed" type="number" min="1" max="5" step="1" placeholder="Speed">
       <button class="btn btn-green" style="margin:0;padding:10px;" onclick="addPlayerAdmin()">+ Add Player</button>
     </div>
+    <button class="btn btn-green" style="margin-top:16px;" onclick="saveAdminChanges()">💾 Save Changes</button>
   </div>
 </div>
 
@@ -420,7 +421,7 @@
         { name: "Manchester United", type: "club", code: "mun", logo: "https://upload.wikimedia.org/wikipedia/en/7/7a/Manchester_United_FC_crest.svg" },
         { name: "Chelsea", type: "club", code: "che", logo: "https://upload.wikimedia.org/wikipedia/en/c/cc/Chelsea_FC.svg" },
         { name: "Inter Milan", type: "club", code: "int", logo: "https://upload.wikimedia.org/wikipedia/commons/0/05/FC_Internazionale_Milano_2021.svg" },
-        { name: "AC Milan", type: "club", code: "mil", logo: "https://upload.wikimedia.org/wikipedia/commons/d/d0/AC_Milan_logo.svg" },
+        { name: "AC Milan", type: "club", code: "mil", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/AC_Milan_logo.svg/120px-AC_Milan_logo.svg.png" },
         { name: "Borussia Dortmund", type: "club", code: "dor", logo: "https://upload.wikimedia.org/wikipedia/commons/6/67/Borussia_Dortmund_logo.svg" },
         { name: "France", type: "country", code: "fra", logo: "https://flagcdn.com/w160/fr.png" },
         { name: "Portugal", type: "country", code: "por", logo: "https://flagcdn.com/w160/pt.png" },
@@ -490,6 +491,18 @@
     }
 
     function closeAdmin() { document.getElementById("adminModal").classList.remove("show"); }
+    function saveAdminChanges() {
+        saveData();
+        renderPlayers();
+        if (activeTeams.length > 0) {
+            recalculateStandings();
+            renderLeagueTable();
+            renderTeamsCards();
+            renderCurrentRoundMatches();
+        }
+        alert("Changes saved successfully.");
+        closeAdmin();
+    }
 
     function renderAdminPlayers() {
         const box = document.getElementById("adminPlayersList");
@@ -602,28 +615,149 @@
         updateCount();
     }
 
-    function distributeEquallyFlexible(players, numTeams) {
-        // Балансируем сразу два показателя: ⭐ рейтинг и ⚡ скорость.
-        // Скорость не редактируется на обычном экране — только через Admin.
-        let sorted = [...players].sort((a, b) => (b.rating + (b.speed || 3) * 0.7) - (a.rating + (a.speed || 3) * 0.7));
-        let teamLists = Array.from({ length: numTeams }, () => []);
-        let teamRatingSums = Array(numTeams).fill(0);
-        let teamSpeedSums = Array(numTeams).fill(0);
+    function getBestTeamCount(totalPlayers) {
+        // Team count by the requested thresholds:
+        // 16+ players -> 4 teams, 12-15 -> 3 teams, 4-11 -> 2 teams.
+        if (totalPlayers > 15) return 4;
+        if (totalPlayers > 11) return 3;
+        if (totalPlayers >= 4) return 2;
+        return 0;
+    }
 
-        sorted.forEach(player => {
-            let targetTeam = 0;
-            let bestScore = Infinity;
-            for (let i = 0; i < numTeams; i++) {
-                let projectedRating = teamRatingSums[i] + player.rating;
-                let projectedSpeed = teamSpeedSums[i] + (player.speed || 3);
-                let score = projectedRating + projectedSpeed * 0.7;
-                if (score < bestScore) { bestScore = score; targetTeam = i; }
+    function teamBalanceScore(teams) {
+        const ratingQuarterSums = teams.map(team =>
+            team.reduce((sum, p) => sum + Math.round(p.rating * 4), 0)
+        );
+        const speedSums = teams.map(team =>
+            team.reduce((sum, p) => sum + (p.speed || 3), 0)
+        );
+
+        const totalRatingQuarter = ratingQuarterSums.reduce((a, b) => a + b, 0);
+        const targetRatingQuarter = totalRatingQuarter / teams.length;
+        const totalSpeed = speedSums.reduce((a, b) => a + b, 0);
+        const targetSpeed = totalSpeed / teams.length;
+
+        const ratingAbs = ratingQuarterSums.reduce(
+            (sum, value) => sum + Math.abs(value - targetRatingQuarter), 0
+        );
+        const ratingVar = ratingQuarterSums.reduce(
+            (sum, value) => sum + Math.pow(value - targetRatingQuarter, 2), 0
+        );
+
+        const speedAbs = speedSums.reduce(
+            (sum, value) => sum + Math.abs(value - targetSpeed), 0
+        );
+        const speedVar = speedSums.reduce(
+            (sum, value) => sum + Math.pow(value - targetSpeed, 2), 0
+        );
+
+        // Rating is the primary criterion. Speed is the secondary criterion.
+        // Team sizes are guaranteed to differ by at most one player.
+        return ratingAbs * 1000000 + ratingVar * 10000 + speedAbs * 100 + speedVar;
+    }
+
+    function distributeEquallyFlexible(players, numTeams) {
+        if (!players.length || numTeams < 2 || players.length < numTeams) return null;
+
+        // Make team sizes as equal as mathematically possible.
+        // If the total cannot be divided exactly (e.g. 17 players / 4 teams),
+        // the difference between team sizes is at most one player.
+        const baseSize = Math.floor(players.length / numTeams);
+        const extraPlayers = players.length % numTeams;
+        const teamTargetSizes = Array.from({ length: numTeams }, (_, i) => baseSize + (i < extraPlayers ? 1 : 0));
+        let bestTeams = null;
+        let bestScore = Infinity;
+
+        // Many deterministic/randomized starts + local pair-swap optimization.
+        // This finds a very tight balance while guaranteeing equal team sizes.
+        for (let restart = 0; restart < 120; restart++) {
+            let order = [...players];
+
+            if (restart === 0) {
+                order.sort((a, b) => {
+                    const aKey = a.rating;
+                    const bKey = b.rating;
+                    return bKey - aKey;
+                });
+            } else {
+                order.sort(() => Math.random() - 0.5);
+                order.sort((a, b) => {
+                    const ratingDiff = b.rating - a.rating;
+                    if (Math.abs(ratingDiff) > 1e-9) return ratingDiff;
+                    return ((b.speed || 3) - (a.speed || 3)) + (Math.random() - 0.5) * 0.01;
+                });
             }
-            teamLists[targetTeam].push(player);
-            teamRatingSums[targetTeam] += player.rating;
-            teamSpeedSums[targetTeam] += (player.speed || 3);
-        });
-        return teamLists;
+
+            let teams = Array.from({ length: numTeams }, () => []);
+
+            // Snake draft with target sizes keeps team sizes as equal as possible.
+            let row = 0;
+            let position = 0;
+            order.forEach(player => {
+                let teamIndex = row % 2 === 0 ? position : (numTeams - 1 - position);
+                // Skip full teams and continue the snake.
+                while (teams[teamIndex].length >= teamTargetSizes[teamIndex]) {
+                    position++;
+                    if (position >= numTeams) {
+                        row++;
+                        position = 0;
+                    }
+                    teamIndex = row % 2 === 0 ? position : (numTeams - 1 - position);
+                }
+                teams[teamIndex].push(player);
+                position++;
+                if (position >= numTeams) {
+                    row++;
+                    position = 0;
+                }
+            });
+
+            let currentScore = teamBalanceScore(teams);
+            let improved = true;
+
+            while (improved) {
+                improved = false;
+                let bestSwap = null;
+                let bestSwapScore = currentScore;
+
+                for (let a = 0; a < numTeams; a++) {
+                    for (let b = a + 1; b < numTeams; b++) {
+                        for (let ia = 0; ia < teams[a].length; ia++) {
+                            for (let ib = 0; ib < teams[b].length; ib++) {
+                                const temp = teams[a][ia];
+                                teams[a][ia] = teams[b][ib];
+                                teams[b][ib] = temp;
+
+                                const score = teamBalanceScore(teams);
+                                if (score < bestSwapScore - 1e-9) {
+                                    bestSwapScore = score;
+                                    bestSwap = [a, ia, b, ib];
+                                }
+
+                                teams[b][ib] = teams[a][ia];
+                                teams[a][ia] = temp;
+                            }
+                        }
+                    }
+                }
+
+                if (bestSwap) {
+                    const [a, ia, b, ib] = bestSwap;
+                    const temp = teams[a][ia];
+                    teams[a][ia] = teams[b][ib];
+                    teams[b][ib] = temp;
+                    currentScore = bestSwapScore;
+                    improved = true;
+                }
+            }
+
+            if (currentScore < bestScore) {
+                bestScore = currentScore;
+                bestTeams = teams.map(team => [...team]);
+            }
+        }
+
+        return bestTeams;
     }
 
     function buildBaseCycleSchedule(teams) {
@@ -655,9 +789,18 @@
         if (selected.length < 4) { alert("Please select at least 4 players!"); return; }
 
         const total = selected.length;
-        let numTeams = total >= 16 ? 4 : total >= 9 ? 3 : 2;
+        let numTeams = getBestTeamCount(total);
+
+        if (!numTeams) {
+            alert("Please select at least 4 players.");
+            return;
+        }
 
         let distributed = distributeEquallyFlexible(selected, numTeams);
+        if (!distributed) {
+            alert("Could not create equal teams. Please check the selected players.");
+            return;
+        }
         const selectedType = document.getElementById('tournamentTypeSelect').value;
         let selectedPresets = getRandomValidPresets(numTeams, selectedType);
 
@@ -700,7 +843,16 @@
         activeTeams.forEach(t => { allActivePlayers = allActivePlayers.concat(t.players); });
 
         let numTeams = activeTeams.length;
+        if (allActivePlayers.length % numTeams !== 0) {
+            alert(`Cannot make ${numTeams} teams perfectly equal. Select/remove players so the total is divisible by ${numTeams}.`);
+            return;
+        }
+
         let distributed = distributeEquallyFlexible(allActivePlayers, numTeams);
+        if (!distributed) {
+            alert("Could not rebalance the teams.");
+            return;
+        }
 
         activeTeams.forEach((t, idx) => { t.players = distributed[idx]; });
         saveData();
@@ -874,7 +1026,7 @@
                 let t2GoalsHtml = t2Goals.map(renderGoalItem).join('');
 
                 let mvpPlayer = m.mvpId ? playersData.find(p => p.id === m.mvpId) : null;
-                let mvpHtml = mvpPlayer ? `<div class="mvp-banner"><img src="${worldCupTrophyImg}" style="width:16px; height:16px; object-fit:contain;" alt=""> MVP: ${mvpPlayer.name}</div>` : '';
+                let mvpHtml = mvpPlayer ? `<div class="mvp-banner">🏆 MVP: ${mvpPlayer.name}</div>` : '';
 
                 container.innerHTML += `
                     <div class="match-card">
@@ -1191,12 +1343,14 @@
 
         activeTeams.forEach(t => {
             let avgRating = t.players.length > 0 ? (t.players.reduce((sum, p) => sum + p.rating, 0) / t.players.length) : 0;
+            let avgSpeed = t.players.length > 0 ? (t.players.reduce((sum, p) => sum + (p.speed || 3), 0) / t.players.length) : 0;
             let optionsHtml = availablePresets.map(p => {
                 let cleanName = p.name;
                 return `<option value="${cleanName}" ${cleanName === t.name ? 'selected' : ''}>${p.name}</option>`;
             }).join('');
 
-            let playersListHtml = t.players.map(p => `
+            let sortedTeamPlayers = [...t.players].sort((a, b) => (b.rating - a.rating) || ((b.speed || 3) - (a.speed || 3)) || a.name.localeCompare(b.name));
+            let playersListHtml = sortedTeamPlayers.map(p => `
                 <li>
                     <span>${p.name}</span>
                     <span style="color:var(--primary-blue);">⭐ ${p.rating.toFixed(2)}</span>
@@ -1210,7 +1364,7 @@
                             <img src="${t.logo}" class="team-logo" alt="">
                             <select class="team-select" onchange="changeTeamPreset(${t.id}, this.value)">${optionsHtml}</select>
                         </div>
-                        <span class="team-score" title="Average Rating">Avg ⭐ ${avgRating.toFixed(2)}</span>
+                        <span class="team-score" title="Rating & Speed">${t.players.length} players · ⭐ ${avgRating.toFixed(2)} · ⚡ ${avgSpeed.toFixed(2)}</span>
                     </div>
                     <ul class="team-list">${playersListHtml}</ul>
                 </div>
@@ -1233,7 +1387,7 @@
         else if (metric === 'assists') { header.innerText = 'Assists 👟'; sorted.sort((a, b) => b.assists - a.assists); } 
         else if (metric === 'points') { header.innerText = 'G + A 🔥'; sorted.sort((a, b) => (b.goals + b.assists) - (a.goals + a.assists)); } 
         else if (metric === 'mvp') { 
-            header.innerHTML = `<img src="${worldCupTrophyImg}" style="width:14px; height:14px; vertical-align:middle; margin-right:4px;" alt=""> MVP`; 
+            header.innerHTML = `🏆 MVP`; 
             sorted.sort((a, b) => b.mvp - a.mvp); 
         }
 
