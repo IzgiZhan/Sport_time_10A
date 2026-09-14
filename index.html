@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sport Time 10A - Tournament</title>
+    <link rel="manifest" href="manifest.json">
     <style>
         :root {
             --bg-color: #f4f6f9;
@@ -64,23 +65,19 @@
         
         header h1 span { color: var(--primary-blue); }
 
-        .header-actions { display: flex; gap: 8px; align-items: center; }
-
-        .theme-toggle-btn, .admin-btn {
+        .theme-toggle-btn {
             background: var(--input-bg);
             border: 1px solid var(--card-border);
             color: var(--text-main);
+            width: 40px;
             height: 40px;
-            border-radius: 20px;
+            border-radius: 50%;
             cursor: pointer;
-            font-size: 13px;
-            font-weight: 800;
+            font-size: 18px;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 0 14px;
         }
-        .theme-toggle-btn { width: 40px; padding: 0; border-radius: 50%; font-size: 18px; }
 
         .tabs { 
             display: flex; 
@@ -135,6 +132,14 @@
             gap: 6px;
         }
 
+        .title-trophy-icon {
+            width: 18px;
+            height: 18px;
+            object-fit: contain;
+            display: inline-block;
+            vertical-align: middle;
+        }
+
         .tournament-type-selector {
             background: var(--card-bg);
             border: 1px solid var(--card-border);
@@ -182,20 +187,10 @@
         }
         
         .player-card:hover { border-color: var(--primary-blue); }
-        .player-info { display: flex; align-items: center; gap: 12px; width: 100%; }
+        .player-info { display: flex; align-items: center; gap: 12px; }
         .player-info input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--primary-blue); cursor: pointer; }
         .player-name { font-weight: 800; font-size: 16px; color: var(--text-main); }
-        
-        .player-skill-badge {
-            margin-left: auto;
-            background: rgba(214, 158, 46, 0.1);
-            border: 1px solid var(--card-border);
-            color: var(--primary-gold);
-            font-weight: 900;
-            font-size: 12px;
-            padding: 4px 10px;
-            border-radius: 8px;
-        }
+        .player-rating { background: rgba(49, 130, 206, 0.15); color: var(--primary-blue); border: 1px solid var(--card-border); border-radius: 20px; padding: 3px 10px; font-size: 12px; font-weight: 900; }
 
         .role-selector { display: flex; gap: 6px; margin-top: 8px; }
         .role-btn { border: 1px solid var(--card-border); background: var(--input-bg); color: var(--text-sub); font-size: 11px; font-weight: 800; padding: 5px 10px; border-radius: 8px; cursor: pointer; }
@@ -207,88 +202,17 @@
         .btn:hover { transform: translateY(-1px); filter: brightness(0.95); }
         .btn-green { background: var(--primary-green); color: #fff; }
         .btn-blue { background: var(--primary-blue); color: #fff; }
-        .btn-red { background: var(--primary-red); color: #fff; }
         .btn-dark { background: var(--card-bg); border: 1px solid var(--card-border); color: var(--text-sub); margin-top: 30px; font-size: 12px; font-weight: 800; }
-
-        /* Admin Modal */
-        .admin-modal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.6);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-            padding: 16px;
-        }
-        .admin-content {
-            background: var(--card-bg);
-            border: 1px solid var(--card-border);
-            border-radius: 16px;
-            width: 100%;
-            max-width: 550px;
-            max-height: 85vh;
-            overflow-y: auto;
-            padding: 24px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-        }
-        .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-        .admin-close { background: none; border: none; font-size: 20px; color: var(--text-sub); cursor: pointer; font-weight: 900; }
-        
-        .admin-player-row {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            background: var(--input-bg);
-            border: 1px solid var(--card-border);
-            padding: 10px 12px;
-            border-radius: 10px;
-            margin-bottom: 8px;
-        }
-        .admin-player-row input[type="text"] {
-            flex: 1;
-            padding: 6px 10px;
-            background: var(--card-bg);
-            border: 1px solid var(--card-border);
-            color: var(--text-main);
-            font-weight: 700;
-            border-radius: 6px;
-            outline: none;
-        }
-        .admin-player-row select {
-            background: var(--card-bg);
-            border: 1px solid var(--card-border);
-            color: var(--primary-gold);
-            font-weight: 900;
-            padding: 6px;
-            border-radius: 6px;
-            outline: none;
-        }
-        .admin-add-form {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 16px;
-        }
-        .admin-add-form input {
-            flex: 1;
-            padding: 10px;
-            background: var(--input-bg);
-            border: 1px solid var(--card-border);
-            color: var(--text-main);
-            font-weight: 700;
-            border-radius: 10px;
-            outline: none;
-        }
 
         .teams-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px; margin-bottom: 20px; }
         .team-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
         .team-header { background: var(--input-bg); color: var(--text-main); padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; gap: 8px; border-bottom: 1px solid var(--card-border); }
         .team-header-title { display: flex; align-items: center; gap: 10px; flex: 1; }
-        .team-logo { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-size: 22px; }
+        .team-logo { width: 30px; height: 30px; object-fit: contain; background: #fff; border-radius: 50%; padding: 2px; border: 1px solid var(--card-border); }
         .team-select { background: var(--card-bg); color: var(--text-main); border: 1px solid var(--card-border); font-weight: 800; font-size: 13px; border-radius: 8px; padding: 6px; width: 100%; outline: none; }
-        .team-score { font-size: 11px; font-weight: 900; background: rgba(49, 130, 206, 0.15); color: var(--primary-blue); border: 1px solid var(--card-border); padding: 4px 8px; border-radius: 12px; }
+        .team-score { font-size: 12px; font-weight: 900; background: rgba(49, 130, 206, 0.15); color: var(--primary-blue); border: 1px solid var(--card-border); padding: 4px 8px; border-radius: 12px; }
         .team-list { list-style: none; }
-        .team-list li { padding: 10px 14px; border-bottom: 1px solid var(--card-border); font-size: 13px; display: flex; justify-content: space-between; font-weight: 700; color: var(--text-main); align-items: center; }
+        .team-list li { padding: 12px 14px; border-bottom: 1px solid var(--card-border); font-size: 14px; display: flex; justify-content: space-between; font-weight: 700; color: var(--text-main); }
 
         .round-nav { display: flex; align-items: center; justify-content: space-between; background: var(--card-bg); border: 1px solid var(--card-border); padding: 12px 16px; border-radius: 14px; margin-bottom: 16px; }
         .round-nav button { background: var(--primary-blue); color: #fff; border: none; padding: 10px 16px; font-weight: 900; font-size: 12px; border-radius: 8px; cursor: pointer; }
@@ -300,9 +224,10 @@
         .league-table th { background: var(--input-bg); color: var(--text-sub); padding: 14px 10px; font-weight: 800; text-transform: uppercase; font-size: 11px; border-bottom: 1px solid var(--card-border); }
         .league-table td { padding: 14px 10px; border-bottom: 1px solid var(--card-border); font-weight: 700; }
         .team-cell { text-align: left; font-weight: 900; color: var(--text-main); display: flex; align-items: center; gap: 10px; }
-        .team-cell span.country-code { font-size: 10px; font-weight: 700; color: var(--text-sub); text-transform: uppercase; }
+        .team-cell span.country-code { font-size: 10px; font-weight: 700; color: var(--text-sub); text-transform: uppercase; margin-left: -4px; }
         .pts-cell { font-weight: 900; color: var(--primary-green); background: rgba(56, 161, 105, 0.1); }
 
+        /* Streak Form Styles */
         .form-streak { display: flex; gap: 4px; align-items: center; justify-content: center; }
         .streak-badge { width: 18px; height: 18px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 900; color: #fff; }
         .streak-w { background: var(--primary-green); }
@@ -313,8 +238,9 @@
         .match-badge { font-size: 11px; font-weight: 900; color: var(--primary-blue); background: rgba(49, 130, 206, 0.15); padding: 4px 10px; border-radius: 6px; align-self: flex-start; text-transform: uppercase; border: 1px solid var(--card-border); }
         .match-main { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
         .match-team { flex: 1; font-size: 14px; font-weight: 800; display: flex; align-items: center; gap: 8px; color: var(--text-main); }
-        .match-team span.country-code { font-size: 10px; font-weight: 700; color: var(--text-sub); text-transform: uppercase; }
+        .match-team span.country-code { font-size: 10px; font-weight: 700; color: var(--text-sub); text-transform: uppercase; margin-left: -4px; }
         .match-team.right { justify-content: flex-end; text-align: right; }
+        .match-team.right span.country-code { margin-left: 0; margin-right: -4px; }
         .match-score-inputs { display: flex; align-items: center; gap: 8px; }
         .match-score-inputs input { width: 44px; height: 44px; text-align: center; font-size: 20px; font-weight: 900; background: var(--input-bg); border: 2px solid var(--card-border); color: var(--text-main); border-radius: 10px; outline: none; }
         .match-btn { background: var(--primary-green); color: #fff; border: none; padding: 12px 16px; border-radius: 10px; font-size: 13px; font-weight: 900; cursor: pointer; }
@@ -350,10 +276,7 @@
 
 <header>
     <h1>Sport Time <span>10A</span> ⚽</h1>
-    <div class="header-actions">
-        <button class="admin-btn" onclick="openAdminModal()">⚙️ Admin</button>
-        <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Toggle Dark/Light Mode">🌙</button>
-    </div>
+    <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Toggle Dark/Light Mode">🌙</button>
 </header>
 
 <div class="tabs">
@@ -367,8 +290,8 @@
         <div class="tournament-type-selector">
             <label for="tournamentTypeSelect">Tournament Mode</label>
             <select id="tournamentTypeSelect">
-                <option value="country">World Cup 🏆</option>
-                <option value="club">Champions League ⚽</option>
+                <option value="country">World Cup <img src="https://upload.wikimedia.org/wikipedia/commons/3/37/World_Cup_%28trophy%29.png" class="title-trophy-icon" alt=""></option>
+                <option value="club">Champions League <img src="https://upload.wikimedia.org/wikipedia/en/c/c2/UEFA_Champions_League_Logo.svg" class="title-trophy-icon" alt=""></option>
             </select>
         </div>
         <div class="section-header">
@@ -383,7 +306,7 @@
         <div class="section-header" style="margin-top:0;">
             <span class="section-title">⚙️ Squads & Clubs</span>
         </div>
-        <button class="btn btn-blue" style="margin-top:0; margin-bottom: 20px;" onclick="balanceExistingTeams()">Balance teams fairly</button>
+        <button class="btn btn-blue" style="margin-top:0; margin-bottom: 20px;" onclick="balanceExistingTeams()">Balance teams</button>
         
         <div id="teamsResult" class="teams-container"></div>
 
@@ -437,7 +360,9 @@
             <button class="filter-btn active" onclick="renderLeaderboard('goals', this)">⚽ Top Scorers</button>
             <button class="filter-btn" onclick="renderLeaderboard('assists', this)">👟 Top Assists</button>
             <button class="filter-btn" onclick="renderLeaderboard('points', this)">🔥 Goal + Assist</button>
-            <button class="filter-btn" onclick="renderLeaderboard('mvp', this)">🏆 MVP</button>
+            <button class="filter-btn" onclick="renderLeaderboard('mvp', this)">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/3/37/World_Cup_%28trophy%29.png" style="width:14px; height:14px; vertical-align:middle; margin-right:4px;" alt=""> MVP
+            </button>
         </div>
         <table class="leader-table">
             <thead>
@@ -454,93 +379,77 @@
     <button class="btn btn-dark" onclick="resetChanges()">🔄 Reset All Data</button>
 </div>
 
-<!-- Admin Modal -->
-<div class="admin-modal" id="adminModal">
-    <div class="admin-content">
-        <div class="admin-header">
-            <span class="section-title">⚙️ Admin Panel</span>
-            <button class="admin-close" onclick="closeAdminModal()">✕</button>
-        </div>
-        <p style="font-size: 12px; color: var(--text-sub); font-weight: 700; margin-bottom: 12px;">Add new player or change player name & speed skill:</p>
-        
-        <div class="admin-add-form">
-            <input type="text" id="newPlayerNameInput" placeholder="New player name...">
-            <button class="btn btn-green" style="margin-top:0; width:auto; padding: 10px 16px;" onclick="addNewPlayer()">Add</button>
-        </div>
-
-        <div id="adminPlayersList"></div>
-    </div>
-</div>
-
 <script>
     const clubPresets = [
-        { name: "Real Madrid", type: "club", code: "rma", logo: "👑" },
-        { name: "FC Barcelona", type: "club", code: "bar", logo: "🔵" },
-        { name: "Manchester City", type: "club", code: "mci", logo: "⚡" },
-        { name: "Bayern Munich", type: "club", code: "bay", logo: "🔴" },
-        { name: "PSG", type: "club", code: "psg", logo: "🗼" },
-        { name: "Liverpool", type: "club", code: "liv", logo: "⭐" },
-        { name: "Arsenal", type: "club", code: "ars", logo: "🧨" },
-        { name: "Manchester United", type: "club", code: "mun", logo: "😈" },
-        { name: "Chelsea", type: "club", code: "che", logo: "🦁" },
-        { name: "Inter Milan", type: "club", code: "int", logo: "🐍" },
-        { name: "AC Milan", type: "club", code: "mil", logo: "🛡️" },
-        { name: "Borussia Dortmund", type: "club", code: "dor", logo: "🐝" },
-        { name: "France", type: "country", code: "fra", logo: "🇫🇷" },
-        { name: "Portugal", type: "country", code: "por", logo: "🇵🇹" },
-        { name: "Spain", type: "country", code: "esp", logo: "🇪🇸" },
-        { name: "England", type: "country", code: "eng", logo: "🏴󠁧󠁢󠁥󠁮󠁧󠁿" },
-        { name: "Brazil", type: "country", code: "bra", logo: "🇧🇷" },
-        { name: "Argentina", type: "country", code: "arg", logo: "🇦🇷" },
-        { name: "Kazakhstan", type: "country", code: "kaz", logo: "🇰🇿" }
+        { name: "Real Madrid", type: "club", code: "rma", logo: "https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg" },
+        { name: "FC Barcelona", type: "club", code: "bar", logo: "https://upload.wikimedia.org/wikipedia/en/4/47/FC_Barcelona_%28crest%29.svg" },
+        { name: "Manchester City", type: "club", code: "mci", logo: "https://upload.wikimedia.org/wikipedia/en/e/eb/Manchester_City_FC_badge.svg" },
+        { name: "Bayern Munich", type: "club", code: "bay", logo: "https://upload.wikimedia.org/wikipedia/commons/1/1b/FC_Bayern_M%C3%BCnchen_logo_%282017%29.svg" },
+        { name: "PSG", type: "club", code: "psg", logo: "https://upload.wikimedia.org/wikipedia/en/a/a7/Paris_Saint-Germain_F.C..svg" },
+        { name: "Liverpool", type: "club", code: "liv", logo: "https://upload.wikimedia.org/wikipedia/en/0/0c/Liverpool_FC.svg" },
+        { name: "Arsenal", type: "club", code: "ars", logo: "https://upload.wikimedia.org/wikipedia/en/5/53/Arsenal_FC.svg" },
+        { name: "Manchester United", type: "club", code: "mun", logo: "https://upload.wikimedia.org/wikipedia/en/7/7a/Manchester_United_FC_crest.svg" },
+        { name: "Chelsea", type: "club", code: "che", logo: "https://upload.wikimedia.org/wikipedia/en/c/cc/Chelsea_FC.svg" },
+        { name: "Inter Milan", type: "club", code: "int", logo: "https://upload.wikimedia.org/wikipedia/commons/0/05/FC_Internazionale_Milano_2021.svg" },
+        { name: "AC Milan", type: "club", code: "mil", logo: "https://upload.wikimedia.org/wikipedia/commons/d/d0/AC_Milan_logo.svg" },
+        { name: "Borussia Dortmund", type: "club", code: "dor", logo: "https://upload.wikimedia.org/wikipedia/commons/6/67/Borussia_Dortmund_logo.svg" },
+        { name: "France", type: "country", code: "fra", logo: "https://flagcdn.com/w160/fr.png" },
+        { name: "Portugal", type: "country", code: "por", logo: "https://flagcdn.com/w160/pt.png" },
+        { name: "Spain", type: "country", code: "esp", logo: "https://flagcdn.com/w160/es.png" },
+        { name: "England", type: "country", code: "eng", logo: "https://flagcdn.com/w160/gb-eng.png" },
+        { name: "Brazil", type: "country", code: "bra", logo: "https://flagcdn.com/w160/br.png" },
+        { name: "Argentina", type: "country", code: "arg", logo: "https://flagcdn.com/w160/ar.png" },
+        { name: "Kazakhstan", type: "country", code: "kaz", logo: "https://flagcdn.com/w160/kz.png" }
     ];
 
-    const defaultLogo = "⚽";
+    const defaultLogo = "https://upload.wikimedia.org/wikipedia/commons/d/d3/Soccerball.svg";
+    const worldCupTrophyImg = "https://upload.wikimedia.org/wikipedia/commons/3/37/World_Cup_%28trophy%29.png";
 
     const initialPlayers = [
-        { id: 1, name: "Mark", skill: 1.0, roles: ["DEF"], goals: 0, assists: 0, mvp: 0 },
-        { id: 2, name: "Amir", skill: 1.0, roles: ["DEF"], goals: 0, assists: 0, mvp: 0 },
-        { id: 3, name: "Azamat", skill: 1.0, roles: ["DEF"], goals: 0, assists: 0, mvp: 0 },
-        { id: 4, name: "Akhmet", skill: 1.0, roles: ["DEF"], goals: 0, assists: 0, mvp: 0 },
-        { id: 5, name: "Madiyar", skill: 1.0, roles: ["DEF"], goals: 0, assists: 0, mvp: 0 },
-        { id: 6, name: "Yeramir", skill: 1.0, roles: ["DEF"], goals: 0, assists: 0, mvp: 0 },
-        { id: 7, name: "Dias", skill: 1.0, roles: ["FWD"], goals: 0, assists: 0, mvp: 0 },
-        { id: 8, name: "Batyr", skill: 1.0, roles: ["FWD"], goals: 0, assists: 0, mvp: 0 },
-        { id: 9, name: "Nurtas", skill: 1.0, roles: ["FWD"], goals: 0, assists: 0, mvp: 0 },
-        { id: 10, name: "Oraz", skill: 1.0, roles: ["GK", "FWD"], goals: 0, assists: 0, mvp: 0 },
-        { id: 11, name: "Rakhman", skill: 1.0, roles: ["GK", "DEF"], goals: 0, assists: 0, mvp: 0 },
-        { id: 12, name: "Abdirasul", skill: 1.0, roles: ["GK", "DEF"], goals: 0, assists: 0, mvp: 0 },
-        { id: 13, name: "Sultan", skill: 1.0, roles: ["DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
-        { id: 14, name: "Arnat", skill: 1.0, roles: ["DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
-        { id: 15, name: "Bauyrzhan", skill: 1.0, roles: ["GK", "DEF"], goals: 0, assists: 0, mvp: 0 },
-        { id: 16, name: "Alim", skill: 1.0, roles: ["DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
-        { id: 17, name: "Abduluahid agay", skill: 1.5, roles: ["DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
-        { id: 18, name: "Ilfat", skill: 1.5, roles: ["DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
-        { id: 19, name: "Tamerlan", skill: 1.5, roles: ["DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
-        { id: 20, name: "Akhmad", skill: 1.5, roles: ["GK", "DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
-        { id: 21, name: "Islam", skill: 1.5, roles: ["DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
-        { id: 22, name: "Ismail", skill: 2.0, roles: ["GK", "DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
-        { id: 23, name: "Omar", skill: 2.0, roles: ["GK", "DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
-        { id: 24, name: "Alseit abi", skill: 2.0, roles: ["GK", "DEF", "FWD"], goals: 0, assists: 0, mvp: 0 }
+        { id: 1, name: "Mark", rating: 0.5, roles: ["DEF"], goals: 0, assists: 0, mvp: 0 },
+        { id: 2, name: "Amir", rating: 0.5, roles: ["DEF"], goals: 0, assists: 0, mvp: 0 },
+        { id: 3, name: "Azamat", rating: 0.5, roles: ["DEF"], goals: 0, assists: 0, mvp: 0 },
+        { id: 4, name: "Akhmet", rating: 1.25, roles: ["DEF"], goals: 0, assists: 0, mvp: 0 },
+        { id: 5, name: "Madiyar", rating: 1.25, roles: ["DEF"], goals: 0, assists: 0, mvp: 0 },
+        { id: 6, name: "Yeramir", rating: 2.0, roles: ["DEF"], goals: 0, assists: 0, mvp: 0 },
+        { id: 7, name: "Dias", rating: 2.0, roles: ["FWD"], goals: 0, assists: 0, mvp: 0 },
+        { id: 8, name: "Batyr", rating: 2.0, roles: ["FWD"], goals: 0, assists: 0, mvp: 0 },
+        { id: 9, name: "Nurtas", rating: 2.0, roles: ["FWD"], goals: 0, assists: 0, mvp: 0 },
+        { id: 10, name: "Oraz", rating: 2.75, roles: ["GK", "FWD"], goals: 0, assists: 0, mvp: 0 },
+        { id: 11, name: "Rakhman", rating: 2.75, roles: ["GK", "DEF"], goals: 0, assists: 0, mvp: 0 },
+        { id: 12, name: "Abdirasul", rating: 2.75, roles: ["GK", "DEF"], goals: 0, assists: 0, mvp: 0 },
+        { id: 13, name: "Sultan", rating: 2.75, roles: ["DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
+        { id: 14, name: "Arnat", rating: 3.5, roles: ["DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
+        { id: 15, name: "Bauyrzhan", rating: 3.5, roles: ["GK", "DEF"], goals: 0, assists: 0, mvp: 0 },
+        { id: 16, name: "Alim", rating: 3.5, roles: ["DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
+        { id: 17, name: "Abduluahid agay", rating: 4.25, roles: ["DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
+        { id: 18, name: "Ilfat", rating: 4.25, roles: ["DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
+        { id: 19, name: "Tamerlan", rating: 4.25, roles: ["DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
+        { id: 20, name: "Akhmad", rating: 4.25, roles: ["GK", "DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
+        { id: 21, name: "Islam", rating: 4.25, roles: ["DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
+        { id: 22, name: "Ismail", rating: 5.0, roles: ["GK", "DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
+        { id: 23, name: "Omar", rating: 5.0, roles: ["GK", "DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
+        { id: 24, name: "Alseit abi", rating: 5.0, roles: ["GK", "DEF", "FWD"], goals: 0, assists: 0, mvp: 0 }
     ];
 
-    let savedData = JSON.parse(localStorage.getItem('sport_time_players_v18'));
+    let savedData = JSON.parse(localStorage.getItem('sport_time_players_v15'));
     let playersData = savedData || JSON.parse(JSON.stringify(initialPlayers));
 
-    let activeTeams = JSON.parse(localStorage.getItem('sport_time_teams_v18')) || [];
-    let activeMatches = JSON.parse(localStorage.getItem('sport_time_matches_v18')) || [];
-    let currentDisplayedRound = parseInt(localStorage.getItem('sport_time_round_v18')) || 1;
-    let totalRounds = parseInt(localStorage.getItem('sport_time_total_rounds_v18')) || 0;
+    let activeTeams = JSON.parse(localStorage.getItem('sport_time_teams_v15')) || [];
+    let activeMatches = JSON.parse(localStorage.getItem('sport_time_matches_v15')) || [];
+    let currentDisplayedRound = parseInt(localStorage.getItem('sport_time_round_v15')) || 1;
+    let totalRounds = parseInt(localStorage.getItem('sport_time_total_rounds_v15')) || 0;
     let baseCycleRounds = [];
 
     function saveData() {
-        localStorage.setItem('sport_time_players_v18', JSON.stringify(playersData));
-        localStorage.setItem('sport_time_teams_v18', JSON.stringify(activeTeams));
-        localStorage.setItem('sport_time_matches_v18', JSON.stringify(activeMatches));
-        localStorage.setItem('sport_time_round_v18', currentDisplayedRound);
-        localStorage.setItem('sport_time_total_rounds_v18', totalRounds);
+        localStorage.setItem('sport_time_players_v15', JSON.stringify(playersData));
+        localStorage.setItem('sport_time_teams_v15', JSON.stringify(activeTeams));
+        localStorage.setItem('sport_time_matches_v15', JSON.stringify(activeMatches));
+        localStorage.setItem('sport_time_round_v15', currentDisplayedRound);
+        localStorage.setItem('sport_time_total_rounds_v15', totalRounds);
     }
 
+    // Theme Switcher Logic
     function toggleTheme() {
         const body = document.body;
         const currentTheme = body.getAttribute('data-theme');
@@ -554,73 +463,6 @@
         const savedTheme = localStorage.getItem('sport_time_theme') || 'light';
         document.body.setAttribute('data-theme', savedTheme);
         document.getElementById('themeToggleBtn').innerText = savedTheme === 'dark' ? '☀️' : '🌙';
-    }
-
-    function openAdminModal() {
-        let pass = prompt("Enter admin password (1234):");
-        if (pass === "1234") {
-            document.getElementById('adminModal').style.display = 'flex';
-            renderAdminPlayersList();
-        } else if (pass !== null) {
-            alert("Incorrect password!");
-        }
-    }
-
-    function closeAdminModal() {
-        document.getElementById('adminModal').style.display = 'none';
-        renderPlayers();
-    }
-
-    function renderAdminPlayersList() {
-        const container = document.getElementById('adminPlayersList');
-        container.innerHTML = '';
-
-        const skillOptionsList = [0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.25, 2.5, 2.75, 3.0];
-
-        playersData.forEach(p => {
-            let skillOptions = '';
-            skillOptionsList.forEach(s => {
-                skillOptions += `<option value="${s}" ${p.skill === s ? 'selected' : ''}>⚡ ${s}</option>`;
-            });
-
-            container.innerHTML += `
-                <div class="admin-player-row">
-                    <input type="text" value="${p.name}" onchange="updateAdminPlayerName(${p.id}, this.value)">
-                    <select onchange="updatePlayerSkill(${p.id}, this.value)">
-                        ${skillOptions}
-                    </select>
-                    <button class="btn btn-red" style="margin-top:0; width:auto; padding: 6px 12px; font-size:11px;" onclick="deletePlayer(${p.id})">Delete</button>
-                </div>
-            `;
-        });
-    }
-
-    function updateAdminPlayerName(id, newName) {
-        let p = playersData.find(x => x.id === id);
-        if (p && newName.trim() !== '') {
-            p.name = newName.trim();
-            saveData();
-        }
-    }
-
-    function addNewPlayer() {
-        let input = document.getElementById('newPlayerNameInput');
-        let name = input.value.trim();
-        if (!name) return;
-
-        let newId = playersData.length > 0 ? Math.max(...playersData.map(p => p.id)) + 1 : 1;
-        playersData.push({ id: newId, name: name, skill: 1.0, roles: ["DEF"], goals: 0, assists: 0, mvp: 0 });
-        input.value = '';
-        saveData();
-        renderAdminPlayersList();
-    }
-
-    function deletePlayer(id) {
-        if (confirm("Delete this player?")) {
-            playersData = playersData.filter(p => p.id !== id);
-            saveData();
-            renderAdminPlayersList();
-        }
     }
 
     function switchTab(tabId, btn) {
@@ -638,7 +480,6 @@
 
         playersData.forEach(p => {
             if (!Array.isArray(p.roles)) p.roles = [];
-            if (p.skill === undefined) p.skill = 1.0;
             const isNap = p.roles.includes('FWD');
             const isZas = p.roles.includes('DEF');
             const isVrt = p.roles.includes('GK');
@@ -647,10 +488,10 @@
                 <div class="player-card">
                     <div class="player-info">
                         <input type="checkbox" id="check_${p.id}" value="${p.id}" checked onchange="updateCount()">
-                        <div style="flex:1;">
+                        <div>
                             <div style="display:flex; align-items:center; gap:6px;">
                                 <span class="player-name">${p.name}</span>
-                                <div class="player-skill-badge" title="Player Speed Skill">⚡ ${p.skill}</div>
+                                <span class="player-rating">⭐ ${p.rating.toFixed(2)}</span>
                             </div>
                             <div class="role-selector">
                                 <button class="role-btn ${isNap ? 'active' : ''}" data-role="FWD" onclick="toggleRole(${p.id}, 'FWD')">⚽ FWD</button>
@@ -663,14 +504,6 @@
             `;
         });
         updateCount();
-    }
-
-    function updatePlayerSkill(id, val) {
-        let player = playersData.find(p => p.id === id);
-        if (player) {
-            player.skill = parseFloat(val);
-            saveData();
-        }
     }
 
     function toggleRole(id, role) {
@@ -694,8 +527,8 @@
         updateCount();
     }
 
-    function distributeEquallySnake(players, numTeams) {
-        let sorted = [...players].sort((a, b) => b.skill - a.skill);
+    function distributeEquallyFlexible(players, numTeams) {
+        let sorted = [...players].sort((a, b) => b.rating - a.rating);
         let teamLists = Array.from({ length: numTeams }, () => []);
         let teamSums = Array(numTeams).fill(0);
 
@@ -714,7 +547,7 @@
                 }
             }
             teamLists[targetTeam].push(player);
-            teamSums[targetTeam] += player.skill;
+            teamSums[targetTeam] += player.rating;
         });
         return teamLists;
     }
@@ -750,7 +583,7 @@
         const total = selected.length;
         let numTeams = total >= 16 ? 4 : total >= 9 ? 3 : 2;
 
-        let distributed = distributeEquallySnake(selected, numTeams);
+        let distributed = distributeEquallyFlexible(selected, numTeams);
         const selectedType = document.getElementById('tournamentTypeSelect').value;
         let selectedPresets = getRandomValidPresets(numTeams, selectedType);
 
@@ -793,7 +626,7 @@
         activeTeams.forEach(t => { allActivePlayers = allActivePlayers.concat(t.players); });
 
         let numTeams = activeTeams.length;
-        let distributed = distributeEquallySnake(allActivePlayers, numTeams);
+        let distributed = distributeEquallyFlexible(allActivePlayers, numTeams);
 
         activeTeams.forEach((t, idx) => { t.players = distributed[idx]; });
         saveData();
@@ -875,12 +708,13 @@
         renderTeamsCards();
     }
 
+    // Функция для расчета формы команды по сыгранным матчам
     function getTeamFormStreak(teamId) {
         let teamMatches = activeMatches
             .filter(m => m.played && (m.t1 === teamId || m.t2 === teamId))
-            .sort((a, b) => a.tour - b.tour);
+            .sort((a, b) => a.tour - b.tour); // Сортировка по хронологии раундов
 
-        let lastMatches = teamMatches.slice(-5);
+        let lastMatches = teamMatches.slice(-5); // Берем последние до 5 матчей
         if (lastMatches.length === 0) return '<span style="color:var(--text-sub); font-size:11px;">-</span>';
 
         let streakHtml = '<div class="form-streak">';
@@ -921,7 +755,7 @@
                 <tr>
                     <td>${i + 1}</td>
                     <td class="team-cell">
-                        <div class="team-logo">${t.logo}</div>
+                        <img src="${t.logo}" class="team-logo" alt="">
                         <div style="display:flex; flex-direction:column; line-height:1.2;">
                             <span>${t.name}</span>
                             <span class="country-code">${t.code || ''}</span>
@@ -966,14 +800,14 @@
                 let t2GoalsHtml = t2Goals.map(renderGoalItem).join('');
 
                 let mvpPlayer = m.mvpId ? playersData.find(p => p.id === m.mvpId) : null;
-                let mvpHtml = mvpPlayer ? `<div class="mvp-banner">🏆 MVP: ${mvpPlayer.name}</div>` : '';
+                let mvpHtml = mvpPlayer ? `<div class="mvp-banner"><img src="${worldCupTrophyImg}" style="width:16px; height:16px; object-fit:contain;" alt=""> MVP: ${mvpPlayer.name}</div>` : '';
 
                 container.innerHTML += `
                     <div class="match-card">
                         <div class="match-badge">Match #${m.id} - Round ${m.tour}</div>
                         <div class="match-main">
                             <div class="match-team">
-                                <div class="team-logo">${t1 ? t1.logo : defaultLogo}</div>
+                                <img src="${t1 ? t1.logo : defaultLogo}" class="team-logo" alt="">
                                 <div style="display:flex; flex-direction:column; line-height:1.2;">
                                     <span>${t1 ? t1.name : 'T1'}</span>
                                     <span class="country-code">${t1 ? t1.code : ''}</span>
@@ -985,7 +819,7 @@
                                     <span>${t2 ? t2.name : 'T2'}</span>
                                     <span class="country-code">${t2 ? t2.code : ''}</span>
                                 </div>
-                                <div class="team-logo">${t2 ? t2.logo : defaultLogo}</div>
+                                <img src="${t2 ? t2.logo : defaultLogo}" class="team-logo" alt="">
                             </div>
                         </div>
                         <div class="match-result-summary">
@@ -1057,7 +891,7 @@
                         <div class="match-badge">Match #${m.id} - Round ${m.tour}</div>
                         <div class="match-main">
                             <div class="match-team">
-                                <div class="team-logo">${t1 ? t1.logo : defaultLogo}</div>
+                                <img src="${t1 ? t1.logo : defaultLogo}" class="team-logo" alt="">
                                 <div style="display:flex; flex-direction:column; line-height:1.2;">
                                     <span>${t1 ? t1.name : 'T1'}</span>
                                     <span class="country-code">${t1 ? t1.code : ''}</span>
@@ -1073,7 +907,7 @@
                                     <span>${t2 ? t2.name : 'T2'}</span>
                                     <span class="country-code">${t2 ? t2.code : ''}</span>
                                 </div>
-                                <div class="team-logo">${t2 ? t2.logo : defaultLogo}</div>
+                                <img src="${t2 ? t2.logo : defaultLogo}" class="team-logo" alt="">
                             </div>
                         </div>
                         <div id="events_container_${m.id}">${eventsHtml}</div>
@@ -1187,17 +1021,20 @@
             let scorer = playersData.find(p => p.id === e.scorerId);
             if (scorer) {
                 if (e.isOg) { 
-                    matchScores[scorer.id] = (matchScores[scorer.id] || 0) - 1; 
+                    scorer.rating = Math.max(0, scorer.rating - 0.05); 
+                    matchScores[scorer.id] = (matchScores[scorer.id] || 0) - 0.05; 
                 } else { 
                     scorer.goals += 1; 
-                    matchScores[scorer.id] = (matchScores[scorer.id] || 0) + 2; 
+                    scorer.rating = Math.min(10.0, scorer.rating + 0.10); 
+                    matchScores[scorer.id] = (matchScores[scorer.id] || 0) + 0.10; 
                 }
             }
             if (!e.isOg && e.assistantId) {
                 let assistant = playersData.find(p => p.id === e.assistantId);
                 if (assistant) { 
                     assistant.assists += 1; 
-                    matchScores[assistant.id] = (matchScores[assistant.id] || 0) + 1; 
+                    assistant.rating = Math.min(10.0, assistant.rating + 0.10); 
+                    matchScores[assistant.id] = (matchScores[assistant.id] || 0) + 0.10; 
                 }
             }
         });
@@ -1234,6 +1071,7 @@
             let mvpPlayer = playersData.find(p => p.id === mvpPlayerId);
             if (mvpPlayer) { 
                 mvpPlayer.mvp += 1; 
+                mvpPlayer.rating = Math.min(10.0, mvpPlayer.rating + 0.10); 
             }
         }
 
@@ -1278,16 +1116,16 @@
         let availablePresets = clubPresets.filter(p => p.type === currentTournamentType);
 
         activeTeams.forEach(t => {
-            let avgSkill = t.players.length > 0 ? (t.players.reduce((sum, p) => sum + p.skill, 0) / t.players.length) : 0;
+            let avgRating = t.players.length > 0 ? (t.players.reduce((sum, p) => sum + p.rating, 0) / t.players.length) : 0;
             let optionsHtml = availablePresets.map(p => {
                 let cleanName = p.name;
-                return `<option value="${cleanName}" ${cleanName === t.name ? 'selected' : ''}>${p.logo} ${p.name}</option>`;
+                return `<option value="${cleanName}" ${cleanName === t.name ? 'selected' : ''}>${p.name}</option>`;
             }).join('');
 
             let playersListHtml = t.players.map(p => `
                 <li>
                     <span>${p.name}</span>
-                    <span style="color:var(--primary-gold);">⚡ ${p.skill}</span>
+                    <span style="color:var(--primary-blue);">⭐ ${p.rating.toFixed(2)}</span>
                 </li>
             `).join('');
 
@@ -1295,10 +1133,10 @@
                 <div class="team-card">
                     <div class="team-header">
                         <div class="team-header-title">
-                            <div class="team-logo">${t.logo}</div>
+                            <img src="${t.logo}" class="team-logo" alt="">
                             <select class="team-select" onchange="changeTeamPreset(${t.id}, this.value)">${optionsHtml}</select>
                         </div>
-                        <span class="team-score" title="Average Speed">Avg ⚡ ${avgSkill.toFixed(2)}</span>
+                        <span class="team-score" title="Average Rating">Avg ⭐ ${avgRating.toFixed(2)}</span>
                     </div>
                     <ul class="team-list">${playersListHtml}</ul>
                 </div>
@@ -1321,7 +1159,7 @@
         else if (metric === 'assists') { header.innerText = 'Assists 👟'; sorted.sort((a, b) => b.assists - a.assists); } 
         else if (metric === 'points') { header.innerText = 'G + A 🔥'; sorted.sort((a, b) => (b.goals + b.assists) - (a.goals + a.assists)); } 
         else if (metric === 'mvp') { 
-            header.innerHTML = `🏆 MVP`; 
+            header.innerHTML = `<img src="${worldCupTrophyImg}" style="width:14px; height:14px; vertical-align:middle; margin-right:4px;" alt=""> MVP`; 
             sorted.sort((a, b) => b.mvp - a.mvp); 
         }
 
@@ -1332,7 +1170,7 @@
             body.innerHTML += `
                 <tr>
                     <td class="rank ${rankClass}">${index + 1}</td>
-                    <td style="font-weight:800;">${p.name} <span style="font-size:11px; color:var(--primary-gold); font-weight:normal;">(⚡${p.skill})</span></td>
+                    <td style="font-weight:800;">${p.name} <span style="font-size:11px; color:var(--primary-blue); font-weight:normal;">(⭐${p.rating.toFixed(2)})</span></td>
                     <td style="text-align:right; font-weight:900; color:var(--primary-gold);">${val}</td>
                 </tr>
             `;
@@ -1341,11 +1179,11 @@
 
     function resetChanges() {
         if (confirm("Are you sure you want to reset all tournament data and player stats?")) {
-            localStorage.removeItem('sport_time_players_v18');
-            localStorage.removeItem('sport_time_teams_v18');
-            localStorage.removeItem('sport_time_matches_v18');
-            localStorage.removeItem('sport_time_round_v18');
-            localStorage.removeItem('sport_time_total_rounds_v18');
+            localStorage.removeItem('sport_time_players_v15');
+            localStorage.removeItem('sport_time_teams_v15');
+            localStorage.removeItem('sport_time_matches_v15');
+            localStorage.removeItem('sport_time_round_v15');
+            localStorage.removeItem('sport_time_total_rounds_v15');
             
             playersData = JSON.parse(JSON.stringify(initialPlayers));
             activeTeams = [];
