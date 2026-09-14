@@ -65,6 +65,37 @@
         
         header h1 span { color: var(--primary-blue); }
 
+        .header-controls { display: flex; align-items: center; gap: 10px; }
+
+        .live-indicator {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            font-weight: 800;
+            color: var(--text-sub);
+            background: var(--input-bg);
+            border: 1px solid var(--card-border);
+            padding: 6px 10px;
+            border-radius: 20px;
+            white-space: nowrap;
+        }
+
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--primary-green);
+            box-shadow: 0 0 0 0 rgba(56,161,105,0.7);
+            animation: pulse 1.8s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(56,161,105,0.5); }
+            70% { box-shadow: 0 0 0 6px rgba(56,161,105,0); }
+            100% { box-shadow: 0 0 0 0 rgba(56,161,105,0); }
+        }
+
         .theme-toggle-btn {
             background: var(--input-bg);
             border: 1px solid var(--card-border);
@@ -276,7 +307,10 @@
 
 <header>
     <h1>Sport Time <span>10A</span> ⚽</h1>
-    <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Toggle Dark/Light Mode">🌙</button>
+    <div class="header-controls">
+        <div class="live-indicator" id="liveIndicator"><span class="live-dot"></span><span id="liveIndicatorText">Синхронизация...</span></div>
+        <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Toggle Dark/Light Mode">🌙</button>
+    </div>
 </header>
 
 <div class="tabs">
@@ -290,8 +324,8 @@
         <div class="tournament-type-selector">
             <label for="tournamentTypeSelect">Tournament Mode</label>
             <select id="tournamentTypeSelect">
-                <option value="country">World Cup <img src="https://upload.wikimedia.org/wikipedia/commons/3/37/World_Cup_%28trophy%29.png" class="title-trophy-icon" alt=""></option>
-                <option value="club">Champions League <img src="https://upload.wikimedia.org/wikipedia/en/c/c2/UEFA_Champions_League_Logo.svg" class="title-trophy-icon" alt=""></option>
+                <option value="country">World Cup 🏆</option>
+                <option value="club">Champions League 🏆</option>
             </select>
         </div>
         <div class="section-header">
@@ -360,9 +394,7 @@
             <button class="filter-btn active" onclick="renderLeaderboard('goals', this)">⚽ Top Scorers</button>
             <button class="filter-btn" onclick="renderLeaderboard('assists', this)">👟 Top Assists</button>
             <button class="filter-btn" onclick="renderLeaderboard('points', this)">🔥 Goal + Assist</button>
-            <button class="filter-btn" onclick="renderLeaderboard('mvp', this)">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/3/37/World_Cup_%28trophy%29.png" style="width:14px; height:14px; vertical-align:middle; margin-right:4px;" alt=""> MVP
-            </button>
+            <button class="filter-btn" onclick="renderLeaderboard('mvp', this)">🏆 MVP</button>
         </div>
         <table class="leader-table">
             <thead>
@@ -404,6 +436,9 @@
 
     const defaultLogo = "https://upload.wikimedia.org/wikipedia/commons/d/d3/Soccerball.svg";
     const worldCupTrophyImg = "https://upload.wikimedia.org/wikipedia/commons/3/37/World_Cup_%28trophy%29.png";
+    const STORAGE_KEY = 'tournament-state-v1';
+    const THEME_KEY = 'theme-pref-v1';
+    const SYNC_INTERVAL_MS = 3000;
 
     const initialPlayers = [
         { id: 1, name: "Mark", rating: 0.5, roles: ["DEF"], goals: 0, assists: 0, mvp: 0 },
@@ -432,35 +467,138 @@
         { id: 24, name: "Alseit abi", rating: 5.0, roles: ["GK", "DEF", "FWD"], goals: 0, assists: 0, mvp: 0 }
     ];
 
-    let savedData = JSON.parse(localStorage.getItem('sport_time_players_v15'));
-    let playersData = savedData || JSON.parse(JSON.stringify(initialPlayers));
-
-    let activeTeams = JSON.parse(localStorage.getItem('sport_time_teams_v15')) || [];
-    let activeMatches = JSON.parse(localStorage.getItem('sport_time_matches_v15')) || [];
-    let currentDisplayedRound = parseInt(localStorage.getItem('sport_time_round_v15')) || 1;
-    let totalRounds = parseInt(localStorage.getItem('sport_time_total_rounds_v15')) || 0;
+    let playersData = JSON.parse(JSON.stringify(initialPlayers));
+    let activeTeams = [];
+    let activeMatches = [];
+    let currentDisplayedRound = 1;
+    let totalRounds = 0;
     let baseCycleRounds = [];
+    let currentLeaderboardMetric = 'goals';
+    let lastKnownStateString = null;
+    let syncTimer = null;
+    let isSaving = false;
 
-    function saveData() {
-        localStorage.setItem('sport_time_players_v15', JSON.stringify(playersData));
-        localStorage.setItem('sport_time_teams_v15', JSON.stringify(activeTeams));
-        localStorage.setItem('sport_time_matches_v15', JSON.stringify(activeMatches));
-        localStorage.setItem('sport_time_round_v15', currentDisplayedRound);
-        localStorage.setItem('sport_time_total_rounds_v15', totalRounds);
+    function buildStateSnapshot() {
+        return JSON.stringify({
+            playersData, activeTeams, activeMatches,
+            currentDisplayedRound, totalRounds, baseCycleRounds
+        });
+    }
+
+    function setLiveIndicator(text) {
+        const el = document.getElementById('liveIndicatorText');
+        if (el) el.innerText = text;
+    }
+
+    async function saveData() {
+        const snapshot = buildStateSnapshot();
+        if (snapshot === lastKnownStateString) return;
+        lastKnownStateString = snapshot;
+        isSaving = true;
+        try {
+            await window.storage.set(STORAGE_KEY, snapshot, true);
+            setLiveIndicator('Обновлено только что');
+        } catch (e) {
+            console.error('Save failed', e);
+            setLiveIndicator('Ошибка синхронизации');
+        } finally {
+            isSaving = false;
+        }
+    }
+
+    function applyRemoteState(str) {
+        try {
+            const state = JSON.parse(str);
+            playersData = state.playersData || playersData;
+            activeTeams = state.activeTeams || [];
+            activeMatches = state.activeMatches || [];
+            currentDisplayedRound = state.currentDisplayedRound || 1;
+            totalRounds = state.totalRounds || 0;
+            baseCycleRounds = state.baseCycleRounds || [];
+            lastKnownStateString = str;
+            return true;
+        } catch (e) {
+            console.error('Failed to parse remote state', e);
+            return false;
+        }
+    }
+
+    async function fetchRemoteState() {
+        try {
+            const result = await window.storage.get(STORAGE_KEY, true);
+            if (result && result.value) return result.value;
+        } catch (e) {
+            // no data saved yet
+        }
+        return null;
+    }
+
+    async function initFromStorage() {
+        const remote = await fetchRemoteState();
+        if (remote) applyRemoteState(remote);
+        else lastKnownStateString = buildStateSnapshot();
+    }
+
+    function isUserTypingInScoreOrEditingRoster() {
+        const active = document.activeElement;
+        if (!active) return false;
+        if (active.tagName === 'INPUT' && /_s[12]$/.test(active.id)) return true;
+        if (active.tagName === 'SELECT' && active.id.includes('_g')) return true;
+        return false;
+    }
+
+    function refreshVisibleUI() {
+        renderPlayers();
+        if (activeTeams.length > 0) {
+            setupRoundSelectOptions();
+            renderLeagueTable();
+            if (currentDisplayedRound > totalRounds) currentDisplayedRound = totalRounds || 1;
+            document.getElementById('roundSelect').value = currentDisplayedRound;
+            renderCurrentRoundMatches();
+            renderTeamsCards();
+            document.getElementById('addNextRoundBtn').style.display = 'block';
+        }
+        renderLeaderboard(currentLeaderboardMetric);
+    }
+
+    async function pollForRemoteChanges() {
+        if (isSaving) return;
+        if (isUserTypingInScoreOrEditingRoster()) return;
+        const remote = await fetchRemoteState();
+        if (remote && remote !== lastKnownStateString) {
+            if (applyRemoteState(remote)) {
+                refreshVisibleUI();
+                setLiveIndicator('Обновлено сейчас');
+            }
+        } else {
+            const now = new Date();
+            setLiveIndicator('Синхронизировано ' + now.toLocaleTimeString());
+        }
+    }
+
+    function startLiveSync() {
+        if (syncTimer) clearInterval(syncTimer);
+        syncTimer = setInterval(pollForRemoteChanges, SYNC_INTERVAL_MS);
     }
 
     // Theme Switcher Logic
-    function toggleTheme() {
+    async function toggleTheme() {
         const body = document.body;
         const currentTheme = body.getAttribute('data-theme');
         const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
         body.setAttribute('data-theme', newTheme);
-        localStorage.setItem('sport_time_theme', newTheme);
         document.getElementById('themeToggleBtn').innerText = newTheme === 'dark' ? '☀️' : '🌙';
+        try {
+            await window.storage.set(THEME_KEY, newTheme, false);
+        } catch (e) { /* non-critical */ }
     }
 
-    function initTheme() {
-        const savedTheme = localStorage.getItem('sport_time_theme') || 'light';
+    async function initTheme() {
+        let savedTheme = 'light';
+        try {
+            const result = await window.storage.get(THEME_KEY, false);
+            if (result && result.value) savedTheme = result.value;
+        } catch (e) { /* no preference saved yet */ }
         document.body.setAttribute('data-theme', savedTheme);
         document.getElementById('themeToggleBtn').innerText = savedTheme === 'dark' ? '☀️' : '🌙';
     }
@@ -470,12 +608,15 @@
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.getElementById(tabId).classList.add('active');
         if(btn) btn.classList.add('active');
-        if(tabId === 'leadersTab') renderLeaderboard('goals');
+        if(tabId === 'leadersTab') renderLeaderboard(currentLeaderboardMetric);
         if(tabId === 'playersTab') renderPlayers();
     }
 
     function renderPlayers() {
         const container = document.getElementById('playersList');
+        const previouslyChecked = new Set();
+        container.querySelectorAll('input[type="checkbox"]').forEach(c => { if (c.checked) previouslyChecked.add(parseInt(c.value)); });
+        const hasExistingCheckboxes = container.querySelectorAll('input[type="checkbox"]').length > 0;
         container.innerHTML = '';
 
         playersData.forEach(p => {
@@ -483,11 +624,12 @@
             const isNap = p.roles.includes('FWD');
             const isZas = p.roles.includes('DEF');
             const isVrt = p.roles.includes('GK');
+            const shouldCheck = hasExistingCheckboxes ? previouslyChecked.has(p.id) : true;
 
             container.innerHTML += `
                 <div class="player-card">
                     <div class="player-info">
-                        <input type="checkbox" id="check_${p.id}" value="${p.id}" checked onchange="updateCount()">
+                        <input type="checkbox" id="check_${p.id}" value="${p.id}" ${shouldCheck ? 'checked' : ''} onchange="updateCount()">
                         <div>
                             <div style="display:flex; align-items:center; gap:6px;">
                                 <span class="player-name">${p.name}</span>
@@ -800,7 +942,7 @@
                 let t2GoalsHtml = t2Goals.map(renderGoalItem).join('');
 
                 let mvpPlayer = m.mvpId ? playersData.find(p => p.id === m.mvpId) : null;
-                let mvpHtml = mvpPlayer ? `<div class="mvp-banner"><img src="${worldCupTrophyImg}" style="width:16px; height:16px; object-fit:contain;" alt=""> MVP: ${mvpPlayer.name}</div>` : '';
+                let mvpHtml = mvpPlayer ? `<div class="mvp-banner">🏆 MVP: ${mvpPlayer.name}</div>` : '';
 
                 container.innerHTML += `
                     <div class="match-card">
@@ -1145,9 +1287,15 @@
     }
 
     function renderLeaderboard(metric, btn) {
+        currentLeaderboardMetric = metric;
         if (btn) {
             document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
+        } else {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            const idx = metric === 'goals' ? 0 : metric === 'assists' ? 1 : metric === 'points' ? 2 : 3;
+            const btns = document.querySelectorAll('.filter-btn');
+            if (btns[idx]) btns[idx].classList.add('active');
         }
 
         const header = document.getElementById('statColHeader');
@@ -1159,7 +1307,7 @@
         else if (metric === 'assists') { header.innerText = 'Assists 👟'; sorted.sort((a, b) => b.assists - a.assists); } 
         else if (metric === 'points') { header.innerText = 'G + A 🔥'; sorted.sort((a, b) => (b.goals + b.assists) - (a.goals + a.assists)); } 
         else if (metric === 'mvp') { 
-            header.innerHTML = `<img src="${worldCupTrophyImg}" style="width:14px; height:14px; vertical-align:middle; margin-right:4px;" alt=""> MVP`; 
+            header.innerHTML = `🏆 MVP`; 
             sorted.sort((a, b) => b.mvp - a.mvp); 
         }
 
@@ -1177,19 +1325,20 @@
         });
     }
 
-    function resetChanges() {
-        if (confirm("Are you sure you want to reset all tournament data and player stats?")) {
-            localStorage.removeItem('sport_time_players_v15');
-            localStorage.removeItem('sport_time_teams_v15');
-            localStorage.removeItem('sport_time_matches_v15');
-            localStorage.removeItem('sport_time_round_v15');
-            localStorage.removeItem('sport_time_total_rounds_v15');
-            
+    async function resetChanges() {
+        if (confirm("Are you sure you want to reset all tournament data and player stats? This will affect everyone.")) {
             playersData = JSON.parse(JSON.stringify(initialPlayers));
             activeTeams = [];
             activeMatches = [];
             totalRounds = 0;
             currentDisplayedRound = 1;
+            baseCycleRounds = [];
+
+            try {
+                await window.storage.delete(STORAGE_KEY, true);
+            } catch (e) { /* ignore if nothing to delete */ }
+            lastKnownStateString = buildStateSnapshot();
+            await saveData();
 
             renderPlayers();
             document.getElementById('leagueTableBody').innerHTML = `<tr><td colspan="10" style="padding:20px; color:var(--text-sub);">Start the tournament first</td></tr>`;
@@ -1201,8 +1350,10 @@
         }
     }
 
-    window.onload = function() {
-        initTheme();
+    window.onload = async function() {
+        await initTheme();
+        setLiveIndicator('Загрузка...');
+        await initFromStorage();
         renderPlayers();
         if (activeTeams.length > 0) {
             setupRoundSelectOptions();
@@ -1211,6 +1362,9 @@
             renderCurrentRoundMatches();
             renderTeamsCards();
         }
+        renderLeaderboard(currentLeaderboardMetric);
+        setLiveIndicator('Синхронизировано');
+        startLiveSync();
     };
 </script>
 </body>
