@@ -65,6 +65,18 @@
         
         header h1 span { color: var(--primary-blue); }
 
+        .admin-btn { background: var(--input-bg); border: 1px solid var(--card-border); color: var(--text-main); padding: 10px 14px; border-radius: 10px; cursor: pointer; font-weight: 900; font-size: 12px; }
+        .admin-actions { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+        .admin-modal { display:none; position:fixed; inset:0; z-index:1000; background:rgba(0,0,0,.55); padding:20px; overflow:auto; }
+        .admin-modal.show { display:flex; align-items:flex-start; justify-content:center; }
+        .admin-panel { width:min(720px,100%); margin-top:30px; background:var(--card-bg); border:1px solid var(--card-border); border-radius:16px; padding:18px; box-shadow:0 15px 50px rgba(0,0,0,.25); }
+        .admin-player { display:grid; grid-template-columns:1.5fr .8fr .8fr auto; gap:8px; align-items:center; padding:10px 0; border-bottom:1px solid var(--card-border); }
+        .admin-player input { width:100%; padding:9px; border:1px solid var(--card-border); border-radius:8px; background:var(--input-bg); color:var(--text-main); font-weight:700; }
+        .admin-player button { border:1px solid var(--card-border); background:var(--input-bg); color:var(--text-main); padding:9px 10px; border-radius:8px; cursor:pointer; font-weight:900; }
+        .admin-add { display:grid; grid-template-columns:1.5fr .8fr .8fr auto; gap:8px; margin-top:14px; }
+        .admin-add input { padding:10px; border:1px solid var(--card-border); border-radius:8px; background:var(--input-bg); color:var(--text-main); }
+        @media(max-width:600px){ .admin-player,.admin-add{grid-template-columns:1fr 1fr 1fr;} .admin-player button,.admin-add button{grid-column:1/-1;} }
+
         .theme-toggle-btn {
             background: var(--input-bg);
             border: 1px solid var(--card-border);
@@ -191,8 +203,6 @@
         .player-info input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--primary-blue); cursor: pointer; }
         .player-name { font-weight: 800; font-size: 16px; color: var(--text-main); }
         .player-rating { background: rgba(49, 130, 206, 0.15); color: var(--primary-blue); border: 1px solid var(--card-border); border-radius: 20px; padding: 3px 10px; font-size: 12px; font-weight: 900; }
-        .player-speed { background: rgba(214, 158, 46, 0.12); color: var(--primary-gold); border: 1px solid var(--card-border); border-radius: 20px; padding: 3px 10px; font-size: 12px; font-weight: 900; }
-        .speed-select { background: var(--input-bg); color: var(--text-main); border: 1px solid var(--card-border); border-radius: 8px; padding: 5px 7px; font-size: 11px; font-weight: 800; cursor: pointer; outline: none; margin-top: 8px; }
 
         .role-selector { display: flex; gap: 6px; margin-top: 8px; }
         .role-btn { border: 1px solid var(--card-border); background: var(--input-bg); color: var(--text-sub); font-size: 11px; font-weight: 800; padding: 5px 10px; border-radius: 8px; cursor: pointer; }
@@ -278,7 +288,7 @@
 
 <header>
     <h1>Sport Time <span>10A</span> ⚽</h1>
-    <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Toggle Dark/Light Mode">🌙</button>
+    <div class="admin-actions"><button class="admin-btn" onclick="openAdmin()">🔐 Admin</button><button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Toggle Dark/Light Mode">🌙</button></div>
 </header>
 
 <div class="tabs">
@@ -381,6 +391,23 @@
     <button class="btn btn-dark" onclick="resetChanges()">🔄 Reset All Data</button>
 </div>
 
+<div id="adminModal" class="admin-modal">
+  <div class="admin-panel">
+    <div class="section-header" style="margin-top:0;">
+      <span class="section-title">🔐 Admin Panel</span>
+      <button class="admin-btn" onclick="closeAdmin()">✕</button>
+    </div>
+    <p style="color:var(--text-sub);font-size:12px;margin-bottom:12px;">Здесь можно менять ⭐ рейтинг и ⚡ скорость, а также добавлять и удалять игроков.</p>
+    <div id="adminPlayersList"></div>
+    <div class="admin-add">
+      <input id="newPlayerName" placeholder="Имя игрока">
+      <input id="newPlayerRating" type="number" min="0" max="5" step="0.25" placeholder="Рейтинг">
+      <input id="newPlayerSpeed" type="number" min="1" max="5" step="1" placeholder="Скорость">
+      <button class="btn btn-green" style="margin:0;padding:10px;" onclick="addPlayerAdmin()">+ Добавить</button>
+    </div>
+  </div>
+</div>
+
 <script>
     const clubPresets = [
         { name: "Real Madrid", type: "club", code: "rma", logo: "https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg" },
@@ -408,39 +435,38 @@
     const worldCupTrophyImg = "https://upload.wikimedia.org/wikipedia/commons/3/37/World_Cup_%28trophy%29.png";
 
     const initialPlayers = [
-        { id: 1, name: "Mark", rating: 0.5, speed: 3, roles: ["DEF"], goals: 0, assists: 0, mvp: 0 },
-        { id: 2, name: "Amir", rating: 0.5, speed: 3, roles: ["DEF"], goals: 0, assists: 0, mvp: 0 },
-        { id: 3, name: "Azamat", rating: 0.5, speed: 3, roles: ["DEF"], goals: 0, assists: 0, mvp: 0 },
-        { id: 4, name: "Akhmet", rating: 1.25, speed: 3, roles: ["DEF"], goals: 0, assists: 0, mvp: 0 },
-        { id: 5, name: "Madiyar", rating: 1.25, speed: 3, roles: ["DEF"], goals: 0, assists: 0, mvp: 0 },
-        { id: 6, name: "Yeramir", rating: 2.0, speed: 3, roles: ["DEF"], goals: 0, assists: 0, mvp: 0 },
-        { id: 7, name: "Dias", rating: 2.0, speed: 3, roles: ["FWD"], goals: 0, assists: 0, mvp: 0 },
-        { id: 8, name: "Batyr", rating: 2.0, speed: 3, roles: ["FWD"], goals: 0, assists: 0, mvp: 0 },
-        { id: 9, name: "Nurtas", rating: 2.0, speed: 3, roles: ["FWD"], goals: 0, assists: 0, mvp: 0 },
-        { id: 10, name: "Oraz", rating: 2.75, speed: 3, roles: ["GK", "FWD"], goals: 0, assists: 0, mvp: 0 },
-        { id: 11, name: "Rakhman", rating: 2.75, speed: 3, roles: ["GK", "DEF"], goals: 0, assists: 0, mvp: 0 },
-        { id: 12, name: "Abdirasul", rating: 2.75, speed: 3, roles: ["GK", "DEF"], goals: 0, assists: 0, mvp: 0 },
-        { id: 13, name: "Sultan", rating: 2.75, speed: 3, roles: ["DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
-        { id: 14, name: "Arnat", rating: 3.5, speed: 3, roles: ["DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
-        { id: 15, name: "Bauyrzhan", rating: 3.5, speed: 3, roles: ["GK", "DEF"], goals: 0, assists: 0, mvp: 0 },
-        { id: 16, name: "Alim", rating: 3.5, speed: 3, roles: ["DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
-        { id: 17, name: "Abduluahid agay", rating: 4.25, speed: 3, roles: ["DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
-        { id: 18, name: "Ilfat", rating: 4.25, speed: 3, roles: ["DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
-        { id: 19, name: "Tamerlan", rating: 4.25, speed: 3, roles: ["DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
-        { id: 20, name: "Akhmad", rating: 4.25, speed: 3, roles: ["GK", "DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
-        { id: 21, name: "Islam", rating: 4.25, speed: 3, roles: ["DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
-        { id: 22, name: "Ismail", rating: 5.0, speed: 3, roles: ["GK", "DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
-        { id: 23, name: "Omar", rating: 5.0, speed: 3, roles: ["GK", "DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
-        { id: 24, name: "Alseit abi", rating: 5.0, speed: 3, roles: ["GK", "DEF", "FWD"], goals: 0, assists: 0, mvp: 0 }
+        { id: 1, name: "Mark", rating: 0.5, roles: ["DEF"], goals: 0, assists: 0, mvp: 0 },
+        { id: 2, name: "Amir", rating: 0.5, roles: ["DEF"], goals: 0, assists: 0, mvp: 0 },
+        { id: 3, name: "Azamat", rating: 0.5, roles: ["DEF"], goals: 0, assists: 0, mvp: 0 },
+        { id: 4, name: "Akhmet", rating: 1.25, roles: ["DEF"], goals: 0, assists: 0, mvp: 0 },
+        { id: 5, name: "Madiyar", rating: 1.25, roles: ["DEF"], goals: 0, assists: 0, mvp: 0 },
+        { id: 6, name: "Yeramir", rating: 2.0, roles: ["DEF"], goals: 0, assists: 0, mvp: 0 },
+        { id: 7, name: "Dias", rating: 2.0, roles: ["FWD"], goals: 0, assists: 0, mvp: 0 },
+        { id: 8, name: "Batyr", rating: 2.0, roles: ["FWD"], goals: 0, assists: 0, mvp: 0 },
+        { id: 9, name: "Nurtas", rating: 2.0, roles: ["FWD"], goals: 0, assists: 0, mvp: 0 },
+        { id: 10, name: "Oraz", rating: 2.75, roles: ["GK", "FWD"], goals: 0, assists: 0, mvp: 0 },
+        { id: 11, name: "Rakhman", rating: 2.75, roles: ["GK", "DEF"], goals: 0, assists: 0, mvp: 0 },
+        { id: 12, name: "Abdirasul", rating: 2.75, roles: ["GK", "DEF"], goals: 0, assists: 0, mvp: 0 },
+        { id: 13, name: "Sultan", rating: 2.75, roles: ["DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
+        { id: 14, name: "Arnat", rating: 3.5, roles: ["DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
+        { id: 15, name: "Bauyrzhan", rating: 3.5, roles: ["GK", "DEF"], goals: 0, assists: 0, mvp: 0 },
+        { id: 16, name: "Alim", rating: 3.5, roles: ["DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
+        { id: 17, name: "Abdulluahid agay", rating: 4.25, roles: ["DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
+        { id: 18, name: "Ilfat", rating: 4.25, roles: ["DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
+        { id: 19, name: "Tamerlan", rating: 4.25, roles: ["DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
+        { id: 20, name: "Akhmad", rating: 4.25, roles: ["GK", "DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
+        { id: 21, name: "Islam", rating: 4.25, roles: ["DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
+        { id: 22, name: "Ismail", rating: 5.0, roles: ["GK", "DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
+        { id: 23, name: "Omar", rating: 5.0, roles: ["GK", "DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
+        { id: 24, name: "Alseit abi", rating: 5.0, roles: ["GK", "DEF", "FWD"], goals: 0, assists: 0, mvp: 0 }
     ];
+
+    const fixedSpeeds = { Mark:1, Alim:2, Rakhman:2, "Alseit abi":5, "Abdulluahid agay":3, Ismail:5, Dias:3, Madiyar:2, Omar:5, Akhmad:4, Akhmet:3, Batyr:3, Tamerlan:4, Abdirasul:3, Nurtas:3, Ilfat:4, Islam:4, Azamat:3, Amir:2, Yeramir:2, Oraz:3, Arnat:3, Sultan:4, Bauyrzhan:3 };
+    initialPlayers.forEach(p => p.speed = fixedSpeeds[p.name] || 3);
 
     let savedData = JSON.parse(localStorage.getItem('sport_time_players_v15'));
     let playersData = savedData || JSON.parse(JSON.stringify(initialPlayers));
-    // Для старых сохранений, где скорости еще не было, ставим среднюю скорость 3/5.
-    playersData.forEach(p => {
-        if (!Number.isFinite(Number(p.speed))) p.speed = 3;
-        p.speed = Math.max(1, Math.min(5, parseInt(p.speed) || 3));
-    });
+    playersData.forEach(p => { if (!p.speed) p.speed = fixedSpeeds[p.name] || 3; });
 
     let activeTeams = JSON.parse(localStorage.getItem('sport_time_teams_v15')) || [];
     let activeMatches = JSON.parse(localStorage.getItem('sport_time_matches_v15')) || [];
@@ -454,6 +480,48 @@
         localStorage.setItem('sport_time_matches_v15', JSON.stringify(activeMatches));
         localStorage.setItem('sport_time_round_v15', currentDisplayedRound);
         localStorage.setItem('sport_time_total_rounds_v15', totalRounds);
+    }
+
+    function openAdmin() {
+        const password = prompt("Введите пароль администратора:");
+        if (password !== "1234") { if (password !== null) alert("Неверный пароль!"); return; }
+        document.getElementById("adminModal").classList.add("show");
+        renderAdminPlayers();
+    }
+
+    function closeAdmin() { document.getElementById("adminModal").classList.remove("show"); }
+
+    function renderAdminPlayers() {
+        const box = document.getElementById("adminPlayersList");
+        box.innerHTML = playersData.map(p => `
+          <div class="admin-player">
+            <input value="${p.name.replace(/"/g,'&quot;')}" onchange="adminUpdateName(${p.id}, this.value)">
+            <input type="number" min="0" max="5" step="0.25" value="${p.rating}" onchange="adminUpdateRating(${p.id}, this.value)">
+            <input type="number" min="1" max="5" step="1" value="${p.speed || 3}" onchange="adminUpdateSpeed(${p.id}, this.value)">
+            <button onclick="deletePlayerAdmin(${p.id})">🗑️ Удалить</button>
+          </div>`).join("");
+    }
+
+    function adminUpdateName(id, value) { const p=playersData.find(x=>x.id===id); if(p && value.trim()){p.name=value.trim();saveData();renderPlayers();renderTeamsCards();renderCurrentRoundMatches();renderAdminPlayers();} }
+    function adminUpdateRating(id, value) { const p=playersData.find(x=>x.id===id); if(p){p.rating=Math.max(0,Math.min(5,parseFloat(value)||0));saveData();renderPlayers();} }
+    function adminUpdateSpeed(id, value) { const p=playersData.find(x=>x.id===id); if(p){p.speed=Math.max(1,Math.min(5,parseInt(value)||1));saveData();renderPlayers();} }
+    function addPlayerAdmin() {
+        const name=document.getElementById("newPlayerName").value.trim();
+        const rating=parseFloat(document.getElementById("newPlayerRating").value);
+        const speed=parseInt(document.getElementById("newPlayerSpeed").value);
+        if(!name){alert("Введите имя игрока.");return;}
+        if(playersData.some(p=>p.name.toLowerCase()===name.toLowerCase())){alert("Игрок с таким именем уже есть.");return;}
+        const id=playersData.length?Math.max(...playersData.map(p=>p.id))+1:1;
+        playersData.push({id,name,rating:Number.isFinite(rating)?Math.max(0,Math.min(5,rating)):3,speed:Number.isFinite(speed)?Math.max(1,Math.min(5,speed)):3,roles:["DEF"],goals:0,assists:0,mvp:0});
+        saveData();renderPlayers();renderAdminPlayers();
+        document.getElementById("newPlayerName").value="";document.getElementById("newPlayerRating").value="";document.getElementById("newPlayerSpeed").value="";
+    }
+    function deletePlayerAdmin(id) {
+        const p=playersData.find(x=>x.id===id); if(!p)return;
+        if(!confirm(`Удалить игрока ${p.name}?`))return;
+        playersData=playersData.filter(x=>x.id!==id);
+        activeTeams.forEach(t=>t.players=t.players.filter(x=>x.id!==id));
+        saveData();renderPlayers();renderTeamsCards();renderLeagueTable();renderCurrentRoundMatches();renderAdminPlayers();
     }
 
     // Theme Switcher Logic
@@ -498,12 +566,8 @@
                         <div>
                             <div style="display:flex; align-items:center; gap:6px;">
                                 <span class="player-name">${p.name}</span>
-                                <span class="player-rating">⭐ ${p.rating.toFixed(2)}</span>
-                                <span class="player-speed">⚡ ${p.speed}/5</span>
+                                <span class="player-rating">⭐ ${p.rating.toFixed(2)} &nbsp; ⚡ ${p.speed || 3}</span>
                             </div>
-                            <select class="speed-select" onchange="updatePlayerSpeed(${p.id}, this.value)" title="Скорость игрока от 1 до 5">
-                                ${[1,2,3,4,5].map(v => `<option value="${v}" ${p.speed === v ? 'selected' : ''}>⚡ Скорость: ${v}/5</option>`).join('')}
-                            </select>
                             <div class="role-selector">
                                 <button class="role-btn ${isNap ? 'active' : ''}" data-role="FWD" onclick="toggleRole(${p.id}, 'FWD')">⚽ FWD</button>
                                 <button class="role-btn ${isZas ? 'active' : ''}" data-role="DEF" onclick="toggleRole(${p.id}, 'DEF')">🛡️ DEF</button>
@@ -528,14 +592,6 @@
         }
     }
 
-    function updatePlayerSpeed(id, value) {
-        const player = playersData.find(p => p.id === id);
-        if (!player) return;
-        player.speed = Math.max(1, Math.min(5, parseInt(value) || 3));
-        saveData();
-        renderPlayers();
-    }
-
     function updateCount() {
         const count = document.querySelectorAll('#playersList input[type="checkbox"]:checked').length;
         document.getElementById('selectedCount').innerText = count;
@@ -547,69 +603,26 @@
     }
 
     function distributeEquallyFlexible(players, numTeams) {
-        // Делим сразу по двум параметрам: общий рейтинг и общая скорость.
-        // Цель — чтобы команды были близки по силе и чтобы быстрые игроки
-        // распределялись между командами, а не собирались в одной.
-        const normalizedPlayers = players.map(p => ({
-            ...p,
-            speed: Math.max(1, Math.min(5, parseInt(p.speed) || 3))
-        }));
-
-        const totalRating = normalizedPlayers.reduce((sum, p) => sum + p.rating, 0);
-        const totalSpeed = normalizedPlayers.reduce((sum, p) => sum + p.speed, 0);
-        const targetRating = totalRating / numTeams;
-        const targetSpeed = totalSpeed / numTeams;
-        const targetSize = normalizedPlayers.length / numTeams;
-
-        let sorted = [...normalizedPlayers].sort((a, b) => {
-            // Сначала распределяем самых быстрых, а при равенстве — самых сильных.
-            if (b.speed !== a.speed) return b.speed - a.speed;
-            return b.rating - a.rating;
-        });
-
+        // Балансируем сразу два показателя: ⭐ рейтинг и ⚡ скорость.
+        // Скорость не редактируется на обычном экране — только через Admin.
+        let sorted = [...players].sort((a, b) => (b.rating + (b.speed || 3) * 0.7) - (a.rating + (a.speed || 3) * 0.7));
         let teamLists = Array.from({ length: numTeams }, () => []);
         let teamRatingSums = Array(numTeams).fill(0);
         let teamSpeedSums = Array(numTeams).fill(0);
 
         sorted.forEach(player => {
-            let bestTeam = 0;
+            let targetTeam = 0;
             let bestScore = Infinity;
-
             for (let i = 0; i < numTeams; i++) {
-                // Не допускаем сильного перекоса по количеству игроков.
-                const sizeAfter = teamLists[i].length + 1;
-                if (sizeAfter > Math.ceil(normalizedPlayers.length / numTeams)) continue;
-
-                const ratingAfter = teamRatingSums[i] + player.rating;
-                const speedAfter = teamSpeedSums[i] + player.speed;
-
-                // Нормализованные отклонения. Скорость получает такой же вес,
-                // как рейтинг, поэтому быстрые игроки реально влияют на выбор команды.
-                const ratingScore = Math.abs(ratingAfter - targetRating) / Math.max(targetRating, 1);
-                const speedScore = Math.abs(speedAfter - targetSpeed) / Math.max(targetSpeed, 1);
-                const sizeScore = Math.abs(sizeAfter - targetSize) / Math.max(targetSize, 1);
-
-                // Небольшой дополнительный штраф за уже высокую среднюю скорость.
-                const currentAvgSpeed = teamLists[i].length
-                    ? teamSpeedSums[i] / teamLists[i].length
-                    : 0;
-                const speedLoadPenalty = currentAvgSpeed > targetSpeed / Math.max(targetSize, 1)
-                    ? player.speed * 0.015
-                    : 0;
-
-                const score = ratingScore * 0.50 + speedScore * 0.40 + sizeScore * 0.10 + speedLoadPenalty;
-
-                if (score < bestScore) {
-                    bestScore = score;
-                    bestTeam = i;
-                }
+                let projectedRating = teamRatingSums[i] + player.rating;
+                let projectedSpeed = teamSpeedSums[i] + (player.speed || 3);
+                let score = projectedRating + projectedSpeed * 0.7;
+                if (score < bestScore) { bestScore = score; targetTeam = i; }
             }
-
-            teamLists[bestTeam].push(player);
-            teamRatingSums[bestTeam] += player.rating;
-            teamSpeedSums[bestTeam] += player.speed;
+            teamLists[targetTeam].push(player);
+            teamRatingSums[targetTeam] += player.rating;
+            teamSpeedSums[targetTeam] += (player.speed || 3);
         });
-
         return teamLists;
     }
 
