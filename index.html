@@ -191,6 +191,8 @@
         .player-info input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--primary-blue); cursor: pointer; }
         .player-name { font-weight: 800; font-size: 16px; color: var(--text-main); }
         .player-rating { background: rgba(49, 130, 206, 0.15); color: var(--primary-blue); border: 1px solid var(--card-border); border-radius: 20px; padding: 3px 10px; font-size: 12px; font-weight: 900; }
+        .player-speed { background: rgba(214, 158, 46, 0.12); color: var(--primary-gold); border: 1px solid var(--card-border); border-radius: 20px; padding: 3px 10px; font-size: 12px; font-weight: 900; }
+        .speed-select { background: var(--input-bg); color: var(--text-main); border: 1px solid var(--card-border); border-radius: 8px; padding: 5px 7px; font-size: 11px; font-weight: 800; cursor: pointer; outline: none; margin-top: 8px; }
 
         .role-selector { display: flex; gap: 6px; margin-top: 8px; }
         .role-btn { border: 1px solid var(--card-border); background: var(--input-bg); color: var(--text-sub); font-size: 11px; font-weight: 800; padding: 5px 10px; border-radius: 8px; cursor: pointer; }
@@ -406,34 +408,39 @@
     const worldCupTrophyImg = "https://upload.wikimedia.org/wikipedia/commons/3/37/World_Cup_%28trophy%29.png";
 
     const initialPlayers = [
-        { id: 1, name: "Mark", rating: 0.5, roles: ["DEF"], goals: 0, assists: 0, mvp: 0 },
-        { id: 2, name: "Amir", rating: 0.5, roles: ["DEF"], goals: 0, assists: 0, mvp: 0 },
-        { id: 3, name: "Azamat", rating: 0.5, roles: ["DEF"], goals: 0, assists: 0, mvp: 0 },
-        { id: 4, name: "Akhmet", rating: 1.25, roles: ["DEF"], goals: 0, assists: 0, mvp: 0 },
-        { id: 5, name: "Madiyar", rating: 1.25, roles: ["DEF"], goals: 0, assists: 0, mvp: 0 },
-        { id: 6, name: "Yeramir", rating: 2.0, roles: ["DEF"], goals: 0, assists: 0, mvp: 0 },
-        { id: 7, name: "Dias", rating: 2.0, roles: ["FWD"], goals: 0, assists: 0, mvp: 0 },
-        { id: 8, name: "Batyr", rating: 2.0, roles: ["FWD"], goals: 0, assists: 0, mvp: 0 },
-        { id: 9, name: "Nurtas", rating: 2.0, roles: ["FWD"], goals: 0, assists: 0, mvp: 0 },
-        { id: 10, name: "Oraz", rating: 2.75, roles: ["GK", "FWD"], goals: 0, assists: 0, mvp: 0 },
-        { id: 11, name: "Rakhman", rating: 2.75, roles: ["GK", "DEF"], goals: 0, assists: 0, mvp: 0 },
-        { id: 12, name: "Abdirasul", rating: 2.75, roles: ["GK", "DEF"], goals: 0, assists: 0, mvp: 0 },
-        { id: 13, name: "Sultan", rating: 2.75, roles: ["DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
-        { id: 14, name: "Arnat", rating: 3.5, roles: ["DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
-        { id: 15, name: "Bauyrzhan", rating: 3.5, roles: ["GK", "DEF"], goals: 0, assists: 0, mvp: 0 },
-        { id: 16, name: "Alim", rating: 3.5, roles: ["DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
-        { id: 17, name: "Abduluahid agay", rating: 4.25, roles: ["DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
-        { id: 18, name: "Ilfat", rating: 4.25, roles: ["DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
-        { id: 19, name: "Tamerlan", rating: 4.25, roles: ["DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
-        { id: 20, name: "Akhmad", rating: 4.25, roles: ["GK", "DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
-        { id: 21, name: "Islam", rating: 4.25, roles: ["DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
-        { id: 22, name: "Ismail", rating: 5.0, roles: ["GK", "DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
-        { id: 23, name: "Omar", rating: 5.0, roles: ["GK", "DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
-        { id: 24, name: "Alseit abi", rating: 5.0, roles: ["GK", "DEF", "FWD"], goals: 0, assists: 0, mvp: 0 }
+        { id: 1, name: "Mark", rating: 0.5, speed: 3, roles: ["DEF"], goals: 0, assists: 0, mvp: 0 },
+        { id: 2, name: "Amir", rating: 0.5, speed: 3, roles: ["DEF"], goals: 0, assists: 0, mvp: 0 },
+        { id: 3, name: "Azamat", rating: 0.5, speed: 3, roles: ["DEF"], goals: 0, assists: 0, mvp: 0 },
+        { id: 4, name: "Akhmet", rating: 1.25, speed: 3, roles: ["DEF"], goals: 0, assists: 0, mvp: 0 },
+        { id: 5, name: "Madiyar", rating: 1.25, speed: 3, roles: ["DEF"], goals: 0, assists: 0, mvp: 0 },
+        { id: 6, name: "Yeramir", rating: 2.0, speed: 3, roles: ["DEF"], goals: 0, assists: 0, mvp: 0 },
+        { id: 7, name: "Dias", rating: 2.0, speed: 3, roles: ["FWD"], goals: 0, assists: 0, mvp: 0 },
+        { id: 8, name: "Batyr", rating: 2.0, speed: 3, roles: ["FWD"], goals: 0, assists: 0, mvp: 0 },
+        { id: 9, name: "Nurtas", rating: 2.0, speed: 3, roles: ["FWD"], goals: 0, assists: 0, mvp: 0 },
+        { id: 10, name: "Oraz", rating: 2.75, speed: 3, roles: ["GK", "FWD"], goals: 0, assists: 0, mvp: 0 },
+        { id: 11, name: "Rakhman", rating: 2.75, speed: 3, roles: ["GK", "DEF"], goals: 0, assists: 0, mvp: 0 },
+        { id: 12, name: "Abdirasul", rating: 2.75, speed: 3, roles: ["GK", "DEF"], goals: 0, assists: 0, mvp: 0 },
+        { id: 13, name: "Sultan", rating: 2.75, speed: 3, roles: ["DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
+        { id: 14, name: "Arnat", rating: 3.5, speed: 3, roles: ["DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
+        { id: 15, name: "Bauyrzhan", rating: 3.5, speed: 3, roles: ["GK", "DEF"], goals: 0, assists: 0, mvp: 0 },
+        { id: 16, name: "Alim", rating: 3.5, speed: 3, roles: ["DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
+        { id: 17, name: "Abduluahid agay", rating: 4.25, speed: 3, roles: ["DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
+        { id: 18, name: "Ilfat", rating: 4.25, speed: 3, roles: ["DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
+        { id: 19, name: "Tamerlan", rating: 4.25, speed: 3, roles: ["DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
+        { id: 20, name: "Akhmad", rating: 4.25, speed: 3, roles: ["GK", "DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
+        { id: 21, name: "Islam", rating: 4.25, speed: 3, roles: ["DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
+        { id: 22, name: "Ismail", rating: 5.0, speed: 3, roles: ["GK", "DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
+        { id: 23, name: "Omar", rating: 5.0, speed: 3, roles: ["GK", "DEF", "FWD"], goals: 0, assists: 0, mvp: 0 },
+        { id: 24, name: "Alseit abi", rating: 5.0, speed: 3, roles: ["GK", "DEF", "FWD"], goals: 0, assists: 0, mvp: 0 }
     ];
 
     let savedData = JSON.parse(localStorage.getItem('sport_time_players_v15'));
     let playersData = savedData || JSON.parse(JSON.stringify(initialPlayers));
+    // Для старых сохранений, где скорости еще не было, ставим среднюю скорость 3/5.
+    playersData.forEach(p => {
+        if (!Number.isFinite(Number(p.speed))) p.speed = 3;
+        p.speed = Math.max(1, Math.min(5, parseInt(p.speed) || 3));
+    });
 
     let activeTeams = JSON.parse(localStorage.getItem('sport_time_teams_v15')) || [];
     let activeMatches = JSON.parse(localStorage.getItem('sport_time_matches_v15')) || [];
@@ -492,7 +499,11 @@
                             <div style="display:flex; align-items:center; gap:6px;">
                                 <span class="player-name">${p.name}</span>
                                 <span class="player-rating">⭐ ${p.rating.toFixed(2)}</span>
+                                <span class="player-speed">⚡ ${p.speed}/5</span>
                             </div>
+                            <select class="speed-select" onchange="updatePlayerSpeed(${p.id}, this.value)" title="Скорость игрока от 1 до 5">
+                                ${[1,2,3,4,5].map(v => `<option value="${v}" ${p.speed === v ? 'selected' : ''}>⚡ Скорость: ${v}/5</option>`).join('')}
+                            </select>
                             <div class="role-selector">
                                 <button class="role-btn ${isNap ? 'active' : ''}" data-role="FWD" onclick="toggleRole(${p.id}, 'FWD')">⚽ FWD</button>
                                 <button class="role-btn ${isZas ? 'active' : ''}" data-role="DEF" onclick="toggleRole(${p.id}, 'DEF')">🛡️ DEF</button>
@@ -517,6 +528,14 @@
         }
     }
 
+    function updatePlayerSpeed(id, value) {
+        const player = playersData.find(p => p.id === id);
+        if (!player) return;
+        player.speed = Math.max(1, Math.min(5, parseInt(value) || 3));
+        saveData();
+        renderPlayers();
+    }
+
     function updateCount() {
         const count = document.querySelectorAll('#playersList input[type="checkbox"]:checked').length;
         document.getElementById('selectedCount').innerText = count;
@@ -528,27 +547,69 @@
     }
 
     function distributeEquallyFlexible(players, numTeams) {
-        let sorted = [...players].sort((a, b) => b.rating - a.rating);
-        let teamLists = Array.from({ length: numTeams }, () => []);
-        let teamSums = Array(numTeams).fill(0);
+        // Делим сразу по двум параметрам: общий рейтинг и общая скорость.
+        // Цель — чтобы команды были близки по силе и чтобы быстрые игроки
+        // распределялись между командами, а не собирались в одной.
+        const normalizedPlayers = players.map(p => ({
+            ...p,
+            speed: Math.max(1, Math.min(5, parseInt(p.speed) || 3))
+        }));
 
-        sorted.forEach((player, idx) => {
-            let targetTeam = 0;
-            let roundNum = Math.floor(idx / numTeams);
-            if (roundNum % 2 === 0) {
-                let minSum = Infinity;
-                for (let i = 0; i < numTeams; i++) {
-                    if (teamSums[i] < minSum) { minSum = teamSums[i]; targetTeam = i; }
-                }
-            } else {
-                let minSum = Infinity;
-                for (let i = numTeams - 1; i >= 0; i--) {
-                    if (teamSums[i] < minSum) { minSum = teamSums[i]; targetTeam = i; }
+        const totalRating = normalizedPlayers.reduce((sum, p) => sum + p.rating, 0);
+        const totalSpeed = normalizedPlayers.reduce((sum, p) => sum + p.speed, 0);
+        const targetRating = totalRating / numTeams;
+        const targetSpeed = totalSpeed / numTeams;
+        const targetSize = normalizedPlayers.length / numTeams;
+
+        let sorted = [...normalizedPlayers].sort((a, b) => {
+            // Сначала распределяем самых быстрых, а при равенстве — самых сильных.
+            if (b.speed !== a.speed) return b.speed - a.speed;
+            return b.rating - a.rating;
+        });
+
+        let teamLists = Array.from({ length: numTeams }, () => []);
+        let teamRatingSums = Array(numTeams).fill(0);
+        let teamSpeedSums = Array(numTeams).fill(0);
+
+        sorted.forEach(player => {
+            let bestTeam = 0;
+            let bestScore = Infinity;
+
+            for (let i = 0; i < numTeams; i++) {
+                // Не допускаем сильного перекоса по количеству игроков.
+                const sizeAfter = teamLists[i].length + 1;
+                if (sizeAfter > Math.ceil(normalizedPlayers.length / numTeams)) continue;
+
+                const ratingAfter = teamRatingSums[i] + player.rating;
+                const speedAfter = teamSpeedSums[i] + player.speed;
+
+                // Нормализованные отклонения. Скорость получает такой же вес,
+                // как рейтинг, поэтому быстрые игроки реально влияют на выбор команды.
+                const ratingScore = Math.abs(ratingAfter - targetRating) / Math.max(targetRating, 1);
+                const speedScore = Math.abs(speedAfter - targetSpeed) / Math.max(targetSpeed, 1);
+                const sizeScore = Math.abs(sizeAfter - targetSize) / Math.max(targetSize, 1);
+
+                // Небольшой дополнительный штраф за уже высокую среднюю скорость.
+                const currentAvgSpeed = teamLists[i].length
+                    ? teamSpeedSums[i] / teamLists[i].length
+                    : 0;
+                const speedLoadPenalty = currentAvgSpeed > targetSpeed / Math.max(targetSize, 1)
+                    ? player.speed * 0.015
+                    : 0;
+
+                const score = ratingScore * 0.50 + speedScore * 0.40 + sizeScore * 0.10 + speedLoadPenalty;
+
+                if (score < bestScore) {
+                    bestScore = score;
+                    bestTeam = i;
                 }
             }
-            teamLists[targetTeam].push(player);
-            teamSums[targetTeam] += player.rating;
+
+            teamLists[bestTeam].push(player);
+            teamRatingSums[bestTeam] += player.rating;
+            teamSpeedSums[bestTeam] += player.speed;
         });
+
         return teamLists;
     }
 
