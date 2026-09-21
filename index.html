@@ -315,8 +315,8 @@
         <div class="tournament-type-selector">
             <label for="tournamentTypeSelect">Tournament Mode</label>
             <select id="tournamentTypeSelect">
-                <option value="country">World Cup</option>
-                <option value="club">Champions League</option>
+                <option value="country">World Cup <img src="https://upload.wikimedia.org/wikipedia/commons/3/37/World_Cup_%28trophy%29.png" class="title-trophy-icon" alt=""></option>
+                <option value="club">Champions League <img src="https://upload.wikimedia.org/wikipedia/en/c/c2/UEFA_Champions_League_Logo.svg" class="title-trophy-icon" alt=""></option>
             </select>
         </div>
         <div class="section-header">
@@ -385,7 +385,9 @@
             <button class="filter-btn active" onclick="renderLeaderboard('goals', this)">⚽ Top Scorers</button>
             <button class="filter-btn" onclick="renderLeaderboard('assists', this)">👟 Top Assists</button>
             <button class="filter-btn" onclick="renderLeaderboard('points', this)">🔥 Goal + Assist</button>
-            <button class="filter-btn" onclick="renderLeaderboard('mvp', this)">🏆 MVP</button>
+            <button class="filter-btn" onclick="renderLeaderboard('mvp', this)">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/3/37/World_Cup_%28trophy%29.png" style="width:14px; height:14px; vertical-align:middle; margin-right:4px;" alt=""> MVP
+            </button>
         </div>
         <table class="leader-table">
             <thead>
@@ -433,10 +435,7 @@
         { name: "Manchester United", type: "club", code: "mun", logo: "https://upload.wikimedia.org/wikipedia/en/7/7a/Manchester_United_FC_crest.svg" },
         { name: "Chelsea", type: "club", code: "che", logo: "https://upload.wikimedia.org/wikipedia/en/c/cc/Chelsea_FC.svg" },
         { name: "Inter Milan", type: "club", code: "int", logo: "https://upload.wikimedia.org/wikipedia/commons/0/05/FC_Internazionale_Milano_2021.svg" },
-
-        // AC Milan — исправленная PNG-ссылка
-        { name: "AC Milan", type: "club", code: "mil", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/AC_Milan_logo.svg/512px-AC_Milan_logo.svg.png" },
-
+        { name: "AC Milan", type: "club", code: "mil", logo: "https://upload.wikimedia.org/wikipedia/commons/d/d0/AC_Milan_logo.svg" },
         { name: "Borussia Dortmund", type: "club", code: "dor", logo: "https://upload.wikimedia.org/wikipedia/commons/6/67/Borussia_Dortmund_logo.svg" },
         { name: "France", type: "country", code: "fra", logo: "https://flagcdn.com/w160/fr.png" },
         { name: "Portugal", type: "country", code: "por", logo: "https://flagcdn.com/w160/pt.png" },
@@ -480,6 +479,7 @@
     const fixedSpeeds = { Mark:1, Alim:2, Rakhman:2, "Alseit abi":5, "Abdulluahid agay":3, Ismail:5, Dias:3, Madiyar:2, Omar:5, Akhmad:4, Akhmet:3, Batyr:3, Tamerlan:4, Abdirasul:3, Nurtas:3, Ilfat:4, Islam:4, Azamat:3, Amir:2, Yeramir:2, Oraz:3, Arnat:3, Sultan:4, Bauyrzhan:3 };
     initialPlayers.forEach(p => p.speed = fixedSpeeds[p.name] || 3);
 
+    // ================= ONLINE DATABASE =================
     const SUPABASE_URL = "https://fjxlvwtxtswdwlkfromz.supabase.co";
     const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_wVyP38UueH4PaQB5-aso5g_QKoiyURz";
 
@@ -528,36 +528,6 @@
         if (el) el.innerText = text;
     }
 
-    // Автоматически исправляет старую эмблему AC Milan
-    // даже если команда уже была создана раньше.
-    function fixExistingTeamLogos() {
-        let changed = false;
-
-        const milanPreset = clubPresets.find(p => p.name === "AC Milan");
-        if (!milanPreset) return false;
-
-        activeTeams.forEach(team => {
-            if (
-                team.name === "AC Milan" ||
-                team.code === "mil"
-            ) {
-                if (
-                    team.logo !== milanPreset.logo ||
-                    team.code !== milanPreset.code ||
-                    team.type !== milanPreset.type
-                ) {
-                    team.name = milanPreset.name;
-                    team.type = milanPreset.type;
-                    team.code = milanPreset.code;
-                    team.logo = milanPreset.logo;
-                    changed = true;
-                }
-            }
-        });
-
-        return changed;
-    }
-
     async function loadOnlineData() {
         const { data, error } = await supabaseClient
             .from("tournament_state")
@@ -575,7 +545,6 @@
             playersData = (Array.isArray(data.players) && data.players.length > 0)
                 ? data.players
                 : JSON.parse(JSON.stringify(initialPlayers));
-
             activeTeams = Array.isArray(data.teams) ? data.teams : [];
             activeMatches = Array.isArray(data.matches) ? data.matches : [];
             currentDisplayedRound = Number(data.current_round) || 1;
@@ -587,13 +556,6 @@
             });
 
             baseCycleRounds = activeTeams.length ? buildBaseCycleSchedule(activeTeams) : [];
-
-            // Исправляем AC Milan в уже существующем турнире.
-            const logosFixed = fixExistingTeamLogos();
-
-            if (logosFixed) {
-                await saveData();
-            }
         } else {
             await saveData();
         }
@@ -615,16 +577,12 @@
                     activeMatches = Array.isArray(payload.new.matches) ? payload.new.matches : [];
                     currentDisplayedRound = Number(payload.new.current_round) || 1;
                     totalRounds = Number(payload.new.total_rounds) || 0;
+                    baseCycleRounds = activeTeams.length ? buildBaseCycleSchedule(activeTeams) : [];
 
                     playersData.forEach(p => {
                         if (!p.speed) p.speed = fixedSpeeds[p.name] || 3;
                         if (!Array.isArray(p.roles)) p.roles = [];
                     });
-
-                    baseCycleRounds = activeTeams.length ? buildBaseCycleSchedule(activeTeams) : [];
-
-                    // Проверяем AC Milan после получения данных из Supabase.
-                    const logosFixed = fixExistingTeamLogos();
 
                     initTheme();
                     renderPlayers();
@@ -647,11 +605,6 @@
                     }
 
                     isApplyingRemoteState = false;
-
-                    if (logosFixed) {
-                        await saveData();
-                    }
-
                     showOnlineStatus("🟢 Live");
                 }
             )
@@ -663,163 +616,102 @@
 
     function openAdmin() {
         const password = prompt("Enter admin password:");
-        if (password !== "1234") {
-            if (password !== null) alert("Incorrect password!");
-            return;
-        }
-
+        if (password !== "1234") { if (password !== null) alert("Incorrect password!"); return; }
         document.getElementById("adminModal").classList.add("show");
         renderAdminPlayers();
     }
 
-    function closeAdmin() {
-        document.getElementById("adminModal").classList.remove("show");
-    }
+    function closeAdmin() { document.getElementById("adminModal").classList.remove("show"); }
 
     function saveAdminChanges() {
         saveData();
         renderPlayers();
-
         if (activeTeams.length > 0) {
             recalculateStandings();
             renderLeagueTable();
             renderTeamsCards();
             renderCurrentRoundMatches();
         }
-
         alert("Changes saved successfully.");
         closeAdmin();
     }
 
     function renderAdminPlayers() {
         const box = document.getElementById("adminPlayersList");
-
         box.innerHTML = playersData.map(p => {
-            if (!Array.isArray(p.roles)) p.roles = [];
-
-            return `
-            <div class="admin-player">
-                <div>
-                    <input value="${p.name.replace(/"/g,'&quot;')}" placeholder="Player name" title="Player name" onchange="adminUpdateName(${p.id}, this.value)">
-                </div>
-
-                <input type="number" min="0" max="5" step="0.25" value="${p.rating}" placeholder="Rating" title="Rating" onchange="adminUpdateRating(${p.id}, this.value)">
-
-                <input type="number" min="1" max="5" step="1" value="${p.speed || 3}" placeholder="Speed" title="Speed" onchange="adminUpdateSpeed(${p.id}, this.value)">
-
-                <div>
-                    <div class="admin-roles-title">Positions</div>
-                    <div class="admin-player-roles">
-                        <button type="button" class="admin-role-btn ${p.roles.includes('FWD') ? 'active' : ''}" data-role="FWD" onclick="adminToggleRole(${p.id}, 'FWD')">⚽ FWD</button>
-                        <button type="button" class="admin-role-btn ${p.roles.includes('DEF') ? 'active' : ''}" data-role="DEF" onclick="adminToggleRole(${p.id}, 'DEF')">🛡️ DEF</button>
-                        <button type="button" class="admin-role-btn ${p.roles.includes('GK') ? 'active' : ''}" data-role="GK" onclick="adminToggleRole(${p.id}, 'GK')">🧤 GK</button>
-                    </div>
-                </div>
-
-                <button onclick="deletePlayerAdmin(${p.id})">🗑️ Delete</button>
-            </div>`;
+          if (!Array.isArray(p.roles)) p.roles = [];
+          return `
+          <div class="admin-player">
+            <div><input value="${p.name.replace(/"/g,'&quot;')}" placeholder="Player name" title="Player name" onchange="adminUpdateName(${p.id}, this.value)"></div>
+            <input type="number" min="0" max="5" step="0.25" value="${p.rating}" placeholder="Rating" title="Rating" onchange="adminUpdateRating(${p.id}, this.value)">
+            <input type="number" min="1" max="5" step="1" value="${p.speed || 3}" placeholder="Speed" title="Speed" onchange="adminUpdateSpeed(${p.id}, this.value)">
+            <div>
+              <div class="admin-roles-title">Positions</div>
+              <div class="admin-player-roles">
+                <button type="button" class="admin-role-btn ${p.roles.includes('FWD') ? 'active' : ''}" data-role="FWD" onclick="adminToggleRole(${p.id}, 'FWD')">⚽ FWD</button>
+                <button type="button" class="admin-role-btn ${p.roles.includes('DEF') ? 'active' : ''}" data-role="DEF" onclick="adminToggleRole(${p.id}, 'DEF')">🛡️ DEF</button>
+                <button type="button" class="admin-role-btn ${p.roles.includes('GK') ? 'active' : ''}" data-role="GK" onclick="adminToggleRole(${p.id}, 'GK')">🧤 GK</button>
+              </div>
+            </div>
+            <button onclick="deletePlayerAdmin(${p.id})">🗑️ Delete</button>
+          </div>`;
         }).join("");
     }
 
-    function adminUpdateName(id, value) {
-        const p = playersData.find(x => x.id === id);
-
-        if (p && value.trim()) {
-            p.name = value.trim();
-            saveData();
-            renderPlayers();
-            renderTeamsCards();
-            renderCurrentRoundMatches();
-            renderAdminPlayers();
-        }
-    }
-
-    function adminUpdateRating(id, value) {
-        const p = playersData.find(x => x.id === id);
-
-        if (p) {
-            p.rating = Math.max(0, Math.min(5, parseFloat(value) || 0));
-            saveData();
-            renderPlayers();
-        }
-    }
-
-    function adminUpdateSpeed(id, value) {
-        const p = playersData.find(x => x.id === id);
-
-        if (p) {
-            p.speed = Math.max(1, Math.min(5, parseInt(value) || 1));
-            saveData();
-            renderPlayers();
-        }
-    }
+    function adminUpdateName(id, value) { const p=playersData.find(x=>x.id===id); if(p && value.trim()){p.name=value.trim();saveData();renderPlayers();renderTeamsCards();renderCurrentRoundMatches();renderAdminPlayers();} }
+    function adminUpdateRating(id, value) { const p=playersData.find(x=>x.id===id); if(p){p.rating=Math.max(0,Math.min(5,parseFloat(value)||0));saveData();renderPlayers();} }
+    function adminUpdateSpeed(id, value) { const p=playersData.find(x=>x.id===id); if(p){p.speed=Math.max(1,Math.min(5,parseInt(value)||1));saveData();renderPlayers();} }
 
     function adminToggleRole(id, role) {
         const p = playersData.find(x => x.id === id);
-
         if (!p) return;
-
         if (!Array.isArray(p.roles)) p.roles = [];
-
         const idx = p.roles.indexOf(role);
-
         if (idx >= 0) p.roles.splice(idx, 1);
         else p.roles.push(role);
-
         saveData();
         renderPlayers();
         renderAdminPlayers();
     }
 
     function addPlayerAdmin() {
-        const name = document.getElementById("newPlayerName").value.trim();
-        const rating = parseFloat(document.getElementById("newPlayerRating").value);
-        const speed = parseInt(document.getElementById("newPlayerSpeed").value);
+        const name=document.getElementById("newPlayerName").value.trim();
+        const rating=parseFloat(document.getElementById("newPlayerRating").value);
+        const speed=parseInt(document.getElementById("newPlayerSpeed").value);
 
-        if (!name) {
-            alert("Enter the player name.");
-            return;
-        }
+        if(!name){alert("Enter the player name.");return;}
+        if(playersData.some(p=>p.name.toLowerCase()===name.toLowerCase())){alert("A player with this name already exists.");return;}
 
-        if (playersData.some(p => p.name.toLowerCase() === name.toLowerCase())) {
-            alert("A player with this name already exists.");
-            return;
-        }
-
-        const id = playersData.length ? Math.max(...playersData.map(p => p.id)) + 1 : 1;
+        const id=playersData.length?Math.max(...playersData.map(p=>p.id))+1:1;
 
         playersData.push({
             id,
             name,
-            rating: Number.isFinite(rating) ? Math.max(0, Math.min(5, rating)) : 3,
-            speed: Number.isFinite(speed) ? Math.max(1, Math.min(5, speed)) : 3,
-            roles: ["DEF"],
-            goals: 0,
-            assists: 0,
-            mvp: 0
+            rating:Number.isFinite(rating)?Math.max(0,Math.min(5,rating)):3,
+            speed:Number.isFinite(speed)?Math.max(1,Math.min(5,speed)):3,
+            roles:["DEF"],
+            goals:0,
+            assists:0,
+            mvp:0
         });
 
         saveData();
         renderPlayers();
         renderAdminPlayers();
 
-        document.getElementById("newPlayerName").value = "";
-        document.getElementById("newPlayerRating").value = "";
-        document.getElementById("newPlayerSpeed").value = "";
+        document.getElementById("newPlayerName").value="";
+        document.getElementById("newPlayerRating").value="";
+        document.getElementById("newPlayerSpeed").value="";
     }
 
     function deletePlayerAdmin(id) {
-        const p = playersData.find(x => x.id === id);
+        const p=playersData.find(x=>x.id===id);
+        if(!p)return;
 
-        if (!p) return;
+        if(!confirm(`Delete player ${p.name}?`))return;
 
-        if (!confirm(`Delete player ${p.name}?`)) return;
-
-        playersData = playersData.filter(x => x.id !== id);
-
-        activeTeams.forEach(t => {
-            t.players = t.players.filter(x => x.id !== id);
-        });
+        playersData=playersData.filter(x=>x.id!==id);
+        activeTeams.forEach(t=>t.players=t.players.filter(x=>x.id!==id));
 
         saveData();
         renderPlayers();
@@ -833,45 +725,32 @@
         const body = document.body;
         const currentTheme = body.getAttribute('data-theme');
         const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-
         body.setAttribute('data-theme', newTheme);
-
-        document.getElementById('themeToggleBtn').innerText =
-            newTheme === 'dark' ? '☀️' : '🌙';
+        document.getElementById('themeToggleBtn').innerText = newTheme === 'dark' ? '☀️' : '🌙';
     }
 
     function initTheme() {
         const currentTheme = document.body.getAttribute('data-theme') || 'light';
-
         document.body.setAttribute('data-theme', currentTheme);
-
-        document.getElementById('themeToggleBtn').innerText =
-            currentTheme === 'dark' ? '☀️' : '🌙';
+        document.getElementById('themeToggleBtn').innerText = currentTheme === 'dark' ? '☀️' : '🌙';
     }
 
     function switchTab(tabId, btn) {
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-
         document.getElementById(tabId).classList.add('active');
-
-        if (btn) btn.classList.add('active');
-
-        if (tabId === 'leadersTab') renderLeaderboard('goals');
-        if (tabId === 'playersTab') renderPlayers();
+        if(btn) btn.classList.add('active');
+        if(tabId === 'leadersTab') renderLeaderboard('goals');
+        if(tabId === 'playersTab') renderPlayers();
     }
 
     function formatRating(value) {
         const n = Number(value);
-
-        return Number.isFinite(n)
-            ? n.toFixed(2).replace(/0+$/, "").replace(/\.$/, "")
-            : "0";
+        return Number.isFinite(n) ? n.toFixed(2).replace(/0+$/, "").replace(/\.$/, "") : "0";
     }
 
     function renderPlayers() {
         const container = document.getElementById('playersList');
-
         container.innerHTML = '';
 
         playersData.forEach(p => {
@@ -885,15 +764,11 @@
                 <div class="player-card">
                     <div class="player-info">
                         <input type="checkbox" id="check_${p.id}" value="${p.id}" checked onchange="updateCount()">
-
                         <div>
                             <div style="display:flex; align-items:center; gap:6px;">
                                 <span class="player-name">${p.name}</span>
-                                <span class="player-rating">
-                                    ⭐ ${formatRating(p.rating)} &nbsp; ⚡ ${p.speed || 3}
-                                </span>
+                                <span class="player-rating">⭐ ${formatRating(p.rating)} &nbsp; ⚡ ${p.speed || 3}</span>
                             </div>
-
                             <div class="role-display">
                                 ${isNap ? '<span class="role-fwd">⚽ FWD</span>' : ''}
                                 ${isZas ? '<span class="role-def">🛡️ DEF</span>' : ''}
@@ -913,17 +788,12 @@
     }
 
     function updateCount() {
-        const count = document.querySelectorAll(
-            '#playersList input[type="checkbox"]:checked'
-        ).length;
-
+        const count = document.querySelectorAll('#playersList input[type="checkbox"]:checked').length;
         document.getElementById('selectedCount').innerText = count;
     }
 
     function selectAll(status) {
-        document.querySelectorAll('#playersList input[type="checkbox"]')
-            .forEach(c => c.checked = status);
-
+        document.querySelectorAll('#playersList input[type="checkbox"]').forEach(c => c.checked = status);
         updateCount();
     }
 
@@ -931,7 +801,6 @@
         if (totalPlayers > 15) return 4;
         if (totalPlayers > 11) return 3;
         if (totalPlayers >= 4) return 2;
-
         return 0;
     }
 
@@ -946,40 +815,30 @@
 
         const totalRatingQuarter = ratingQuarterSums.reduce((a, b) => a + b, 0);
         const targetRatingQuarter = totalRatingQuarter / teams.length;
-
         const totalSpeed = speedSums.reduce((a, b) => a + b, 0);
         const targetSpeed = totalSpeed / teams.length;
 
         const ratingAbs = ratingQuarterSums.reduce(
-            (sum, value) => sum + Math.abs(value - targetRatingQuarter),
-            0
+            (sum, value) => sum + Math.abs(value - targetRatingQuarter), 0
         );
 
         const ratingVar = ratingQuarterSums.reduce(
-            (sum, value) => sum + Math.pow(value - targetRatingQuarter, 2),
-            0
+            (sum, value) => sum + Math.pow(value - targetRatingQuarter, 2), 0
         );
 
         const speedAbs = speedSums.reduce(
-            (sum, value) => sum + Math.abs(value - targetSpeed),
-            0
+            (sum, value) => sum + Math.abs(value - targetSpeed), 0
         );
 
         const speedVar = speedSums.reduce(
-            (sum, value) => sum + Math.pow(value - targetSpeed, 2),
-            0
+            (sum, value) => sum + Math.pow(value - targetSpeed, 2), 0
         );
 
-        return ratingAbs * 1000000 +
-               ratingVar * 10000 +
-               speedAbs * 100 +
-               speedVar;
+        return ratingAbs * 1000000 + ratingVar * 10000 + speedAbs * 100 + speedVar;
     }
 
     function distributeEquallyFlexible(players, numTeams) {
-        if (!players.length || numTeams < 2 || players.length < numTeams) {
-            return null;
-        }
+        if (!players.length || numTeams < 2 || players.length < numTeams) return null;
 
         const baseSize = Math.floor(players.length / numTeams);
         const extraPlayers = players.length % numTeams;
@@ -996,19 +855,21 @@
             let order = [...players];
 
             if (restart === 0) {
-                order.sort((a, b) => b.rating - a.rating);
+                order.sort((a, b) => {
+                    const aKey = a.rating;
+                    const bKey = b.rating;
+                    return bKey - aKey;
+                });
             } else {
                 order.sort(() => Math.random() - 0.5);
 
                 order.sort((a, b) => {
                     const ratingDiff = b.rating - a.rating;
 
-                    if (Math.abs(ratingDiff) > 1e-9) {
-                        return ratingDiff;
-                    }
+                    if (Math.abs(ratingDiff) > 1e-9) return ratingDiff;
 
-                    return ((b.speed || 3) - (a.speed || 3)) +
-                           (Math.random() - 0.5) * 0.01;
+                    return ((b.speed || 3) - (a.speed || 3))
+                        + (Math.random() - 0.5) * 0.01;
                 });
             }
 
@@ -1052,7 +913,6 @@
 
             while (improved) {
                 improved = false;
-
                 let bestSwap = null;
                 let bestSwapScore = currentScore;
 
@@ -1062,7 +922,6 @@
                             for (let ib = 0; ib < teams[b].length; ib++) {
 
                                 const temp = teams[a][ia];
-
                                 teams[a][ia] = teams[b][ib];
                                 teams[b][ib] = temp;
 
@@ -1084,7 +943,6 @@
                     const [a, ia, b, ib] = bestSwap;
 
                     const temp = teams[a][ia];
-
                     teams[a][ia] = teams[b][ib];
                     teams[b][ib] = temp;
 
@@ -1105,9 +963,7 @@
     function buildBaseCycleSchedule(teams) {
         let teamIds = teams.map(t => t.id);
 
-        if (teamIds.length % 2 !== 0) {
-            teamIds.push(null);
-        }
+        if (teamIds.length % 2 !== 0) teamIds.push(null);
 
         let numTeams = teamIds.length;
         let numRounds = numTeams - 1;
@@ -1129,7 +985,6 @@
             }
 
             schedule.push(roundMatches);
-
             teamIds.splice(1, 0, teamIds.pop());
         }
 
@@ -1168,41 +1023,37 @@
         let selectedPresets =
             getRandomValidPresets(numTeams, selectedType);
 
-        let teams = Array.from(
-            { length: numTeams },
-            (_, i) => {
-                let preset = selectedPresets[i] || {
-                    name: `Team ${i + 1}`,
-                    type: selectedType,
-                    code: `t${i + 1}`,
-                    logo: defaultLogo
-                };
+        let teams = Array.from({ length: numTeams }, (_, i) => {
+            let preset = selectedPresets[i] || {
+                name: `Team ${i + 1}`,
+                type: selectedType,
+                code: `t${i+1}`,
+                logo: defaultLogo
+            };
 
-                return {
-                    id: i + 1,
-                    name: preset.name,
-                    type: preset.type,
-                    code: preset.code || preset.name.substring(0, 3).toLowerCase(),
-                    logo: preset.logo,
-                    players: distributed[i],
-                    played: 0,
-                    win: 0,
-                    draw: 0,
-                    loss: 0,
-                    gf: 0,
-                    ga: 0,
-                    gd: 0,
-                    pts: 0
-                };
-            }
-        );
+            return {
+                id: i + 1,
+                name: preset.name,
+                type: preset.type,
+                code: preset.code || preset.name.substring(0,3).toLowerCase(),
+                logo: preset.logo,
+                players: distributed[i],
+                played: 0,
+                win: 0,
+                draw: 0,
+                loss: 0,
+                gf: 0,
+                ga: 0,
+                gd: 0,
+                pts: 0
+            };
+        });
 
         activeTeams = teams;
         activeMatches = [];
         totalRounds = 0;
 
         baseCycleRounds = buildBaseCycleSchedule(activeTeams);
-
         appendRoundToSchedule();
 
         currentDisplayedRound = 1;
@@ -1210,7 +1061,6 @@
         document.getElementById('addNextRoundBtn').style.display = 'block';
 
         saveData();
-
         setupRoundSelectOptions();
         renderLeagueTable();
         renderCurrentRoundMatches();
@@ -1237,7 +1087,9 @@
         let numTeams = activeTeams.length;
 
         if (allActivePlayers.length % numTeams !== 0) {
-            alert(`Cannot make ${numTeams} teams perfectly equal. Select/remove players so the total is divisible by ${numTeams}.`);
+            alert(
+                `Cannot make ${numTeams} teams perfectly equal. Select/remove players so the total is divisible by ${numTeams}.`
+            );
             return;
         }
 
@@ -1258,9 +1110,10 @@
     }
 
     function getRandomValidPresets(numTeams, allowedType) {
-        let available = clubPresets
-            .filter(p => p.type === allowedType)
-            .sort(() => Math.random() - 0.5);
+        let available =
+            clubPresets
+                .filter(p => p.type === allowedType)
+                .sort(() => Math.random() - 0.5);
 
         return available.slice(0, numTeams);
     }
@@ -1277,7 +1130,9 @@
             baseCycleRounds[cycleIndex];
 
         let isReverseCycle =
-            Math.floor((totalRounds - 1) / baseCycleRounds.length) % 2 === 1;
+            Math.floor(
+                (totalRounds - 1) / baseCycleRounds.length
+            ) % 2 === 1;
 
         templateMatches.forEach((m, idx) => {
             let t1 = isReverseCycle ? m.t2 : m.t1;
@@ -1322,7 +1177,6 @@
 
     function selectRound(tourNum) {
         currentDisplayedRound = parseInt(tourNum);
-
         saveData();
         renderCurrentRoundMatches();
     }
@@ -1332,7 +1186,6 @@
 
         if (newRound >= 1 && newRound <= totalRounds) {
             currentDisplayedRound = newRound;
-
             document.getElementById('roundSelect').value =
                 currentDisplayedRound;
 
@@ -1343,7 +1196,6 @@
 
     function changeTeamPreset(teamId, selectedName) {
         let team = activeTeams.find(t => t.id === teamId);
-
         if (!team) return;
 
         let foundPreset =
@@ -1356,12 +1208,11 @@
             team.logo = foundPreset.logo;
         } else {
             team.name = selectedName;
-            team.code = selectedName.substring(0, 3).toLowerCase();
+            team.code = selectedName.substring(0,3).toLowerCase();
             team.logo = defaultLogo;
         }
 
         saveData();
-
         renderLeagueTable();
         renderCurrentRoundMatches();
         renderTeamsCards();
@@ -1387,35 +1238,34 @@
             let oppScore = isHome ? m.s2 : m.s1;
 
             if (myScore > oppScore) {
-                streakHtml += '<span class="streak-badge streak-w" title="Win">W</span>';
+                streakHtml +=
+                    '<span class="streak-badge streak-w" title="Win">W</span>';
             } else if (myScore === oppScore) {
-                streakHtml += '<span class="streak-badge streak-d" title="Draw">D</span>';
+                streakHtml +=
+                    '<span class="streak-badge streak-d" title="Draw">D</span>';
             } else {
-                streakHtml += '<span class="streak-badge streak-l" title="Loss">L</span>';
+                streakHtml +=
+                    '<span class="streak-badge streak-l" title="Loss">L</span>';
             }
         });
 
         streakHtml += '</div>';
-
         return streakHtml;
     }
 
     function renderLeagueTable() {
         const body = document.getElementById('leagueTableBody');
-
         body.innerHTML = '';
 
-        if (activeTeams.length === 0) {
+        if(activeTeams.length === 0) {
             body.innerHTML =
                 `<tr><td colspan="10" style="padding:20px; color:var(--text-sub);">Start the tournament first</td></tr>`;
-
             return;
         }
 
         let sortedTeams = [...activeTeams].sort((a, b) => {
             if (b.pts !== a.pts) return b.pts - a.pts;
             if (b.gd !== a.gd) return b.gd - a.gd;
-
             return b.gf - a.gf;
         });
 
@@ -1423,16 +1273,13 @@
             body.innerHTML += `
                 <tr>
                     <td>${i + 1}</td>
-
                     <td class="team-cell">
                         <img src="${t.logo}" class="team-logo" alt="">
-
                         <div style="display:flex; flex-direction:column; line-height:1.2;">
                             <span>${t.name}</span>
                             <span class="country-code">${t.code || ''}</span>
                         </div>
                     </td>
-
                     <td>${t.played}</td>
                     <td>${t.win}</td>
                     <td>${t.draw}</td>
@@ -1448,7 +1295,6 @@
 
     function renderCurrentRoundMatches() {
         const container = document.getElementById('matchesList');
-
         container.innerHTML = '';
 
         let roundMatches =
@@ -1457,7 +1303,6 @@
         if (roundMatches.length === 0) {
             container.innerHTML =
                 `<p style="text-align:center; color:var(--text-sub);">No matches in this round.</p>`;
-
             return;
         }
 
@@ -1478,8 +1323,8 @@
 
                 let renderGoalItem = (g) => {
                     let scorerName =
-                        playersData.find(p => p.id === g.scorerId)?.name ||
-                        'Unknown';
+                        playersData.find(p => p.id === g.scorerId)?.name
+                        || 'Unknown';
 
                     let assistName =
                         g.assistantId
@@ -1515,14 +1360,11 @@
 
                 container.innerHTML += `
                     <div class="match-card">
-                        <div class="match-badge">
-                            Match #${m.id} - Round ${m.tour}
-                        </div>
+                        <div class="match-badge">Match #${m.id} - Round ${m.tour}</div>
 
                         <div class="match-main">
                             <div class="match-team">
                                 <img src="${t1 ? t1.logo : defaultLogo}" class="team-logo" alt="">
-
                                 <div style="display:flex; flex-direction:column; line-height:1.2;">
                                     <span>${t1 ? t1.name : 'T1'}</span>
                                     <span class="country-code">${t1 ? t1.code : ''}</span>
@@ -1545,13 +1387,8 @@
 
                         <div class="match-result-summary">
                             <div class="match-goals-grid">
-                                <div class="team-goals-column">
-                                    ${t1GoalsHtml}
-                                </div>
-
-                                <div class="team-goals-column right">
-                                    ${t2GoalsHtml}
-                                </div>
+                                <div class="team-goals-column">${t1GoalsHtml}</div>
+                                <div class="team-goals-column right">${t2GoalsHtml}</div>
                             </div>
 
                             ${mvpHtml}
@@ -1575,36 +1412,45 @@
                     eventsHtml +=
                         `<div class="goal-events-container">`;
 
-                    for (let i = 0; i < goalsCount1; i++) {
+                    for(let i = 0; i < goalsCount1; i++) {
                         eventsHtml += `
                             <div class="goal-row" id="m_${m.id}_t1_g${i}_row">
-                                <span style="font-size:11px; font-weight:800; color:var(--primary-blue);">
-                                    ${t1.name} Goal #${i + 1}:
-                                </span>
-
+                                <span style="font-size:11px; font-weight:800; color:var(--primary-blue);">${t1.name} Goal #${i+1}:</span>
                                 <label>Scorer:</label>
 
-                                <select id="m_${m.id}_t1_g${i}_scorer"
-                                        onchange="updateScorerOrAssist(${m.id}, 't1', ${i})">
-                                    ${t1.players.map(p =>
-                                        `<option value="${p.id}">${p.name}</option>`
-                                    ).join('')}
+                                <select
+                                    id="m_${m.id}_t1_g${i}_scorer"
+                                    onchange="updateScorerOrAssist(${m.id}, 't1', ${i})"
+                                >
+                                    ${t1.players.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
                                 </select>
 
                                 <label class="autogol-label">
-                                    <input type="checkbox"
-                                           id="m_${m.id}_t1_g${i}_og"
-                                           onchange="toggleAutogolView(${m.id}, 't1', ${i})">
+                                    <input
+                                        type="checkbox"
+                                        id="m_${m.id}_t1_g${i}_og"
+                                        onchange="toggleAutogolView(${m.id}, 't1', ${i})"
+                                    >
                                     Own Goal
                                 </label>
 
                                 <label>Assist:</label>
 
-                                <select id="m_${m.id}_t1_g${i}_assistant"
-                                        onchange="updateScorerOrAssist(${m.id}, 't1', ${i})">
+                                <select
+                                    id="m_${m.id}_t1_g${i}_assistant"
+                                    onchange="updateScorerOrAssist(${m.id}, 't1', ${i})"
+                                >
                                     <option value="">None</option>
 
-                                    ${t1.players.map(p =>
+                                    ${t1.players.filter(p => {
+                                        let scorerSelect =
+                                            document.getElementById(
+                                                `m_${m.id}_t1_g${i}_scorer`
+                                            );
+
+                                        return !scorerSelect ||
+                                            p.id != scorerSelect.value;
+                                    }).map(p =>
                                         `<option value="${p.id}">${p.name}</option>`
                                     ).join('')}
                                 </select>
@@ -1612,36 +1458,45 @@
                         `;
                     }
 
-                    for (let i = 0; i < goalsCount2; i++) {
+                    for(let i = 0; i < goalsCount2; i++) {
                         eventsHtml += `
                             <div class="goal-row" id="m_${m.id}_t2_g${i}_row">
-                                <span style="font-size:11px; font-weight:800; color:var(--primary-red);">
-                                    ${t2.name} Goal #${i + 1}:
-                                </span>
-
+                                <span style="font-size:11px; font-weight:800; color:var(--primary-red);">${t2.name} Goal #${i+1}:</span>
                                 <label>Scorer:</label>
 
-                                <select id="m_${m.id}_t2_g${i}_scorer"
-                                        onchange="updateScorerOrAssist(${m.id}, 't2', ${i})">
-                                    ${t2.players.map(p =>
-                                        `<option value="${p.id}">${p.name}</option>`
-                                    ).join('')}
+                                <select
+                                    id="m_${m.id}_t2_g${i}_scorer"
+                                    onchange="updateScorerOrAssist(${m.id}, 't2', ${i})"
+                                >
+                                    ${t2.players.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
                                 </select>
 
                                 <label class="autogol-label">
-                                    <input type="checkbox"
-                                           id="m_${m.id}_t2_g${i}_og"
-                                           onchange="toggleAutogolView(${m.id}, 't2', ${i})">
+                                    <input
+                                        type="checkbox"
+                                        id="m_${m.id}_t2_g${i}_og"
+                                        onchange="toggleAutogolView(${m.id}, 't2', ${i})"
+                                    >
                                     Own Goal
                                 </label>
 
                                 <label>Assist:</label>
 
-                                <select id="m_${m.id}_t2_g${i}_assistant"
-                                        onchange="updateScorerOrAssist(${m.id}, 't2', ${i})">
+                                <select
+                                    id="m_${m.id}_t2_g${i}_assistant"
+                                    onchange="updateScorerOrAssist(${m.id}, 't2', ${i})"
+                                >
                                     <option value="">None</option>
 
-                                    ${t2.players.map(p =>
+                                    ${t2.players.filter(p => {
+                                        let scorerSelect =
+                                            document.getElementById(
+                                                `m_${m.id}_t2_g${i}_scorer`
+                                            );
+
+                                        return !scorerSelect ||
+                                            p.id != scorerSelect.value;
+                                    }).map(p =>
                                         `<option value="${p.id}">${p.name}</option>`
                                     ).join('')}
                                 </select>
@@ -1654,14 +1509,11 @@
 
                 container.innerHTML += `
                     <div class="match-card">
-                        <div class="match-badge">
-                            Match #${m.id} - Round ${m.tour}
-                        </div>
+                        <div class="match-badge">Match #${m.id} - Round ${m.tour}</div>
 
                         <div class="match-main">
                             <div class="match-team">
                                 <img src="${t1 ? t1.logo : defaultLogo}" class="team-logo" alt="">
-
                                 <div style="display:flex; flex-direction:column; line-height:1.2;">
                                     <span>${t1 ? t1.name : 'T1'}</span>
                                     <span class="country-code">${t1 ? t1.code : ''}</span>
@@ -1669,19 +1521,23 @@
                             </div>
 
                             <div class="match-score-inputs">
-                                <input type="number"
-                                       min="0"
-                                       id="m_${m.id}_s1"
-                                       value="${val1}"
-                                       onchange="updateMatchEventsView(${m.id})">
+                                <input
+                                    type="number"
+                                    min="0"
+                                    id="m_${m.id}_s1"
+                                    value="${val1}"
+                                    onchange="updateMatchEventsView(${m.id})"
+                                >
 
                                 <span>:</span>
 
-                                <input type="number"
-                                       min="0"
-                                       id="m_${m.id}_s2"
-                                       value="${val2}"
-                                       onchange="updateMatchEventsView(${m.id})">
+                                <input
+                                    type="number"
+                                    min="0"
+                                    id="m_${m.id}_s2"
+                                    value="${val2}"
+                                    onchange="updateMatchEventsView(${m.id})"
+                                >
                             </div>
 
                             <div class="match-team right">
@@ -1698,8 +1554,10 @@
                             ${eventsHtml}
                         </div>
 
-                        <button class="match-btn"
-                                onclick="saveMatchResult(${m.id})">
+                        <button
+                            class="match-btn"
+                            onclick="saveMatchResult(${m.id})"
+                        >
                             End match
                         </button>
                     </div>
@@ -1797,27 +1655,26 @@
                 '<option value="">None</option>';
 
             assistSelect.disabled = true;
-
             return;
+        } else {
+            assistSelect.disabled = false;
+
+            let availableAssistPlayers =
+                scoringTeam.players.filter(
+                    p => p.id != currentScorerVal
+                );
+
+            assistSelect.innerHTML =
+                '<option value="">None</option>' +
+                availableAssistPlayers
+                    .map(p => `<option value="${p.id}">${p.name}</option>`)
+                    .join('');
+
+            assistSelect.value =
+                (currentAssistVal == currentScorerVal)
+                    ? ""
+                    : currentAssistVal;
         }
-
-        assistSelect.disabled = false;
-
-        let availableAssistPlayers =
-            scoringTeam.players.filter(
-                p => p.id != currentScorerVal
-            );
-
-        assistSelect.innerHTML =
-            '<option value="">None</option>' +
-            availableAssistPlayers
-                .map(p => `<option value="${p.id}">${p.name}</option>`)
-                .join('');
-
-        assistSelect.value =
-            currentAssistVal == currentScorerVal
-                ? ""
-                : currentAssistVal;
     }
 
     function updateMatchEventsView(matchId) {
@@ -1830,7 +1687,7 @@
         let match =
             activeMatches.find(m => m.id === matchId);
 
-        if (!match) return;
+        if(!match) return;
 
         match.s1 =
             s1Val !== ''
@@ -1904,9 +1761,8 @@
                 scorerId === assistantId
             ) {
                 alert(
-                    `Scorer and Assistant cannot be the same player! (${t1.name}, Goal #${i + 1})`
+                    `Scorer and Assistant cannot be the same player! (${t1.name}, Goal #${i+1})`
                 );
-
                 return;
             }
 
@@ -1948,9 +1804,8 @@
                 scorerId === assistantId
             ) {
                 alert(
-                    `Scorer and Assistant cannot be the same player! (${t2.name}, Goal #${i + 1})`
+                    `Scorer and Assistant cannot be the same player! (${t2.name}, Goal #${i+1})`
                 );
-
                 return;
             }
 
@@ -1967,6 +1822,20 @@
         match.played = true;
         match.goalsDetails = matchGoalsEvents;
 
+        /*
+         * ============================
+         * MVP SCORING SYSTEM
+         * ============================
+         *
+         * Goal      = 2 MVP points
+         * Assist    = 1 MVP point
+         * Own Goal  = -1 MVP point
+         *
+         * Example:
+         * 2 goals + 1 assist = 5 points
+         * 1 goal  + 2 assists = 4 points
+         */
+
         let matchScores = {};
 
         matchGoalsEvents.forEach(e => {
@@ -1975,27 +1844,29 @@
 
             if (scorer) {
                 if (e.isOg) {
+                    // Own goal: negative MVP impact
                     scorer.rating =
                         Math.max(0, scorer.rating - 0.05);
 
                     matchScores[scorer.id] =
-                        (matchScores[scorer.id] || 0) - 0.05;
+                        (matchScores[scorer.id] || 0) - 1;
+
                 } else {
+                    // Normal goal
                     scorer.goals += 1;
 
                     scorer.rating =
                         Math.min(10.0, scorer.rating + 0.10);
 
+                    // GOAL = 2 MVP POINTS
                     matchScores[scorer.id] =
-                        (matchScores[scorer.id] || 0) + 0.10;
+                        (matchScores[scorer.id] || 0) + 2;
                 }
             }
 
             if (!e.isOg && e.assistantId) {
                 let assistant =
-                    playersData.find(
-                        p => p.id === e.assistantId
-                    );
+                    playersData.find(p => p.id === e.assistantId);
 
                 if (assistant) {
                     assistant.assists += 1;
@@ -2003,12 +1874,16 @@
                     assistant.rating =
                         Math.min(10.0, assistant.rating + 0.10);
 
+                    // ASSIST = 1 MVP POINT
                     matchScores[assistant.id] =
-                        (matchScores[assistant.id] || 0) + 0.10;
+                        (matchScores[assistant.id] || 0) + 1;
                 }
             }
         });
 
+        /*
+         * Find players with the highest MVP score.
+         */
         let maxPoints = -100;
         let topPlayers = [];
 
@@ -2021,6 +1896,7 @@
             ) {
                 maxPoints = score;
                 topPlayers = [parseInt(pId)];
+
             } else if (
                 score === maxPoints &&
                 score > 0
@@ -2031,9 +1907,22 @@
 
         let mvpPlayerId = null;
 
+        /*
+         * One player has the highest score:
+         * he automatically becomes MVP.
+         */
         if (topPlayers.length === 1) {
             mvpPlayerId = topPlayers[0];
+
+        /*
+         * Several players have the same highest score:
+         * choose randomly.
+         *
+         * If there is a winner, first look at tied
+         * players from the winning team.
+         */
         } else if (topPlayers.length > 1) {
+
             let winningTeamId =
                 (s1 > s2)
                     ? t1.id
@@ -2044,8 +1933,10 @@
             let candidatePlayers = topPlayers;
 
             if (winningTeamId !== null) {
+
                 let winnersFromTop =
                     topPlayers.filter(pId => {
+
                         let inT1 =
                             t1.players.some(
                                 p => p.id === pId
@@ -2059,21 +1950,29 @@
                         if (
                             winningTeamId === t1.id &&
                             inT1
-                        ) return true;
+                        ) {
+                            return true;
+                        }
 
                         if (
                             winningTeamId === t2.id &&
                             inT2
-                        ) return true;
+                        ) {
+                            return true;
+                        }
 
                         return false;
                     });
 
                 if (winnersFromTop.length > 0) {
-                    candidatePlayers = winnersFromTop;
+                    candidatePlayers =
+                        winnersFromTop;
                 }
             }
 
+            /*
+             * Random MVP among tied players.
+             */
             mvpPlayerId =
                 candidatePlayers[
                     Math.floor(
@@ -2083,6 +1982,9 @@
                 ];
         }
 
+        /*
+         * Add MVP statistic and rating bonus.
+         */
         if (mvpPlayerId) {
             let mvpPlayer =
                 playersData.find(
@@ -2103,7 +2005,6 @@
         match.mvpId = mvpPlayerId;
 
         saveData();
-
         recalculateStandings();
         renderLeagueTable();
         renderCurrentRoundMatches();
@@ -2125,14 +2026,10 @@
         activeMatches.forEach(m => {
             if (m.played) {
                 let t1 =
-                    activeTeams.find(
-                        t => t.id === m.t1
-                    );
+                    activeTeams.find(t => t.id === m.t1);
 
                 let t2 =
-                    activeTeams.find(
-                        t => t.id === m.t2
-                    );
+                    activeTeams.find(t => t.id === m.t2);
 
                 if (t1 && t2) {
                     t1.played++;
@@ -2148,13 +2045,16 @@
                         t1.win++;
                         t1.pts += 3;
                         t2.loss++;
+
                     } else if (m.s1 < m.s2) {
                         t2.win++;
                         t2.pts += 3;
                         t1.loss++;
+
                     } else {
                         t1.draw++;
                         t1.pts += 1;
+
                         t2.draw++;
                         t2.pts += 1;
                     }
@@ -2186,6 +2086,7 @@
             );
 
         activeTeams.forEach(t => {
+
             let avgRating =
                 t.players.length > 0
                     ? (
@@ -2200,7 +2101,8 @@
                 t.players.length > 0
                     ? (
                         t.players.reduce(
-                            (sum, p) => sum + (p.speed || 3),
+                            (sum, p) =>
+                                sum + (p.speed || 3),
                             0
                         ) / t.players.length
                     )
@@ -2208,11 +2110,14 @@
 
             let optionsHtml =
                 availablePresets.map(p => {
+
                     let cleanName = p.name;
 
                     return `
-                        <option value="${cleanName}"
-                            ${cleanName === t.name ? 'selected' : ''}>
+                        <option
+                            value="${cleanName}"
+                            ${cleanName === t.name ? 'selected' : ''}
+                        >
                             ${p.name}
                         </option>
                     `;
@@ -2238,31 +2143,39 @@
 
             container.innerHTML += `
                 <div class="team-card">
+
                     <div class="team-header">
+
                         <div class="team-header-title">
+                            <img
+                                src="${t.logo}"
+                                class="team-logo"
+                                alt=""
+                            >
 
-                            <img src="${t.logo}"
-                                 class="team-logo"
-                                 alt="">
-
-                            <select class="team-select"
-                                    onchange="changeTeamPreset(${t.id}, this.value)">
+                            <select
+                                class="team-select"
+                                onchange="changeTeamPreset(${t.id}, this.value)"
+                            >
                                 ${optionsHtml}
                             </select>
-
                         </div>
 
-                        <span class="team-score"
-                              title="Rating & Speed">
+                        <span
+                            class="team-score"
+                            title="Rating & Speed"
+                        >
                             ${t.players.length} players ·
                             ⭐ ${avgRating.toFixed(2)} ·
                             ⚡ ${avgSpeed.toFixed(2)}
                         </span>
+
                     </div>
 
                     <ul class="team-list">
                         ${playersListHtml}
                     </ul>
+
                 </div>
             `;
         });
@@ -2270,7 +2183,8 @@
 
     function renderLeaderboard(metric, btn) {
         if (btn) {
-            document.querySelectorAll('.filter-btn')
+            document
+                .querySelectorAll('.filter-btn')
                 .forEach(b => b.classList.remove('active'));
 
             btn.classList.add('active');
@@ -2292,12 +2206,14 @@
             sorted.sort(
                 (a, b) => b.goals - a.goals
             );
+
         } else if (metric === 'assists') {
             header.innerText = 'Assists 👟';
 
             sorted.sort(
                 (a, b) => b.assists - a.assists
             );
+
         } else if (metric === 'points') {
             header.innerText = 'G + A 🔥';
 
@@ -2306,6 +2222,7 @@
                     (b.goals + b.assists) -
                     (a.goals + a.assists)
             );
+
         } else if (metric === 'mvp') {
             header.innerHTML = `🏆 MVP`;
 
@@ -2315,6 +2232,7 @@
         }
 
         sorted.forEach((p, index) => {
+
             let rankClass =
                 index === 0
                     ? 'rank-1'
@@ -2341,17 +2259,24 @@
 
                     <td style="font-weight:800;">
                         ${p.name}
-
-                        <span style="font-size:11px;
-                                     color:var(--primary-blue);
-                                     font-weight:normal;">
+                        <span
+                            style="
+                                font-size:11px;
+                                color:var(--primary-blue);
+                                font-weight:normal;
+                            "
+                        >
                             (⭐${formatRating(p.rating)})
                         </span>
                     </td>
 
-                    <td style="text-align:right;
-                               font-weight:900;
-                               color:var(--primary-gold);">
+                    <td
+                        style="
+                            text-align:right;
+                            font-weight:900;
+                            color:var(--primary-gold);
+                        "
+                    >
                         ${val}
                     </td>
                 </tr>
@@ -2365,6 +2290,7 @@
                 "Are you sure you want to reset all tournament data and player stats?"
             )
         ) {
+
             playersData =
                 JSON.parse(
                     JSON.stringify(initialPlayers)
@@ -2392,7 +2318,7 @@
 
             document.getElementById(
                 'teamsResult'
-            ).innerHTML = '';
+            ).innerHTML = ``;
 
             document.getElementById(
                 'roundNavControls'
@@ -2415,13 +2341,6 @@
         showOnlineStatus("🔄 Connecting...");
 
         await loadOnlineData();
-
-        // Дополнительная проверка после загрузки.
-        const logosFixed = fixExistingTeamLogos();
-
-        if (logosFixed) {
-            await saveData();
-        }
 
         baseCycleRounds =
             activeTeams.length
