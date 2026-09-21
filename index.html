@@ -298,10 +298,11 @@
     </style>
 </head>
 <body data-theme="light">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <header>
     <h1>Sport Time <span>10A</span> ⚽</h1>
-    <div class="admin-actions"><button class="admin-btn" onclick="openAdmin()">🔐 Admin</button><button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Toggle Dark/Light Mode">🌙</button></div>
+    <div class="admin-actions"><span id="onlineStatus" style="font-size:11px;font-weight:900;color:var(--primary-green);">🔄 Connecting...</span><button class="admin-btn" onclick="openAdmin()">🔐 Admin</button><button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Toggle Dark/Light Mode">🌙</button></div>
 </header>
 
 <div class="tabs">
@@ -435,7 +436,7 @@
         { name: "Manchester United", type: "club", code: "mun", logo: "https://upload.wikimedia.org/wikipedia/en/7/7a/Manchester_United_FC_crest.svg" },
         { name: "Chelsea", type: "club", code: "che", logo: "https://upload.wikimedia.org/wikipedia/en/c/cc/Chelsea_FC.svg" },
         { name: "Inter Milan", type: "club", code: "int", logo: "https://upload.wikimedia.org/wikipedia/commons/0/05/FC_Internazionale_Milano_2021.svg" },
-        { name: "AC Milan", type: "club", code: "mil", logo: "https://upload.wikimedia.org/wikipedia/commons/1/17/AC_Milan.png" },
+        { name: "AC Milan", type: "club", code: "mil", logo: "https://upload.wikimedia.org/wikipedia/commons/d/d0/AC_Milan_logo.svg" },
         { name: "Borussia Dortmund", type: "club", code: "dor", logo: "https://upload.wikimedia.org/wikipedia/commons/6/67/Borussia_Dortmund_logo.svg" },
         { name: "France", type: "country", code: "fra", logo: "https://flagcdn.com/w160/fr.png" },
         { name: "Portugal", type: "country", code: "por", logo: "https://flagcdn.com/w160/pt.png" },
@@ -479,23 +480,145 @@
     const fixedSpeeds = { Mark:1, Alim:2, Rakhman:2, "Alseit abi":5, "Abdulluahid agay":3, Ismail:5, Dias:3, Madiyar:2, Omar:5, Akhmad:4, Akhmet:3, Batyr:3, Tamerlan:4, Abdirasul:3, Nurtas:3, Ilfat:4, Islam:4, Azamat:3, Amir:2, Yeramir:2, Oraz:3, Arnat:3, Sultan:4, Bauyrzhan:3 };
     initialPlayers.forEach(p => p.speed = fixedSpeeds[p.name] || 3);
 
-    let savedData = JSON.parse(localStorage.getItem('sport_time_players_v15'));
-    let playersData = savedData || JSON.parse(JSON.stringify(initialPlayers));
+    // ================= ONLINE DATABASE =================
+    // Paste your Supabase Project URL and anon/publishable key here.
+    const SUPABASE_URL = "https://fjxlvwtxtswdwlkfromz.supabase.co";
+    const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_wVyP38UueH4PaQB5-aso5g_QKoiyURz";
+
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+    const APP_STATE_ID = 1;
+    let isApplyingRemoteState = false;
+
+    let playersData = JSON.parse(JSON.stringify(initialPlayers));
     playersData.forEach(p => { if (!p.speed) p.speed = fixedSpeeds[p.name] || 3; });
 
-    let activeTeams = JSON.parse(localStorage.getItem('sport_time_teams_v15')) || [];
-    let activeMatches = JSON.parse(localStorage.getItem('sport_time_matches_v15')) || [];
-    let currentDisplayedRound = parseInt(localStorage.getItem('sport_time_round_v15')) || 1;
-    let totalRounds = parseInt(localStorage.getItem('sport_time_total_rounds_v15')) || 0;
+    let activeTeams = [];
+    let activeMatches = [];
+    let currentDisplayedRound = 1;
+    let totalRounds = 0;
     let baseCycleRounds = [];
 
-    function saveData() {
-        localStorage.setItem('sport_time_players_v15', JSON.stringify(playersData));
-        localStorage.setItem('sport_time_teams_v15', JSON.stringify(activeTeams));
-        localStorage.setItem('sport_time_matches_v15', JSON.stringify(activeMatches));
-        localStorage.setItem('sport_time_round_v15', currentDisplayedRound);
-        localStorage.setItem('sport_time_total_rounds_v15', totalRounds);
+    function getOnlineState() {
+        return {
+            id: APP_STATE_ID,
+            players: playersData,
+            teams: activeTeams,
+            matches: activeMatches,
+            current_round: currentDisplayedRound,
+            total_rounds: totalRounds,
+            updated_at: new Date().toISOString()
+        };
     }
+
+    async function saveData() {
+        if (isApplyingRemoteState) return;
+
+        const { error } = await supabaseClient
+            .from("tournament_state")
+            .upsert(getOnlineState(), { onConflict: "id" });
+
+        if (error) {
+            console.error("Database save error:", error);
+            showOnlineStatus("❌ Save error");
+        } else {
+            showOnlineStatus("🟢 Saved");
+        }
+    }
+
+    function showOnlineStatus(text) {
+        let el = document.getElementById("onlineStatus");
+        if (el) el.innerText = text;
+    }
+
+    async function loadOnlineData() {
+        const { data, error } = await supabaseClient
+            .from("tournament_state")
+            .select("*")
+            .eq("id", APP_STATE_ID)
+            .maybeSingle();
+
+        if (error) {
+            console.error("Database load error:", error);
+            showOnlineStatus("❌ Database error");
+            return;
+        }
+
+        if (data) {
+            // The initial Supabase row may contain an empty players array.
+            // Keep the built-in player list until real player data has been saved.
+            playersData = (Array.isArray(data.players) && data.players.length > 0)
+                ? data.players
+                : JSON.parse(JSON.stringify(initialPlayers));
+            activeTeams = Array.isArray(data.teams) ? data.teams : [];
+            activeMatches = Array.isArray(data.matches) ? data.matches : [];
+            currentDisplayedRound = Number(data.current_round) || 1;
+            totalRounds = Number(data.total_rounds) || 0;
+
+            playersData.forEach(p => {
+                if (!p.speed) p.speed = fixedSpeeds[p.name] || 3;
+                if (!Array.isArray(p.roles)) p.roles = [];
+            });
+
+            baseCycleRounds = activeTeams.length ? buildBaseCycleSchedule(activeTeams) : [];
+        } else {
+            // First launch: create the shared state from the current initial players.
+            await saveData();
+        }
+    }
+
+    function subscribeToOnlineChanges() {
+        supabaseClient
+            .channel("tournament-live")
+            .on(
+                "postgres_changes",
+                { event: "*", schema: "public", table: "tournament_state", filter: "id=eq.1" },
+                async payload => {
+                    if (!payload.new) return;
+
+                    isApplyingRemoteState = true;
+
+                    playersData = Array.isArray(payload.new.players) ? payload.new.players : [];
+                    activeTeams = Array.isArray(payload.new.teams) ? payload.new.teams : [];
+                    activeMatches = Array.isArray(payload.new.matches) ? payload.new.matches : [];
+                    currentDisplayedRound = Number(payload.new.current_round) || 1;
+                    totalRounds = Number(payload.new.total_rounds) || 0;
+                    baseCycleRounds = activeTeams.length ? buildBaseCycleSchedule(activeTeams) : [];
+
+                    playersData.forEach(p => {
+                        if (!p.speed) p.speed = fixedSpeeds[p.name] || 3;
+                        if (!Array.isArray(p.roles)) p.roles = [];
+                    });
+
+                    initTheme();
+                    renderPlayers();
+
+                    if (activeTeams.length > 0) {
+                        setupRoundSelectOptions();
+                        recalculateStandings();
+                        renderLeagueTable();
+                        renderCurrentRoundMatches();
+                        renderTeamsCards();
+                        document.getElementById('addNextRoundBtn').style.display = 'block';
+                    } else {
+                        document.getElementById('leagueTableBody').innerHTML =
+                            `<tr><td colspan="10" style="padding:20px; color:var(--text-sub);">Start the tournament first</td></tr>`;
+                        document.getElementById('matchesList').innerHTML =
+                            `<p style="text-align:center; color:var(--text-sub); padding:10px; font-weight:700;">Start the tournament to create matches.</p>`;
+                        document.getElementById('teamsResult').innerHTML = ``;
+                        document.getElementById('roundNavControls').style.display = 'none';
+                        document.getElementById('addNextRoundBtn').style.display = 'none';
+                    }
+
+                    isApplyingRemoteState = false;
+                    showOnlineStatus("🟢 Live");
+                }
+            )
+            .subscribe(status => {
+                if (status === "SUBSCRIBED") showOnlineStatus("🟢 Live");
+                else if (status === "CHANNEL_ERROR") showOnlineStatus("❌ Live error");
+            });
+    }
+    // ===================================================
 
     function openAdmin() {
         const password = prompt("Enter admin password:");
@@ -579,14 +702,13 @@
         const currentTheme = body.getAttribute('data-theme');
         const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
         body.setAttribute('data-theme', newTheme);
-        localStorage.setItem('sport_time_theme', newTheme);
         document.getElementById('themeToggleBtn').innerText = newTheme === 'dark' ? '☀️' : '🌙';
     }
 
     function initTheme() {
-        const savedTheme = localStorage.getItem('sport_time_theme') || 'light';
-        document.body.setAttribute('data-theme', savedTheme);
-        document.getElementById('themeToggleBtn').innerText = savedTheme === 'dark' ? '☀️' : '🌙';
+        const currentTheme = document.body.getAttribute('data-theme') || 'light';
+        document.body.setAttribute('data-theme', currentTheme);
+        document.getElementById('themeToggleBtn').innerText = currentTheme === 'dark' ? '☀️' : '🌙';
     }
 
     function switchTab(tabId, btn) {
@@ -1442,17 +1564,14 @@
 
     function resetChanges() {
         if (confirm("Are you sure you want to reset all tournament data and player stats?")) {
-            localStorage.removeItem('sport_time_players_v15');
-            localStorage.removeItem('sport_time_teams_v15');
-            localStorage.removeItem('sport_time_matches_v15');
-            localStorage.removeItem('sport_time_round_v15');
-            localStorage.removeItem('sport_time_total_rounds_v15');
             
             playersData = JSON.parse(JSON.stringify(initialPlayers));
             activeTeams = [];
             activeMatches = [];
             totalRounds = 0;
             currentDisplayedRound = 1;
+            baseCycleRounds = [];
+            saveData();
 
             renderPlayers();
             document.getElementById('leagueTableBody').innerHTML = `<tr><td colspan="10" style="padding:20px; color:var(--text-sub);">Start the tournament first</td></tr>`;
@@ -1464,16 +1583,26 @@
         }
     }
 
-    window.onload = function() {
+    window.onload = async function() {
         initTheme();
+        showOnlineStatus("🔄 Connecting...");
+        await loadOnlineData();
+
+        // Rebuild the schedule helper after loading shared data.
+        baseCycleRounds = activeTeams.length ? buildBaseCycleSchedule(activeTeams) : [];
+
         renderPlayers();
+
         if (activeTeams.length > 0) {
             setupRoundSelectOptions();
             recalculateStandings();
             renderLeagueTable();
             renderCurrentRoundMatches();
             renderTeamsCards();
+            document.getElementById('addNextRoundBtn').style.display = 'block';
         }
+
+        subscribeToOnlineChanges();
     };
 </script>
 </body>
