@@ -252,7 +252,6 @@
         .team-cell span.country-code { font-size: 10px; font-weight: 700; color: var(--text-sub); text-transform: uppercase; margin-left: -4px; }
         .pts-cell { font-weight: 900; color: var(--primary-green); background: rgba(56, 161, 105, 0.1); }
 
-        /* Streak Form Styles */
         .form-streak { display: flex; gap: 4px; align-items: center; justify-content: center; }
         .streak-badge { width: 18px; height: 18px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 900; color: #fff; }
         .streak-w { background: var(--primary-green); }
@@ -316,8 +315,8 @@
         <div class="tournament-type-selector">
             <label for="tournamentTypeSelect">Tournament Mode</label>
             <select id="tournamentTypeSelect">
-                <option value="country">World Cup <img src="https://upload.wikimedia.org/wikipedia/commons/3/37/World_Cup_%28trophy%29.png" class="title-trophy-icon" alt=""></option>
-                <option value="club">Champions League <img src="https://upload.wikimedia.org/wikipedia/en/c/c2/UEFA_Champions_League_Logo.svg" class="title-trophy-icon" alt=""></option>
+                <option value="country">World Cup</option>
+                <option value="club">Champions League</option>
             </select>
         </div>
         <div class="section-header">
@@ -386,9 +385,7 @@
             <button class="filter-btn active" onclick="renderLeaderboard('goals', this)">⚽ Top Scorers</button>
             <button class="filter-btn" onclick="renderLeaderboard('assists', this)">👟 Top Assists</button>
             <button class="filter-btn" onclick="renderLeaderboard('points', this)">🔥 Goal + Assist</button>
-            <button class="filter-btn" onclick="renderLeaderboard('mvp', this)">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/3/37/World_Cup_%28trophy%29.png" style="width:14px; height:14px; vertical-align:middle; margin-right:4px;" alt=""> MVP
-            </button>
+            <button class="filter-btn" onclick="renderLeaderboard('mvp', this)">🏆 MVP</button>
         </div>
         <table class="leader-table">
             <thead>
@@ -436,7 +433,10 @@
         { name: "Manchester United", type: "club", code: "mun", logo: "https://upload.wikimedia.org/wikipedia/en/7/7a/Manchester_United_FC_crest.svg" },
         { name: "Chelsea", type: "club", code: "che", logo: "https://upload.wikimedia.org/wikipedia/en/c/cc/Chelsea_FC.svg" },
         { name: "Inter Milan", type: "club", code: "int", logo: "https://upload.wikimedia.org/wikipedia/commons/0/05/FC_Internazionale_Milano_2021.svg" },
-        { name: "AC Milan", type: "club", code: "mil", logo: "https://upload.wikimedia.org/wikipedia/commons/d/d0/AC_Milan_logo.svg" },
+
+        // AC Milan — исправленная PNG-ссылка
+        { name: "AC Milan", type: "club", code: "mil", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/AC_Milan_logo.svg/512px-AC_Milan_logo.svg.png" },
+
         { name: "Borussia Dortmund", type: "club", code: "dor", logo: "https://upload.wikimedia.org/wikipedia/commons/6/67/Borussia_Dortmund_logo.svg" },
         { name: "France", type: "country", code: "fra", logo: "https://flagcdn.com/w160/fr.png" },
         { name: "Portugal", type: "country", code: "por", logo: "https://flagcdn.com/w160/pt.png" },
@@ -480,8 +480,6 @@
     const fixedSpeeds = { Mark:1, Alim:2, Rakhman:2, "Alseit abi":5, "Abdulluahid agay":3, Ismail:5, Dias:3, Madiyar:2, Omar:5, Akhmad:4, Akhmet:3, Batyr:3, Tamerlan:4, Abdirasul:3, Nurtas:3, Ilfat:4, Islam:4, Azamat:3, Amir:2, Yeramir:2, Oraz:3, Arnat:3, Sultan:4, Bauyrzhan:3 };
     initialPlayers.forEach(p => p.speed = fixedSpeeds[p.name] || 3);
 
-    // ================= ONLINE DATABASE =================
-    // Paste your Supabase Project URL and anon/publishable key here.
     const SUPABASE_URL = "https://fjxlvwtxtswdwlkfromz.supabase.co";
     const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_wVyP38UueH4PaQB5-aso5g_QKoiyURz";
 
@@ -530,6 +528,36 @@
         if (el) el.innerText = text;
     }
 
+    // Автоматически исправляет старую эмблему AC Milan
+    // даже если команда уже была создана раньше.
+    function fixExistingTeamLogos() {
+        let changed = false;
+
+        const milanPreset = clubPresets.find(p => p.name === "AC Milan");
+        if (!milanPreset) return false;
+
+        activeTeams.forEach(team => {
+            if (
+                team.name === "AC Milan" ||
+                team.code === "mil"
+            ) {
+                if (
+                    team.logo !== milanPreset.logo ||
+                    team.code !== milanPreset.code ||
+                    team.type !== milanPreset.type
+                ) {
+                    team.name = milanPreset.name;
+                    team.type = milanPreset.type;
+                    team.code = milanPreset.code;
+                    team.logo = milanPreset.logo;
+                    changed = true;
+                }
+            }
+        });
+
+        return changed;
+    }
+
     async function loadOnlineData() {
         const { data, error } = await supabaseClient
             .from("tournament_state")
@@ -544,11 +572,10 @@
         }
 
         if (data) {
-            // The initial Supabase row may contain an empty players array.
-            // Keep the built-in player list until real player data has been saved.
             playersData = (Array.isArray(data.players) && data.players.length > 0)
                 ? data.players
                 : JSON.parse(JSON.stringify(initialPlayers));
+
             activeTeams = Array.isArray(data.teams) ? data.teams : [];
             activeMatches = Array.isArray(data.matches) ? data.matches : [];
             currentDisplayedRound = Number(data.current_round) || 1;
@@ -560,8 +587,14 @@
             });
 
             baseCycleRounds = activeTeams.length ? buildBaseCycleSchedule(activeTeams) : [];
+
+            // Исправляем AC Milan в уже существующем турнире.
+            const logosFixed = fixExistingTeamLogos();
+
+            if (logosFixed) {
+                await saveData();
+            }
         } else {
-            // First launch: create the shared state from the current initial players.
             await saveData();
         }
     }
@@ -582,12 +615,16 @@
                     activeMatches = Array.isArray(payload.new.matches) ? payload.new.matches : [];
                     currentDisplayedRound = Number(payload.new.current_round) || 1;
                     totalRounds = Number(payload.new.total_rounds) || 0;
-                    baseCycleRounds = activeTeams.length ? buildBaseCycleSchedule(activeTeams) : [];
 
                     playersData.forEach(p => {
                         if (!p.speed) p.speed = fixedSpeeds[p.name] || 3;
                         if (!Array.isArray(p.roles)) p.roles = [];
                     });
+
+                    baseCycleRounds = activeTeams.length ? buildBaseCycleSchedule(activeTeams) : [];
+
+                    // Проверяем AC Milan после получения данных из Supabase.
+                    const logosFixed = fixExistingTeamLogos();
 
                     initTheme();
                     renderPlayers();
@@ -610,6 +647,11 @@
                     }
 
                     isApplyingRemoteState = false;
+
+                    if (logosFixed) {
+                        await saveData();
+                    }
+
                     showOnlineStatus("🟢 Live");
                 }
             )
@@ -618,119 +660,223 @@
                 else if (status === "CHANNEL_ERROR") showOnlineStatus("❌ Live error");
             });
     }
-    // ===================================================
 
     function openAdmin() {
         const password = prompt("Enter admin password:");
-        if (password !== "1234") { if (password !== null) alert("Incorrect password!"); return; }
+        if (password !== "1234") {
+            if (password !== null) alert("Incorrect password!");
+            return;
+        }
+
         document.getElementById("adminModal").classList.add("show");
         renderAdminPlayers();
     }
 
-    function closeAdmin() { document.getElementById("adminModal").classList.remove("show"); }
+    function closeAdmin() {
+        document.getElementById("adminModal").classList.remove("show");
+    }
+
     function saveAdminChanges() {
         saveData();
         renderPlayers();
+
         if (activeTeams.length > 0) {
             recalculateStandings();
             renderLeagueTable();
             renderTeamsCards();
             renderCurrentRoundMatches();
         }
+
         alert("Changes saved successfully.");
         closeAdmin();
     }
 
     function renderAdminPlayers() {
         const box = document.getElementById("adminPlayersList");
+
         box.innerHTML = playersData.map(p => {
-          if (!Array.isArray(p.roles)) p.roles = [];
-          return `
-          <div class="admin-player">
-            <div><input value="${p.name.replace(/"/g,'&quot;')}" placeholder="Player name" title="Player name" onchange="adminUpdateName(${p.id}, this.value)"></div>
-            <input type="number" min="0" max="5" step="0.25" value="${p.rating}" placeholder="Rating" title="Rating" onchange="adminUpdateRating(${p.id}, this.value)">
-            <input type="number" min="1" max="5" step="1" value="${p.speed || 3}" placeholder="Speed" title="Speed" onchange="adminUpdateSpeed(${p.id}, this.value)">
-            <div>
-              <div class="admin-roles-title">Positions</div>
-              <div class="admin-player-roles">
-                <button type="button" class="admin-role-btn ${p.roles.includes('FWD') ? 'active' : ''}" data-role="FWD" onclick="adminToggleRole(${p.id}, 'FWD')">⚽ FWD</button>
-                <button type="button" class="admin-role-btn ${p.roles.includes('DEF') ? 'active' : ''}" data-role="DEF" onclick="adminToggleRole(${p.id}, 'DEF')">🛡️ DEF</button>
-                <button type="button" class="admin-role-btn ${p.roles.includes('GK') ? 'active' : ''}" data-role="GK" onclick="adminToggleRole(${p.id}, 'GK')">🧤 GK</button>
-              </div>
-            </div>
-            <button onclick="deletePlayerAdmin(${p.id})">🗑️ Delete</button>
-          </div>`;
+            if (!Array.isArray(p.roles)) p.roles = [];
+
+            return `
+            <div class="admin-player">
+                <div>
+                    <input value="${p.name.replace(/"/g,'&quot;')}" placeholder="Player name" title="Player name" onchange="adminUpdateName(${p.id}, this.value)">
+                </div>
+
+                <input type="number" min="0" max="5" step="0.25" value="${p.rating}" placeholder="Rating" title="Rating" onchange="adminUpdateRating(${p.id}, this.value)">
+
+                <input type="number" min="1" max="5" step="1" value="${p.speed || 3}" placeholder="Speed" title="Speed" onchange="adminUpdateSpeed(${p.id}, this.value)">
+
+                <div>
+                    <div class="admin-roles-title">Positions</div>
+                    <div class="admin-player-roles">
+                        <button type="button" class="admin-role-btn ${p.roles.includes('FWD') ? 'active' : ''}" data-role="FWD" onclick="adminToggleRole(${p.id}, 'FWD')">⚽ FWD</button>
+                        <button type="button" class="admin-role-btn ${p.roles.includes('DEF') ? 'active' : ''}" data-role="DEF" onclick="adminToggleRole(${p.id}, 'DEF')">🛡️ DEF</button>
+                        <button type="button" class="admin-role-btn ${p.roles.includes('GK') ? 'active' : ''}" data-role="GK" onclick="adminToggleRole(${p.id}, 'GK')">🧤 GK</button>
+                    </div>
+                </div>
+
+                <button onclick="deletePlayerAdmin(${p.id})">🗑️ Delete</button>
+            </div>`;
         }).join("");
     }
 
-    function adminUpdateName(id, value) { const p=playersData.find(x=>x.id===id); if(p && value.trim()){p.name=value.trim();saveData();renderPlayers();renderTeamsCards();renderCurrentRoundMatches();renderAdminPlayers();} }
-    function adminUpdateRating(id, value) { const p=playersData.find(x=>x.id===id); if(p){p.rating=Math.max(0,Math.min(5,parseFloat(value)||0));saveData();renderPlayers();} }
-    function adminUpdateSpeed(id, value) { const p=playersData.find(x=>x.id===id); if(p){p.speed=Math.max(1,Math.min(5,parseInt(value)||1));saveData();renderPlayers();} }
+    function adminUpdateName(id, value) {
+        const p = playersData.find(x => x.id === id);
+
+        if (p && value.trim()) {
+            p.name = value.trim();
+            saveData();
+            renderPlayers();
+            renderTeamsCards();
+            renderCurrentRoundMatches();
+            renderAdminPlayers();
+        }
+    }
+
+    function adminUpdateRating(id, value) {
+        const p = playersData.find(x => x.id === id);
+
+        if (p) {
+            p.rating = Math.max(0, Math.min(5, parseFloat(value) || 0));
+            saveData();
+            renderPlayers();
+        }
+    }
+
+    function adminUpdateSpeed(id, value) {
+        const p = playersData.find(x => x.id === id);
+
+        if (p) {
+            p.speed = Math.max(1, Math.min(5, parseInt(value) || 1));
+            saveData();
+            renderPlayers();
+        }
+    }
+
     function adminToggleRole(id, role) {
         const p = playersData.find(x => x.id === id);
+
         if (!p) return;
+
         if (!Array.isArray(p.roles)) p.roles = [];
+
         const idx = p.roles.indexOf(role);
+
         if (idx >= 0) p.roles.splice(idx, 1);
         else p.roles.push(role);
+
         saveData();
         renderPlayers();
         renderAdminPlayers();
     }
+
     function addPlayerAdmin() {
-        const name=document.getElementById("newPlayerName").value.trim();
-        const rating=parseFloat(document.getElementById("newPlayerRating").value);
-        const speed=parseInt(document.getElementById("newPlayerSpeed").value);
-        if(!name){alert("Enter the player name.");return;}
-        if(playersData.some(p=>p.name.toLowerCase()===name.toLowerCase())){alert("A player with this name already exists.");return;}
-        const id=playersData.length?Math.max(...playersData.map(p=>p.id))+1:1;
-        playersData.push({id,name,rating:Number.isFinite(rating)?Math.max(0,Math.min(5,rating)):3,speed:Number.isFinite(speed)?Math.max(1,Math.min(5,speed)):3,roles:["DEF"],goals:0,assists:0,mvp:0});
-        saveData();renderPlayers();renderAdminPlayers();
-        document.getElementById("newPlayerName").value="";document.getElementById("newPlayerRating").value="";document.getElementById("newPlayerSpeed").value="";
-    }
-    function deletePlayerAdmin(id) {
-        const p=playersData.find(x=>x.id===id); if(!p)return;
-        if(!confirm(`Delete player ${p.name}?`))return;
-        playersData=playersData.filter(x=>x.id!==id);
-        activeTeams.forEach(t=>t.players=t.players.filter(x=>x.id!==id));
-        saveData();renderPlayers();renderTeamsCards();renderLeagueTable();renderCurrentRoundMatches();renderAdminPlayers();
+        const name = document.getElementById("newPlayerName").value.trim();
+        const rating = parseFloat(document.getElementById("newPlayerRating").value);
+        const speed = parseInt(document.getElementById("newPlayerSpeed").value);
+
+        if (!name) {
+            alert("Enter the player name.");
+            return;
+        }
+
+        if (playersData.some(p => p.name.toLowerCase() === name.toLowerCase())) {
+            alert("A player with this name already exists.");
+            return;
+        }
+
+        const id = playersData.length ? Math.max(...playersData.map(p => p.id)) + 1 : 1;
+
+        playersData.push({
+            id,
+            name,
+            rating: Number.isFinite(rating) ? Math.max(0, Math.min(5, rating)) : 3,
+            speed: Number.isFinite(speed) ? Math.max(1, Math.min(5, speed)) : 3,
+            roles: ["DEF"],
+            goals: 0,
+            assists: 0,
+            mvp: 0
+        });
+
+        saveData();
+        renderPlayers();
+        renderAdminPlayers();
+
+        document.getElementById("newPlayerName").value = "";
+        document.getElementById("newPlayerRating").value = "";
+        document.getElementById("newPlayerSpeed").value = "";
     }
 
-    // Theme Switcher Logic
+    function deletePlayerAdmin(id) {
+        const p = playersData.find(x => x.id === id);
+
+        if (!p) return;
+
+        if (!confirm(`Delete player ${p.name}?`)) return;
+
+        playersData = playersData.filter(x => x.id !== id);
+
+        activeTeams.forEach(t => {
+            t.players = t.players.filter(x => x.id !== id);
+        });
+
+        saveData();
+        renderPlayers();
+        renderTeamsCards();
+        renderLeagueTable();
+        renderCurrentRoundMatches();
+        renderAdminPlayers();
+    }
+
     function toggleTheme() {
         const body = document.body;
         const currentTheme = body.getAttribute('data-theme');
         const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
         body.setAttribute('data-theme', newTheme);
-        document.getElementById('themeToggleBtn').innerText = newTheme === 'dark' ? '☀️' : '🌙';
+
+        document.getElementById('themeToggleBtn').innerText =
+            newTheme === 'dark' ? '☀️' : '🌙';
     }
 
     function initTheme() {
         const currentTheme = document.body.getAttribute('data-theme') || 'light';
+
         document.body.setAttribute('data-theme', currentTheme);
-        document.getElementById('themeToggleBtn').innerText = currentTheme === 'dark' ? '☀️' : '🌙';
+
+        document.getElementById('themeToggleBtn').innerText =
+            currentTheme === 'dark' ? '☀️' : '🌙';
     }
 
     function switchTab(tabId, btn) {
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+
         document.getElementById(tabId).classList.add('active');
-        if(btn) btn.classList.add('active');
-        if(tabId === 'leadersTab') renderLeaderboard('goals');
-        if(tabId === 'playersTab') renderPlayers();
+
+        if (btn) btn.classList.add('active');
+
+        if (tabId === 'leadersTab') renderLeaderboard('goals');
+        if (tabId === 'playersTab') renderPlayers();
     }
 
     function formatRating(value) {
         const n = Number(value);
-        return Number.isFinite(n) ? n.toFixed(2).replace(/0+$/, "").replace(/\.$/, "") : "0";
+
+        return Number.isFinite(n)
+            ? n.toFixed(2).replace(/0+$/, "").replace(/\.$/, "")
+            : "0";
     }
 
     function renderPlayers() {
         const container = document.getElementById('playersList');
+
         container.innerHTML = '';
 
         playersData.forEach(p => {
             if (!Array.isArray(p.roles)) p.roles = [];
+
             const isNap = p.roles.includes('FWD');
             const isZas = p.roles.includes('DEF');
             const isVrt = p.roles.includes('GK');
@@ -739,11 +885,15 @@
                 <div class="player-card">
                     <div class="player-info">
                         <input type="checkbox" id="check_${p.id}" value="${p.id}" checked onchange="updateCount()">
+
                         <div>
                             <div style="display:flex; align-items:center; gap:6px;">
                                 <span class="player-name">${p.name}</span>
-                                <span class="player-rating">⭐ ${formatRating(p.rating)} &nbsp; ⚡ ${p.speed || 3}</span>
+                                <span class="player-rating">
+                                    ⭐ ${formatRating(p.rating)} &nbsp; ⚡ ${p.speed || 3}
+                                </span>
                             </div>
+
                             <div class="role-display">
                                 ${isNap ? '<span class="role-fwd">⚽ FWD</span>' : ''}
                                 ${isZas ? '<span class="role-def">🛡️ DEF</span>' : ''}
@@ -754,30 +904,34 @@
                 </div>
             `;
         });
+
         updateCount();
     }
 
-    // Positions are managed only from the Admin Panel.
     function toggleRole(id, role) {
         openAdmin();
     }
 
     function updateCount() {
-        const count = document.querySelectorAll('#playersList input[type="checkbox"]:checked').length;
+        const count = document.querySelectorAll(
+            '#playersList input[type="checkbox"]:checked'
+        ).length;
+
         document.getElementById('selectedCount').innerText = count;
     }
 
     function selectAll(status) {
-        document.querySelectorAll('#playersList input[type="checkbox"]').forEach(c => c.checked = status);
+        document.querySelectorAll('#playersList input[type="checkbox"]')
+            .forEach(c => c.checked = status);
+
         updateCount();
     }
 
     function getBestTeamCount(totalPlayers) {
-        // Team count by the requested thresholds:
-        // 16+ players -> 4 teams, 12-15 -> 3 teams, 4-11 -> 2 teams.
         if (totalPlayers > 15) return 4;
         if (totalPlayers > 11) return 3;
         if (totalPlayers >= 4) return 2;
+
         return 0;
     }
 
@@ -785,84 +939,108 @@
         const ratingQuarterSums = teams.map(team =>
             team.reduce((sum, p) => sum + Math.round(p.rating * 4), 0)
         );
+
         const speedSums = teams.map(team =>
             team.reduce((sum, p) => sum + (p.speed || 3), 0)
         );
 
         const totalRatingQuarter = ratingQuarterSums.reduce((a, b) => a + b, 0);
         const targetRatingQuarter = totalRatingQuarter / teams.length;
+
         const totalSpeed = speedSums.reduce((a, b) => a + b, 0);
         const targetSpeed = totalSpeed / teams.length;
 
         const ratingAbs = ratingQuarterSums.reduce(
-            (sum, value) => sum + Math.abs(value - targetRatingQuarter), 0
+            (sum, value) => sum + Math.abs(value - targetRatingQuarter),
+            0
         );
+
         const ratingVar = ratingQuarterSums.reduce(
-            (sum, value) => sum + Math.pow(value - targetRatingQuarter, 2), 0
+            (sum, value) => sum + Math.pow(value - targetRatingQuarter, 2),
+            0
         );
 
         const speedAbs = speedSums.reduce(
-            (sum, value) => sum + Math.abs(value - targetSpeed), 0
-        );
-        const speedVar = speedSums.reduce(
-            (sum, value) => sum + Math.pow(value - targetSpeed, 2), 0
+            (sum, value) => sum + Math.abs(value - targetSpeed),
+            0
         );
 
-        // Rating is the primary criterion. Speed is the secondary criterion.
-        // Team sizes are guaranteed to differ by at most one player.
-        return ratingAbs * 1000000 + ratingVar * 10000 + speedAbs * 100 + speedVar;
+        const speedVar = speedSums.reduce(
+            (sum, value) => sum + Math.pow(value - targetSpeed, 2),
+            0
+        );
+
+        return ratingAbs * 1000000 +
+               ratingVar * 10000 +
+               speedAbs * 100 +
+               speedVar;
     }
 
     function distributeEquallyFlexible(players, numTeams) {
-        if (!players.length || numTeams < 2 || players.length < numTeams) return null;
+        if (!players.length || numTeams < 2 || players.length < numTeams) {
+            return null;
+        }
 
-        // Make team sizes as equal as mathematically possible.
-        // If the total cannot be divided exactly (e.g. 17 players / 4 teams),
-        // the difference between team sizes is at most one player.
         const baseSize = Math.floor(players.length / numTeams);
         const extraPlayers = players.length % numTeams;
-        const teamTargetSizes = Array.from({ length: numTeams }, (_, i) => baseSize + (i < extraPlayers ? 1 : 0));
+
+        const teamTargetSizes = Array.from(
+            { length: numTeams },
+            (_, i) => baseSize + (i < extraPlayers ? 1 : 0)
+        );
+
         let bestTeams = null;
         let bestScore = Infinity;
 
-        // Many deterministic/randomized starts + local pair-swap optimization.
-        // This finds a very tight balance while guaranteeing equal team sizes.
         for (let restart = 0; restart < 120; restart++) {
             let order = [...players];
 
             if (restart === 0) {
-                order.sort((a, b) => {
-                    const aKey = a.rating;
-                    const bKey = b.rating;
-                    return bKey - aKey;
-                });
+                order.sort((a, b) => b.rating - a.rating);
             } else {
                 order.sort(() => Math.random() - 0.5);
+
                 order.sort((a, b) => {
                     const ratingDiff = b.rating - a.rating;
-                    if (Math.abs(ratingDiff) > 1e-9) return ratingDiff;
-                    return ((b.speed || 3) - (a.speed || 3)) + (Math.random() - 0.5) * 0.01;
+
+                    if (Math.abs(ratingDiff) > 1e-9) {
+                        return ratingDiff;
+                    }
+
+                    return ((b.speed || 3) - (a.speed || 3)) +
+                           (Math.random() - 0.5) * 0.01;
                 });
             }
 
             let teams = Array.from({ length: numTeams }, () => []);
 
-            // Snake draft with target sizes keeps team sizes as equal as possible.
             let row = 0;
             let position = 0;
+
             order.forEach(player => {
-                let teamIndex = row % 2 === 0 ? position : (numTeams - 1 - position);
-                // Skip full teams and continue the snake.
+                let teamIndex =
+                    row % 2 === 0
+                        ? position
+                        : (numTeams - 1 - position);
+
                 while (teams[teamIndex].length >= teamTargetSizes[teamIndex]) {
                     position++;
+
                     if (position >= numTeams) {
                         row++;
                         position = 0;
                     }
-                    teamIndex = row % 2 === 0 ? position : (numTeams - 1 - position);
+
+                    teamIndex =
+                        row % 2 === 0
+                            ? position
+                            : (numTeams - 1 - position);
                 }
+
                 teams[teamIndex].push(player);
+
                 position++;
+
                 if (position >= numTeams) {
                     row++;
                     position = 0;
@@ -874,6 +1052,7 @@
 
             while (improved) {
                 improved = false;
+
                 let bestSwap = null;
                 let bestSwapScore = currentScore;
 
@@ -881,11 +1060,14 @@
                     for (let b = a + 1; b < numTeams; b++) {
                         for (let ia = 0; ia < teams[a].length; ia++) {
                             for (let ib = 0; ib < teams[b].length; ib++) {
+
                                 const temp = teams[a][ia];
+
                                 teams[a][ia] = teams[b][ib];
                                 teams[b][ib] = temp;
 
                                 const score = teamBalanceScore(teams);
+
                                 if (score < bestSwapScore - 1e-9) {
                                     bestSwapScore = score;
                                     bestSwap = [a, ia, b, ib];
@@ -900,9 +1082,12 @@
 
                 if (bestSwap) {
                     const [a, ia, b, ib] = bestSwap;
+
                     const temp = teams[a][ia];
+
                     teams[a][ia] = teams[b][ib];
                     teams[b][ib] = temp;
+
                     currentScore = bestSwapScore;
                     improved = true;
                 }
@@ -919,21 +1104,35 @@
 
     function buildBaseCycleSchedule(teams) {
         let teamIds = teams.map(t => t.id);
-        if (teamIds.length % 2 !== 0) teamIds.push(null);
+
+        if (teamIds.length % 2 !== 0) {
+            teamIds.push(null);
+        }
+
         let numTeams = teamIds.length;
         let numRounds = numTeams - 1;
         let schedule = [];
 
         for (let round = 0; round < numRounds; round++) {
             let roundMatches = [];
+
             for (let i = 0; i < numTeams / 2; i++) {
                 let home = teamIds[i];
                 let away = teamIds[numTeams - 1 - i];
-                if (home !== null && away !== null) roundMatches.push({ t1: home, t2: away });
+
+                if (home !== null && away !== null) {
+                    roundMatches.push({
+                        t1: home,
+                        t2: away
+                    });
+                }
             }
+
             schedule.push(roundMatches);
+
             teamIds.splice(1, 0, teamIds.pop());
         }
+
         return schedule;
     }
 
@@ -943,7 +1142,10 @@
             return cb && cb.checked;
         });
 
-        if (selected.length < 4) { alert("Please select at least 4 players!"); return; }
+        if (selected.length < 4) {
+            alert("Please select at least 4 players!");
+            return;
+        }
 
         const total = selected.length;
         let numTeams = getBestTeamCount(total);
@@ -954,85 +1156,146 @@
         }
 
         let distributed = distributeEquallyFlexible(selected, numTeams);
+
         if (!distributed) {
             alert("Could not create equal teams. Please check the selected players.");
             return;
         }
-        const selectedType = document.getElementById('tournamentTypeSelect').value;
-        let selectedPresets = getRandomValidPresets(numTeams, selectedType);
 
-        let teams = Array.from({ length: numTeams }, (_, i) => {
-            let preset = selectedPresets[i] || { name: `Team ${i + 1}`, type: selectedType, code: `t${i+1}`, logo: defaultLogo };
-            return {
-                id: i + 1,
-                name: preset.name,
-                type: preset.type,
-                code: preset.code || preset.name.substring(0,3).toLowerCase(),
-                logo: preset.logo,
-                players: distributed[i],
-                played: 0, win: 0, draw: 0, loss: 0,
-                gf: 0, ga: 0, gd: 0, pts: 0
-            };
-        });
+        const selectedType =
+            document.getElementById('tournamentTypeSelect').value;
+
+        let selectedPresets =
+            getRandomValidPresets(numTeams, selectedType);
+
+        let teams = Array.from(
+            { length: numTeams },
+            (_, i) => {
+                let preset = selectedPresets[i] || {
+                    name: `Team ${i + 1}`,
+                    type: selectedType,
+                    code: `t${i + 1}`,
+                    logo: defaultLogo
+                };
+
+                return {
+                    id: i + 1,
+                    name: preset.name,
+                    type: preset.type,
+                    code: preset.code || preset.name.substring(0, 3).toLowerCase(),
+                    logo: preset.logo,
+                    players: distributed[i],
+                    played: 0,
+                    win: 0,
+                    draw: 0,
+                    loss: 0,
+                    gf: 0,
+                    ga: 0,
+                    gd: 0,
+                    pts: 0
+                };
+            }
+        );
 
         activeTeams = teams;
         activeMatches = [];
         totalRounds = 0;
 
         baseCycleRounds = buildBaseCycleSchedule(activeTeams);
+
         appendRoundToSchedule();
 
         currentDisplayedRound = 1;
+
         document.getElementById('addNextRoundBtn').style.display = 'block';
 
         saveData();
+
         setupRoundSelectOptions();
         renderLeagueTable();
         renderCurrentRoundMatches();
         renderTeamsCards();
 
-        switchTab('teamsTab', document.querySelectorAll('.tab-btn')[1]);
+        switchTab(
+            'teamsTab',
+            document.querySelectorAll('.tab-btn')[1]
+        );
     }
 
     function balanceExistingTeams() {
-        if (activeTeams.length === 0) { alert("No active teams to balance!"); return; }
+        if (activeTeams.length === 0) {
+            alert("No active teams to balance!");
+            return;
+        }
+
         let allActivePlayers = [];
-        activeTeams.forEach(t => { allActivePlayers = allActivePlayers.concat(t.players); });
+
+        activeTeams.forEach(t => {
+            allActivePlayers = allActivePlayers.concat(t.players);
+        });
 
         let numTeams = activeTeams.length;
+
         if (allActivePlayers.length % numTeams !== 0) {
             alert(`Cannot make ${numTeams} teams perfectly equal. Select/remove players so the total is divisible by ${numTeams}.`);
             return;
         }
 
-        let distributed = distributeEquallyFlexible(allActivePlayers, numTeams);
+        let distributed =
+            distributeEquallyFlexible(allActivePlayers, numTeams);
+
         if (!distributed) {
             alert("Could not rebalance the teams.");
             return;
         }
 
-        activeTeams.forEach((t, idx) => { t.players = distributed[idx]; });
+        activeTeams.forEach((t, idx) => {
+            t.players = distributed[idx];
+        });
+
         saveData();
         renderTeamsCards();
     }
 
     function getRandomValidPresets(numTeams, allowedType) {
-        let available = clubPresets.filter(p => p.type === allowedType).sort(() => Math.random() - 0.5);
+        let available = clubPresets
+            .filter(p => p.type === allowedType)
+            .sort(() => Math.random() - 0.5);
+
         return available.slice(0, numTeams);
     }
 
     function appendRoundToSchedule() {
         totalRounds++;
+
         let matchIdStart = activeMatches.length + 1;
-        let cycleIndex = (totalRounds - 1) % baseCycleRounds.length;
-        let templateMatches = baseCycleRounds[cycleIndex];
-        let isReverseCycle = Math.floor((totalRounds - 1) / baseCycleRounds.length) % 2 === 1;
+
+        let cycleIndex =
+            (totalRounds - 1) % baseCycleRounds.length;
+
+        let templateMatches =
+            baseCycleRounds[cycleIndex];
+
+        let isReverseCycle =
+            Math.floor((totalRounds - 1) / baseCycleRounds.length) % 2 === 1;
 
         templateMatches.forEach((m, idx) => {
             let t1 = isReverseCycle ? m.t2 : m.t1;
             let t2 = isReverseCycle ? m.t1 : m.t2;
-            activeMatches.push({ id: matchIdStart + idx, tour: totalRounds, t1, t2, s1: null, s2: null, played: false, goalsDetails: [], mvpId: null });
+
+            activeMatches.push({
+                id: matchIdStart + idx,
+                tour: totalRounds,
+                t1,
+                t2,
+                s1: null,
+                s2: null,
+                played: false,
+                goalsDetails: [],
+                mvpId: null
+            });
         });
+
         saveData();
     }
 
@@ -1045,26 +1308,34 @@
     function setupRoundSelectOptions() {
         const select = document.getElementById('roundSelect');
         const nav = document.getElementById('roundNavControls');
+
         select.innerHTML = '';
         nav.style.display = 'flex';
 
         for (let i = 1; i <= totalRounds; i++) {
-            select.innerHTML += `<option value="${i}">Round ${i}</option>`;
+            select.innerHTML +=
+                `<option value="${i}">Round ${i}</option>`;
         }
+
         select.value = currentDisplayedRound;
     }
 
     function selectRound(tourNum) {
         currentDisplayedRound = parseInt(tourNum);
+
         saveData();
         renderCurrentRoundMatches();
     }
 
     function changeRound(delta) {
         let newRound = currentDisplayedRound + delta;
+
         if (newRound >= 1 && newRound <= totalRounds) {
             currentDisplayedRound = newRound;
-            document.getElementById('roundSelect').value = currentDisplayedRound;
+
+            document.getElementById('roundSelect').value =
+                currentDisplayedRound;
+
             saveData();
             renderCurrentRoundMatches();
         }
@@ -1072,9 +1343,12 @@
 
     function changeTeamPreset(teamId, selectedName) {
         let team = activeTeams.find(t => t.id === teamId);
+
         if (!team) return;
 
-        let foundPreset = clubPresets.find(p => p.name === selectedName);
+        let foundPreset =
+            clubPresets.find(p => p.name === selectedName);
+
         if (foundPreset) {
             team.name = foundPreset.name;
             team.type = foundPreset.type;
@@ -1082,27 +1356,33 @@
             team.logo = foundPreset.logo;
         } else {
             team.name = selectedName;
-            team.code = selectedName.substring(0,3).toLowerCase();
+            team.code = selectedName.substring(0, 3).toLowerCase();
             team.logo = defaultLogo;
         }
+
         saveData();
+
         renderLeagueTable();
         renderCurrentRoundMatches();
         renderTeamsCards();
     }
 
-    // Функция для расчета формы команды по сыгранным матчам
     function getTeamFormStreak(teamId) {
         let teamMatches = activeMatches
             .filter(m => m.played && (m.t1 === teamId || m.t2 === teamId))
-            .sort((a, b) => a.tour - b.tour); // Сортировка по хронологии раундов
+            .sort((a, b) => a.tour - b.tour);
 
-        let lastMatches = teamMatches.slice(-5); // Берем последние до 5 матчей
-        if (lastMatches.length === 0) return '<span style="color:var(--text-sub); font-size:11px;">-</span>';
+        let lastMatches = teamMatches.slice(-5);
+
+        if (lastMatches.length === 0) {
+            return '<span style="color:var(--text-sub); font-size:11px;">-</span>';
+        }
 
         let streakHtml = '<div class="form-streak">';
+
         lastMatches.forEach(m => {
             let isHome = m.t1 === teamId;
+
             let myScore = isHome ? m.s1 : m.s2;
             let oppScore = isHome ? m.s2 : m.s1;
 
@@ -1114,22 +1394,28 @@
                 streakHtml += '<span class="streak-badge streak-l" title="Loss">L</span>';
             }
         });
+
         streakHtml += '</div>';
+
         return streakHtml;
     }
 
     function renderLeagueTable() {
         const body = document.getElementById('leagueTableBody');
+
         body.innerHTML = '';
 
-        if(activeTeams.length === 0) {
-            body.innerHTML = `<tr><td colspan="10" style="padding:20px; color:var(--text-sub);">Start the tournament first</td></tr>`;
+        if (activeTeams.length === 0) {
+            body.innerHTML =
+                `<tr><td colspan="10" style="padding:20px; color:var(--text-sub);">Start the tournament first</td></tr>`;
+
             return;
         }
 
         let sortedTeams = [...activeTeams].sort((a, b) => {
             if (b.pts !== a.pts) return b.pts - a.pts;
             if (b.gd !== a.gd) return b.gd - a.gd;
+
             return b.gf - a.gf;
         });
 
@@ -1137,15 +1423,22 @@
             body.innerHTML += `
                 <tr>
                     <td>${i + 1}</td>
+
                     <td class="team-cell">
                         <img src="${t.logo}" class="team-logo" alt="">
+
                         <div style="display:flex; flex-direction:column; line-height:1.2;">
                             <span>${t.name}</span>
                             <span class="country-code">${t.code || ''}</span>
                         </div>
                     </td>
-                    <td>${t.played}</td><td>${t.win}</td><td>${t.draw}</td><td>${t.loss}</td>
-                    <td>${t.gf}-${t.ga}</td><td>${t.gd > 0 ? '+' + t.gd : t.gd}</td>
+
+                    <td>${t.played}</td>
+                    <td>${t.win}</td>
+                    <td>${t.draw}</td>
+                    <td>${t.loss}</td>
+                    <td>${t.gf}-${t.ga}</td>
+                    <td>${t.gd > 0 ? '+' + t.gd : t.gd}</td>
                     <td class="pts-cell">${t.pts}</td>
                     <td>${getTeamFormStreak(t.id)}</td>
                 </tr>
@@ -1155,11 +1448,16 @@
 
     function renderCurrentRoundMatches() {
         const container = document.getElementById('matchesList');
+
         container.innerHTML = '';
 
-        let roundMatches = activeMatches.filter(m => m.tour === currentDisplayedRound);
+        let roundMatches =
+            activeMatches.filter(m => m.tour === currentDisplayedRound);
+
         if (roundMatches.length === 0) {
-            container.innerHTML = `<p style="text-align:center; color:var(--text-sub);">No matches in this round.</p>`;
+            container.innerHTML =
+                `<p style="text-align:center; color:var(--text-sub);">No matches in this round.</p>`;
+
             return;
         }
 
@@ -1168,48 +1466,94 @@
             let t2 = activeTeams.find(t => t.id === m.t2);
 
             if (m.played) {
-                let t1Goals = m.goalsDetails ? m.goalsDetails.filter(g => g.teamId === t1.id) : [];
-                let t2Goals = m.goalsDetails ? m.goalsDetails.filter(g => g.teamId === t2.id) : [];
+                let t1Goals =
+                    m.goalsDetails
+                        ? m.goalsDetails.filter(g => g.teamId === t1.id)
+                        : [];
+
+                let t2Goals =
+                    m.goalsDetails
+                        ? m.goalsDetails.filter(g => g.teamId === t2.id)
+                        : [];
 
                 let renderGoalItem = (g) => {
-                    let scorerName = playersData.find(p => p.id === g.scorerId)?.name || 'Unknown';
-                    let assistName = g.assistantId ? playersData.find(p => p.id === g.assistantId)?.name : null;
-                    if (g.isOg) return `<div class="goal-item">⚽ ${scorerName} (OG)</div>`;
-                    if (assistName) return `<div class="goal-item">⚽ ${scorerName} (${assistName})</div>`;
+                    let scorerName =
+                        playersData.find(p => p.id === g.scorerId)?.name ||
+                        'Unknown';
+
+                    let assistName =
+                        g.assistantId
+                            ? playersData.find(p => p.id === g.assistantId)?.name
+                            : null;
+
+                    if (g.isOg) {
+                        return `<div class="goal-item">⚽ ${scorerName} (OG)</div>`;
+                    }
+
+                    if (assistName) {
+                        return `<div class="goal-item">⚽ ${scorerName} (${assistName})</div>`;
+                    }
+
                     return `<div class="goal-item">⚽ ${scorerName}</div>`;
                 };
 
-                let t1GoalsHtml = t1Goals.map(renderGoalItem).join('');
-                let t2GoalsHtml = t2Goals.map(renderGoalItem).join('');
+                let t1GoalsHtml =
+                    t1Goals.map(renderGoalItem).join('');
 
-                let mvpPlayer = m.mvpId ? playersData.find(p => p.id === m.mvpId) : null;
-                let mvpHtml = mvpPlayer ? `<div class="mvp-banner">🏆 MVP: ${mvpPlayer.name}</div>` : '';
+                let t2GoalsHtml =
+                    t2Goals.map(renderGoalItem).join('');
+
+                let mvpPlayer =
+                    m.mvpId
+                        ? playersData.find(p => p.id === m.mvpId)
+                        : null;
+
+                let mvpHtml =
+                    mvpPlayer
+                        ? `<div class="mvp-banner">🏆 MVP: ${mvpPlayer.name}</div>`
+                        : '';
 
                 container.innerHTML += `
                     <div class="match-card">
-                        <div class="match-badge">Match #${m.id} - Round ${m.tour}</div>
+                        <div class="match-badge">
+                            Match #${m.id} - Round ${m.tour}
+                        </div>
+
                         <div class="match-main">
                             <div class="match-team">
                                 <img src="${t1 ? t1.logo : defaultLogo}" class="team-logo" alt="">
+
                                 <div style="display:flex; flex-direction:column; line-height:1.2;">
                                     <span>${t1 ? t1.name : 'T1'}</span>
                                     <span class="country-code">${t1 ? t1.code : ''}</span>
                                 </div>
                             </div>
-                            <div style="font-size:24px; font-weight:900; color:var(--primary-blue);">${m.s1} : ${m.s2}</div>
+
+                            <div style="font-size:24px; font-weight:900; color:var(--primary-blue);">
+                                ${m.s1} : ${m.s2}
+                            </div>
+
                             <div class="match-team right">
                                 <div style="display:flex; flex-direction:column; line-height:1.2; text-align:right;">
                                     <span>${t2 ? t2.name : 'T2'}</span>
                                     <span class="country-code">${t2 ? t2.code : ''}</span>
                                 </div>
+
                                 <img src="${t2 ? t2.logo : defaultLogo}" class="team-logo" alt="">
                             </div>
                         </div>
+
                         <div class="match-result-summary">
                             <div class="match-goals-grid">
-                                <div class="team-goals-column">${t1GoalsHtml}</div>
-                                <div class="team-goals-column right">${t2GoalsHtml}</div>
+                                <div class="team-goals-column">
+                                    ${t1GoalsHtml}
+                                </div>
+
+                                <div class="team-goals-column right">
+                                    ${t2GoalsHtml}
+                                </div>
                             </div>
+
                             ${mvpHtml}
                         </div>
                     </div>
@@ -1219,82 +1563,145 @@
                 let val2 = m.s2 !== null ? m.s2 : '';
 
                 let eventsHtml = '';
-                if (val1 !== '' && val2 !== '' && (parseInt(val1) > 0 || parseInt(val2) > 0)) {
+
+                if (
+                    val1 !== '' &&
+                    val2 !== '' &&
+                    (parseInt(val1) > 0 || parseInt(val2) > 0)
+                ) {
                     let goalsCount1 = parseInt(val1) || 0;
                     let goalsCount2 = parseInt(val2) || 0;
 
-                    eventsHtml += `<div class="goal-events-container">`;
-                    
-                    for(let i=0; i < goalsCount1; i++) {
+                    eventsHtml +=
+                        `<div class="goal-events-container">`;
+
+                    for (let i = 0; i < goalsCount1; i++) {
                         eventsHtml += `
                             <div class="goal-row" id="m_${m.id}_t1_g${i}_row">
-                                <span style="font-size:11px; font-weight:800; color:var(--primary-blue);">${t1.name} Goal #${i+1}:</span>
+                                <span style="font-size:11px; font-weight:800; color:var(--primary-blue);">
+                                    ${t1.name} Goal #${i + 1}:
+                                </span>
+
                                 <label>Scorer:</label>
-                                <select id="m_${m.id}_t1_g${i}_scorer" onchange="updateScorerOrAssist(${m.id}, 't1', ${i})">
-                                    ${t1.players.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
+
+                                <select id="m_${m.id}_t1_g${i}_scorer"
+                                        onchange="updateScorerOrAssist(${m.id}, 't1', ${i})">
+                                    ${t1.players.map(p =>
+                                        `<option value="${p.id}">${p.name}</option>`
+                                    ).join('')}
                                 </select>
-                                <label class="autogol-label"><input type="checkbox" id="m_${m.id}_t1_g${i}_og" onchange="toggleAutogolView(${m.id}, 't1', ${i})"> Own Goal</label>
+
+                                <label class="autogol-label">
+                                    <input type="checkbox"
+                                           id="m_${m.id}_t1_g${i}_og"
+                                           onchange="toggleAutogolView(${m.id}, 't1', ${i})">
+                                    Own Goal
+                                </label>
+
                                 <label>Assist:</label>
-                                <select id="m_${m.id}_t1_g${i}_assistant" onchange="updateScorerOrAssist(${m.id}, 't1', ${i})">
+
+                                <select id="m_${m.id}_t1_g${i}_assistant"
+                                        onchange="updateScorerOrAssist(${m.id}, 't1', ${i})">
                                     <option value="">None</option>
-                                    ${t1.players.filter(p => {
-                                        let scorerSelect = document.getElementById(`m_${m.id}_t1_g${i}_scorer`);
-                                        return !scorerSelect || p.id != scorerSelect.value;
-                                    }).map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
+
+                                    ${t1.players.map(p =>
+                                        `<option value="${p.id}">${p.name}</option>`
+                                    ).join('')}
                                 </select>
                             </div>
                         `;
                     }
 
-                    for(let i=0; i < goalsCount2; i++) {
+                    for (let i = 0; i < goalsCount2; i++) {
                         eventsHtml += `
                             <div class="goal-row" id="m_${m.id}_t2_g${i}_row">
-                                <span style="font-size:11px; font-weight:800; color:var(--primary-red);">${t2.name} Goal #${i+1}:</span>
+                                <span style="font-size:11px; font-weight:800; color:var(--primary-red);">
+                                    ${t2.name} Goal #${i + 1}:
+                                </span>
+
                                 <label>Scorer:</label>
-                                <select id="m_${m.id}_t2_g${i}_scorer" onchange="updateScorerOrAssist(${m.id}, 't2', ${i})">
-                                    ${t2.players.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
+
+                                <select id="m_${m.id}_t2_g${i}_scorer"
+                                        onchange="updateScorerOrAssist(${m.id}, 't2', ${i})">
+                                    ${t2.players.map(p =>
+                                        `<option value="${p.id}">${p.name}</option>`
+                                    ).join('')}
                                 </select>
-                                <label class="autogol-label"><input type="checkbox" id="m_${m.id}_t2_g${i}_og" onchange="toggleAutogolView(${m.id}, 't2', ${i})"> Own Goal</label>
+
+                                <label class="autogol-label">
+                                    <input type="checkbox"
+                                           id="m_${m.id}_t2_g${i}_og"
+                                           onchange="toggleAutogolView(${m.id}, 't2', ${i})">
+                                    Own Goal
+                                </label>
+
                                 <label>Assist:</label>
-                                <select id="m_${m.id}_t2_g${i}_assistant" onchange="updateScorerOrAssist(${m.id}, 't2', ${i})">
+
+                                <select id="m_${m.id}_t2_g${i}_assistant"
+                                        onchange="updateScorerOrAssist(${m.id}, 't2', ${i})">
                                     <option value="">None</option>
-                                    ${t2.players.filter(p => {
-                                        let scorerSelect = document.getElementById(`m_${m.id}_t2_g${i}_scorer`);
-                                        return !scorerSelect || p.id != scorerSelect.value;
-                                    }).map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
+
+                                    ${t2.players.map(p =>
+                                        `<option value="${p.id}">${p.name}</option>`
+                                    ).join('')}
                                 </select>
                             </div>
                         `;
                     }
+
                     eventsHtml += `</div>`;
                 }
 
                 container.innerHTML += `
                     <div class="match-card">
-                        <div class="match-badge">Match #${m.id} - Round ${m.tour}</div>
+                        <div class="match-badge">
+                            Match #${m.id} - Round ${m.tour}
+                        </div>
+
                         <div class="match-main">
                             <div class="match-team">
                                 <img src="${t1 ? t1.logo : defaultLogo}" class="team-logo" alt="">
+
                                 <div style="display:flex; flex-direction:column; line-height:1.2;">
                                     <span>${t1 ? t1.name : 'T1'}</span>
                                     <span class="country-code">${t1 ? t1.code : ''}</span>
                                 </div>
                             </div>
+
                             <div class="match-score-inputs">
-                                <input type="number" min="0" id="m_${m.id}_s1" value="${val1}" onchange="updateMatchEventsView(${m.id})">
+                                <input type="number"
+                                       min="0"
+                                       id="m_${m.id}_s1"
+                                       value="${val1}"
+                                       onchange="updateMatchEventsView(${m.id})">
+
                                 <span>:</span>
-                                <input type="number" min="0" id="m_${m.id}_s2" value="${val2}" onchange="updateMatchEventsView(${m.id})">
+
+                                <input type="number"
+                                       min="0"
+                                       id="m_${m.id}_s2"
+                                       value="${val2}"
+                                       onchange="updateMatchEventsView(${m.id})">
                             </div>
+
                             <div class="match-team right">
                                 <div style="display:flex; flex-direction:column; line-height:1.2; text-align:right;">
                                     <span>${t2 ? t2.name : 'T2'}</span>
                                     <span class="country-code">${t2 ? t2.code : ''}</span>
                                 </div>
+
                                 <img src="${t2 ? t2.logo : defaultLogo}" class="team-logo" alt="">
                             </div>
                         </div>
-                        <div id="events_container_${m.id}">${eventsHtml}</div>
-                        <button class="match-btn" onclick="saveMatchResult(${m.id})">End match</button>
+
+                        <div id="events_container_${m.id}">
+                            ${eventsHtml}
+                        </div>
+
+                        <button class="match-btn"
+                                onclick="saveMatchResult(${m.id})">
+                            End match
+                        </button>
                     </div>
                 `;
             }
@@ -1302,122 +1709,302 @@
     }
 
     function toggleAutogolView(matchId, teamTag, goalIdx) {
-        let isOg = document.getElementById(`m_${matchId}_${teamTag}_g${goalIdx}_og`).checked;
-        let scorerSelect = document.getElementById(`m_${matchId}_${teamTag}_g${goalIdx}_scorer`);
-        let assistSelect = document.getElementById(`m_${matchId}_${teamTag}_g${goalIdx}_assistant`);
-        
-        let match = activeMatches.find(m => m.id === matchId);
-        let t1 = activeTeams.find(t => t.id === match.t1);
-        let t2 = activeTeams.find(t => t.id === match.t2);
-        let targetTeam = teamTag === 't1' ? t2 : t1;
+        let isOg =
+            document.getElementById(
+                `m_${matchId}_${teamTag}_g${goalIdx}_og`
+            ).checked;
+
+        let scorerSelect =
+            document.getElementById(
+                `m_${matchId}_${teamTag}_g${goalIdx}_scorer`
+            );
+
+        let assistSelect =
+            document.getElementById(
+                `m_${matchId}_${teamTag}_g${goalIdx}_assistant`
+            );
+
+        let match =
+            activeMatches.find(m => m.id === matchId);
+
+        let t1 =
+            activeTeams.find(t => t.id === match.t1);
+
+        let t2 =
+            activeTeams.find(t => t.id === match.t2);
+
+        let targetTeam =
+            teamTag === 't1' ? t2 : t1;
 
         if (isOg) {
-            scorerSelect.innerHTML = targetTeam.players.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+            scorerSelect.innerHTML =
+                targetTeam.players
+                    .map(p => `<option value="${p.id}">${p.name}</option>`)
+                    .join('');
+
             assistSelect.value = "";
             assistSelect.disabled = true;
         } else {
-            scorerSelect.innerHTML = (teamTag === 't1' ? t1 : t2).players.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+            scorerSelect.innerHTML =
+                (teamTag === 't1' ? t1 : t2).players
+                    .map(p => `<option value="${p.id}">${p.name}</option>`)
+                    .join('');
+
             assistSelect.disabled = false;
         }
+
         updateScorerOrAssist(matchId, teamTag, goalIdx);
     }
 
     function updateScorerOrAssist(matchId, teamTag, goalIdx) {
-        let scorerSelect = document.getElementById(`m_${matchId}_${teamTag}_g${goalIdx}_scorer`);
-        let assistSelect = document.getElementById(`m_${matchId}_${teamTag}_g${goalIdx}_assistant`);
-        let isOg = document.getElementById(`m_${matchId}_${teamTag}_g${goalIdx}_og`).checked;
+        let scorerSelect =
+            document.getElementById(
+                `m_${matchId}_${teamTag}_g${goalIdx}_scorer`
+            );
+
+        let assistSelect =
+            document.getElementById(
+                `m_${matchId}_${teamTag}_g${goalIdx}_assistant`
+            );
+
+        let isOg =
+            document.getElementById(
+                `m_${matchId}_${teamTag}_g${goalIdx}_og`
+            ).checked;
 
         if (!scorerSelect || !assistSelect) return;
 
-        let match = activeMatches.find(m => m.id === matchId);
-        let t1 = activeTeams.find(t => t.id === match.t1);
-        let t2 = activeTeams.find(t => t.id === match.t2);
-        let scoringTeam = teamTag === 't1' ? t1 : t2;
+        let match =
+            activeMatches.find(m => m.id === matchId);
 
-        let currentScorerVal = scorerSelect.value;
-        let currentAssistVal = assistSelect.value;
+        let t1 =
+            activeTeams.find(t => t.id === match.t1);
+
+        let t2 =
+            activeTeams.find(t => t.id === match.t2);
+
+        let scoringTeam =
+            teamTag === 't1' ? t1 : t2;
+
+        let currentScorerVal =
+            scorerSelect.value;
+
+        let currentAssistVal =
+            assistSelect.value;
 
         if (isOg) {
-            assistSelect.innerHTML = '<option value="">None</option>';
+            assistSelect.innerHTML =
+                '<option value="">None</option>';
+
             assistSelect.disabled = true;
+
             return;
-        } else {
-            assistSelect.disabled = false;
-            let availableAssistPlayers = scoringTeam.players.filter(p => p.id != currentScorerVal);
-            assistSelect.innerHTML = '<option value="">None</option>' + availableAssistPlayers.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
-            assistSelect.value = (currentAssistVal == currentScorerVal) ? "" : currentAssistVal;
         }
+
+        assistSelect.disabled = false;
+
+        let availableAssistPlayers =
+            scoringTeam.players.filter(
+                p => p.id != currentScorerVal
+            );
+
+        assistSelect.innerHTML =
+            '<option value="">None</option>' +
+            availableAssistPlayers
+                .map(p => `<option value="${p.id}">${p.name}</option>`)
+                .join('');
+
+        assistSelect.value =
+            currentAssistVal == currentScorerVal
+                ? ""
+                : currentAssistVal;
     }
 
     function updateMatchEventsView(matchId) {
-        let s1Val = document.getElementById(`m_${matchId}_s1`).value;
-        let s2Val = document.getElementById(`m_${matchId}_s2`).value;
-        let match = activeMatches.find(m => m.id === matchId);
-        if(!match) return;
+        let s1Val =
+            document.getElementById(`m_${matchId}_s1`).value;
 
-        match.s1 = s1Val !== '' ? parseInt(s1Val) : null;
-        match.s2 = s2Val !== '' ? parseInt(s2Val) : null;
+        let s2Val =
+            document.getElementById(`m_${matchId}_s2`).value;
+
+        let match =
+            activeMatches.find(m => m.id === matchId);
+
+        if (!match) return;
+
+        match.s1 =
+            s1Val !== ''
+                ? parseInt(s1Val)
+                : null;
+
+        match.s2 =
+            s2Val !== ''
+                ? parseInt(s2Val)
+                : null;
+
         saveData();
         renderCurrentRoundMatches();
     }
 
     function saveMatchResult(matchId) {
-        let match = activeMatches.find(m => m.id === matchId);
+        let match =
+            activeMatches.find(m => m.id === matchId);
+
         if (!match) return;
 
-        let s1Input = document.getElementById(`m_${matchId}_s1`).value;
-        let s2Input = document.getElementById(`m_${matchId}_s2`).value;
+        let s1Input =
+            document.getElementById(`m_${matchId}_s1`).value;
 
-        if (s1Input === '' || s2Input === '') { alert("Please enter scores for both teams."); return; }
+        let s2Input =
+            document.getElementById(`m_${matchId}_s2`).value;
+
+        if (s1Input === '' || s2Input === '') {
+            alert("Please enter scores for both teams.");
+            return;
+        }
 
         let s1 = parseInt(s1Input);
         let s2 = parseInt(s2Input);
-        let t1 = activeTeams.find(t => t.id === match.t1);
-        let t2 = activeTeams.find(t => t.id === match.t2);
+
+        let t1 =
+            activeTeams.find(t => t.id === match.t1);
+
+        let t2 =
+            activeTeams.find(t => t.id === match.t2);
 
         let matchGoalsEvents = [];
-        for (let i = 0; i < s1; i++) {
-            let scorerId = parseInt(document.getElementById(`m_${matchId}_t1_g${i}_scorer`).value);
-            let isOg = document.getElementById(`m_${matchId}_t1_g${i}_og`).checked;
-            let assistantVal = document.getElementById(`m_${matchId}_t1_g${i}_assistant`).value;
-            let assistantId = (!isOg && assistantVal !== "") ? parseInt(assistantVal) : null;
 
-            if (!isOg && scorerId && assistantId && scorerId === assistantId) { alert(`Scorer and Assistant cannot be the same player! (${t1.name}, Goal #${i+1})`); return; }
-            matchGoalsEvents.push({ scorerId, assistantId, isOg, teamId: t1.id });
+        for (let i = 0; i < s1; i++) {
+            let scorerId =
+                parseInt(
+                    document.getElementById(
+                        `m_${matchId}_t1_g${i}_scorer`
+                    ).value
+                );
+
+            let isOg =
+                document.getElementById(
+                    `m_${matchId}_t1_g${i}_og`
+                ).checked;
+
+            let assistantVal =
+                document.getElementById(
+                    `m_${matchId}_t1_g${i}_assistant`
+                ).value;
+
+            let assistantId =
+                (!isOg && assistantVal !== "")
+                    ? parseInt(assistantVal)
+                    : null;
+
+            if (
+                !isOg &&
+                scorerId &&
+                assistantId &&
+                scorerId === assistantId
+            ) {
+                alert(
+                    `Scorer and Assistant cannot be the same player! (${t1.name}, Goal #${i + 1})`
+                );
+
+                return;
+            }
+
+            matchGoalsEvents.push({
+                scorerId,
+                assistantId,
+                isOg,
+                teamId: t1.id
+            });
         }
 
         for (let i = 0; i < s2; i++) {
-            let scorerId = parseInt(document.getElementById(`m_${matchId}_t2_g${i}_scorer`).value);
-            let isOg = document.getElementById(`m_${matchId}_t2_g${i}_og`).checked;
-            let assistantVal = document.getElementById(`m_${matchId}_t2_g${i}_assistant`).value;
-            let assistantId = (!isOg && assistantVal !== "") ? parseInt(assistantVal) : null;
+            let scorerId =
+                parseInt(
+                    document.getElementById(
+                        `m_${matchId}_t2_g${i}_scorer`
+                    ).value
+                );
 
-            if (!isOg && scorerId && assistantId && scorerId === assistantId) { alert(`Scorer and Assistant cannot be the same player! (${t2.name}, Goal #${i+1})`); return; }
-            matchGoalsEvents.push({ scorerId, assistantId, isOg, teamId: t2.id });
+            let isOg =
+                document.getElementById(
+                    `m_${matchId}_t2_g${i}_og`
+                ).checked;
+
+            let assistantVal =
+                document.getElementById(
+                    `m_${matchId}_t2_g${i}_assistant`
+                ).value;
+
+            let assistantId =
+                (!isOg && assistantVal !== "")
+                    ? parseInt(assistantVal)
+                    : null;
+
+            if (
+                !isOg &&
+                scorerId &&
+                assistantId &&
+                scorerId === assistantId
+            ) {
+                alert(
+                    `Scorer and Assistant cannot be the same player! (${t2.name}, Goal #${i + 1})`
+                );
+
+                return;
+            }
+
+            matchGoalsEvents.push({
+                scorerId,
+                assistantId,
+                isOg,
+                teamId: t2.id
+            });
         }
 
-        match.s1 = s1; match.s2 = s2; match.played = true;
+        match.s1 = s1;
+        match.s2 = s2;
+        match.played = true;
         match.goalsDetails = matchGoalsEvents;
-        let matchScores = {}; 
+
+        let matchScores = {};
 
         matchGoalsEvents.forEach(e => {
-            let scorer = playersData.find(p => p.id === e.scorerId);
+            let scorer =
+                playersData.find(p => p.id === e.scorerId);
+
             if (scorer) {
-                if (e.isOg) { 
-                    scorer.rating = Math.max(0, scorer.rating - 0.05); 
-                    matchScores[scorer.id] = (matchScores[scorer.id] || 0) - 0.05; 
-                } else { 
-                    scorer.goals += 1; 
-                    scorer.rating = Math.min(10.0, scorer.rating + 0.10); 
-                    matchScores[scorer.id] = (matchScores[scorer.id] || 0) + 0.10; 
+                if (e.isOg) {
+                    scorer.rating =
+                        Math.max(0, scorer.rating - 0.05);
+
+                    matchScores[scorer.id] =
+                        (matchScores[scorer.id] || 0) - 0.05;
+                } else {
+                    scorer.goals += 1;
+
+                    scorer.rating =
+                        Math.min(10.0, scorer.rating + 0.10);
+
+                    matchScores[scorer.id] =
+                        (matchScores[scorer.id] || 0) + 0.10;
                 }
             }
+
             if (!e.isOg && e.assistantId) {
-                let assistant = playersData.find(p => p.id === e.assistantId);
-                if (assistant) { 
-                    assistant.assists += 1; 
-                    assistant.rating = Math.min(10.0, assistant.rating + 0.10); 
-                    matchScores[assistant.id] = (matchScores[assistant.id] || 0) + 0.10; 
+                let assistant =
+                    playersData.find(
+                        p => p.id === e.assistantId
+                    );
+
+                if (assistant) {
+                    assistant.assists += 1;
+
+                    assistant.rating =
+                        Math.min(10.0, assistant.rating + 0.10);
+
+                    matchScores[assistant.id] =
+                        (matchScores[assistant.id] || 0) + 0.10;
                 }
             }
         });
@@ -1427,40 +2014,96 @@
 
         Object.keys(matchScores).forEach(pId => {
             let score = matchScores[pId];
-            if (score > maxPoints && score > 0) { maxPoints = score; topPlayers = [parseInt(pId)]; } 
-            else if (score === maxPoints && score > 0) { topPlayers.push(parseInt(pId)); }
+
+            if (
+                score > maxPoints &&
+                score > 0
+            ) {
+                maxPoints = score;
+                topPlayers = [parseInt(pId)];
+            } else if (
+                score === maxPoints &&
+                score > 0
+            ) {
+                topPlayers.push(parseInt(pId));
+            }
         });
 
         let mvpPlayerId = null;
+
         if (topPlayers.length === 1) {
             mvpPlayerId = topPlayers[0];
         } else if (topPlayers.length > 1) {
-            let winningTeamId = (s1 > s2) ? t1.id : (s2 > s1) ? t2.id : null;
+            let winningTeamId =
+                (s1 > s2)
+                    ? t1.id
+                    : (s2 > s1)
+                        ? t2.id
+                        : null;
+
             let candidatePlayers = topPlayers;
+
             if (winningTeamId !== null) {
-                let winnersFromTop = topPlayers.filter(pId => {
-                    let inT1 = t1.players.some(p => p.id === pId);
-                    let inT2 = t2.players.some(p => p.id === pId);
-                    if (winningTeamId === t1.id && inT1) return true;
-                    if (winningTeamId === t2.id && inT2) return true;
-                    return false;
-                });
-                if (winnersFromTop.length > 0) candidatePlayers = winnersFromTop;
+                let winnersFromTop =
+                    topPlayers.filter(pId => {
+                        let inT1 =
+                            t1.players.some(
+                                p => p.id === pId
+                            );
+
+                        let inT2 =
+                            t2.players.some(
+                                p => p.id === pId
+                            );
+
+                        if (
+                            winningTeamId === t1.id &&
+                            inT1
+                        ) return true;
+
+                        if (
+                            winningTeamId === t2.id &&
+                            inT2
+                        ) return true;
+
+                        return false;
+                    });
+
+                if (winnersFromTop.length > 0) {
+                    candidatePlayers = winnersFromTop;
+                }
             }
-            mvpPlayerId = candidatePlayers[Math.floor(Math.random() * candidatePlayers.length)];
+
+            mvpPlayerId =
+                candidatePlayers[
+                    Math.floor(
+                        Math.random() *
+                        candidatePlayers.length
+                    )
+                ];
         }
 
         if (mvpPlayerId) {
-            let mvpPlayer = playersData.find(p => p.id === mvpPlayerId);
-            if (mvpPlayer) { 
-                mvpPlayer.mvp += 1; 
-                mvpPlayer.rating = Math.min(10.0, mvpPlayer.rating + 0.10); 
+            let mvpPlayer =
+                playersData.find(
+                    p => p.id === mvpPlayerId
+                );
+
+            if (mvpPlayer) {
+                mvpPlayer.mvp += 1;
+
+                mvpPlayer.rating =
+                    Math.min(
+                        10.0,
+                        mvpPlayer.rating + 0.10
+                    );
             }
         }
 
         match.mvpId = mvpPlayerId;
 
         saveData();
+
         recalculateStandings();
         renderLeagueTable();
         renderCurrentRoundMatches();
@@ -1468,62 +2111,158 @@
     }
 
     function recalculateStandings() {
-        activeTeams.forEach(t => { t.played = 0; t.win = 0; t.draw = 0; t.loss = 0; t.gf = 0; t.ga = 0; t.gd = 0; t.pts = 0; });
+        activeTeams.forEach(t => {
+            t.played = 0;
+            t.win = 0;
+            t.draw = 0;
+            t.loss = 0;
+            t.gf = 0;
+            t.ga = 0;
+            t.gd = 0;
+            t.pts = 0;
+        });
 
         activeMatches.forEach(m => {
             if (m.played) {
-                let t1 = activeTeams.find(t => t.id === m.t1);
-                let t2 = activeTeams.find(t => t.id === m.t2);
+                let t1 =
+                    activeTeams.find(
+                        t => t.id === m.t1
+                    );
+
+                let t2 =
+                    activeTeams.find(
+                        t => t.id === m.t2
+                    );
 
                 if (t1 && t2) {
-                    t1.played++; t2.played++;
-                    t1.gf += m.s1; t1.ga += m.s2;
-                    t2.gf += m.s2; t2.ga += m.s1;
+                    t1.played++;
+                    t2.played++;
 
-                    if (m.s1 > m.s2) { t1.win++; t1.pts += 3; t2.loss++; } 
-                    else if (m.s1 < m.s2) { t2.win++; t2.pts += 3; t1.loss++; } 
-                    else { t1.draw++; t1.pts += 1; t2.draw++; t2.pts += 1; }
+                    t1.gf += m.s1;
+                    t1.ga += m.s2;
+
+                    t2.gf += m.s2;
+                    t2.ga += m.s1;
+
+                    if (m.s1 > m.s2) {
+                        t1.win++;
+                        t1.pts += 3;
+                        t2.loss++;
+                    } else if (m.s1 < m.s2) {
+                        t2.win++;
+                        t2.pts += 3;
+                        t1.loss++;
+                    } else {
+                        t1.draw++;
+                        t1.pts += 1;
+                        t2.draw++;
+                        t2.pts += 1;
+                    }
                 }
             }
         });
 
-        activeTeams.forEach(t => { t.gd = t.gf - t.ga; });
+        activeTeams.forEach(t => {
+            t.gd = t.gf - t.ga;
+        });
+
         saveData();
     }
 
     function renderTeamsCards() {
-        const container = document.getElementById('teamsResult');
+        const container =
+            document.getElementById('teamsResult');
+
         container.innerHTML = '';
 
-        let currentTournamentType = activeTeams.length > 0 ? activeTeams[0].type : 'club';
-        let availablePresets = clubPresets.filter(p => p.type === currentTournamentType);
+        let currentTournamentType =
+            activeTeams.length > 0
+                ? activeTeams[0].type
+                : 'club';
+
+        let availablePresets =
+            clubPresets.filter(
+                p => p.type === currentTournamentType
+            );
 
         activeTeams.forEach(t => {
-            let avgRating = t.players.length > 0 ? (t.players.reduce((sum, p) => sum + p.rating, 0) / t.players.length) : 0;
-            let avgSpeed = t.players.length > 0 ? (t.players.reduce((sum, p) => sum + (p.speed || 3), 0) / t.players.length) : 0;
-            let optionsHtml = availablePresets.map(p => {
-                let cleanName = p.name;
-                return `<option value="${cleanName}" ${cleanName === t.name ? 'selected' : ''}>${p.name}</option>`;
-            }).join('');
+            let avgRating =
+                t.players.length > 0
+                    ? (
+                        t.players.reduce(
+                            (sum, p) => sum + p.rating,
+                            0
+                        ) / t.players.length
+                    )
+                    : 0;
 
-            let sortedTeamPlayers = [...t.players].sort((a, b) => (b.rating - a.rating) || ((b.speed || 3) - (a.speed || 3)) || a.name.localeCompare(b.name));
-            let playersListHtml = sortedTeamPlayers.map(p => `
-                <li>
-                    <span>${p.name}</span>
-                    <span style="color:var(--primary-blue);">⭐ ${formatRating(p.rating)}</span>
-                </li>
-            `).join('');
+            let avgSpeed =
+                t.players.length > 0
+                    ? (
+                        t.players.reduce(
+                            (sum, p) => sum + (p.speed || 3),
+                            0
+                        ) / t.players.length
+                    )
+                    : 0;
+
+            let optionsHtml =
+                availablePresets.map(p => {
+                    let cleanName = p.name;
+
+                    return `
+                        <option value="${cleanName}"
+                            ${cleanName === t.name ? 'selected' : ''}>
+                            ${p.name}
+                        </option>
+                    `;
+                }).join('');
+
+            let sortedTeamPlayers =
+                [...t.players].sort(
+                    (a, b) =>
+                        (b.rating - a.rating) ||
+                        ((b.speed || 3) - (a.speed || 3)) ||
+                        a.name.localeCompare(b.name)
+                );
+
+            let playersListHtml =
+                sortedTeamPlayers.map(p => `
+                    <li>
+                        <span>${p.name}</span>
+                        <span style="color:var(--primary-blue);">
+                            ⭐ ${formatRating(p.rating)}
+                        </span>
+                    </li>
+                `).join('');
 
             container.innerHTML += `
                 <div class="team-card">
                     <div class="team-header">
                         <div class="team-header-title">
-                            <img src="${t.logo}" class="team-logo" alt="">
-                            <select class="team-select" onchange="changeTeamPreset(${t.id}, this.value)">${optionsHtml}</select>
+
+                            <img src="${t.logo}"
+                                 class="team-logo"
+                                 alt="">
+
+                            <select class="team-select"
+                                    onchange="changeTeamPreset(${t.id}, this.value)">
+                                ${optionsHtml}
+                            </select>
+
                         </div>
-                        <span class="team-score" title="Rating & Speed">${t.players.length} players · ⭐ ${avgRating.toFixed(2)} · ⚡ ${avgSpeed.toFixed(2)}</span>
+
+                        <span class="team-score"
+                              title="Rating & Speed">
+                            ${t.players.length} players ·
+                            ⭐ ${avgRating.toFixed(2)} ·
+                            ⚡ ${avgSpeed.toFixed(2)}
+                        </span>
                     </div>
-                    <ul class="team-list">${playersListHtml}</ul>
+
+                    <ul class="team-list">
+                        ${playersListHtml}
+                    </ul>
                 </div>
             `;
         });
@@ -1531,65 +2270,163 @@
 
     function renderLeaderboard(metric, btn) {
         if (btn) {
-            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.filter-btn')
+                .forEach(b => b.classList.remove('active'));
+
             btn.classList.add('active');
         }
 
-        const header = document.getElementById('statColHeader');
-        const body = document.getElementById('leaderboardBody');
+        const header =
+            document.getElementById('statColHeader');
+
+        const body =
+            document.getElementById('leaderboardBody');
+
         body.innerHTML = '';
 
         let sorted = [...playersData];
-        if (metric === 'goals') { header.innerText = 'Goals ⚽'; sorted.sort((a, b) => b.goals - a.goals); } 
-        else if (metric === 'assists') { header.innerText = 'Assists 👟'; sorted.sort((a, b) => b.assists - a.assists); } 
-        else if (metric === 'points') { header.innerText = 'G + A 🔥'; sorted.sort((a, b) => (b.goals + b.assists) - (a.goals + a.assists)); } 
-        else if (metric === 'mvp') { 
-            header.innerHTML = `🏆 MVP`; 
-            sorted.sort((a, b) => b.mvp - a.mvp); 
+
+        if (metric === 'goals') {
+            header.innerText = 'Goals ⚽';
+
+            sorted.sort(
+                (a, b) => b.goals - a.goals
+            );
+        } else if (metric === 'assists') {
+            header.innerText = 'Assists 👟';
+
+            sorted.sort(
+                (a, b) => b.assists - a.assists
+            );
+        } else if (metric === 'points') {
+            header.innerText = 'G + A 🔥';
+
+            sorted.sort(
+                (a, b) =>
+                    (b.goals + b.assists) -
+                    (a.goals + a.assists)
+            );
+        } else if (metric === 'mvp') {
+            header.innerHTML = `🏆 MVP`;
+
+            sorted.sort(
+                (a, b) => b.mvp - a.mvp
+            );
         }
 
         sorted.forEach((p, index) => {
-            let rankClass = index === 0 ? 'rank-1' : index === 1 ? 'rank-2' : index === 2 ? 'rank-3' : '';
-            let val = metric === 'goals' ? p.goals : metric === 'assists' ? p.assists : metric === 'points' ? (p.goals + p.assists) : p.mvp;
+            let rankClass =
+                index === 0
+                    ? 'rank-1'
+                    : index === 1
+                        ? 'rank-2'
+                        : index === 2
+                            ? 'rank-3'
+                            : '';
+
+            let val =
+                metric === 'goals'
+                    ? p.goals
+                    : metric === 'assists'
+                        ? p.assists
+                        : metric === 'points'
+                            ? (p.goals + p.assists)
+                            : p.mvp;
 
             body.innerHTML += `
                 <tr>
-                    <td class="rank ${rankClass}">${index + 1}</td>
-                    <td style="font-weight:800;">${p.name} <span style="font-size:11px; color:var(--primary-blue); font-weight:normal;">(⭐${formatRating(p.rating)})</span></td>
-                    <td style="text-align:right; font-weight:900; color:var(--primary-gold);">${val}</td>
+                    <td class="rank ${rankClass}">
+                        ${index + 1}
+                    </td>
+
+                    <td style="font-weight:800;">
+                        ${p.name}
+
+                        <span style="font-size:11px;
+                                     color:var(--primary-blue);
+                                     font-weight:normal;">
+                            (⭐${formatRating(p.rating)})
+                        </span>
+                    </td>
+
+                    <td style="text-align:right;
+                               font-weight:900;
+                               color:var(--primary-gold);">
+                        ${val}
+                    </td>
                 </tr>
             `;
         });
     }
 
     function resetChanges() {
-        if (confirm("Are you sure you want to reset all tournament data and player stats?")) {
-            
-            playersData = JSON.parse(JSON.stringify(initialPlayers));
+        if (
+            confirm(
+                "Are you sure you want to reset all tournament data and player stats?"
+            )
+        ) {
+            playersData =
+                JSON.parse(
+                    JSON.stringify(initialPlayers)
+                );
+
             activeTeams = [];
             activeMatches = [];
             totalRounds = 0;
             currentDisplayedRound = 1;
             baseCycleRounds = [];
+
             saveData();
 
             renderPlayers();
-            document.getElementById('leagueTableBody').innerHTML = `<tr><td colspan="10" style="padding:20px; color:var(--text-sub);">Start the tournament first</td></tr>`;
-            document.getElementById('matchesList').innerHTML = `<p style="text-align:center; color:var(--text-sub); padding:10px; font-weight:700;">Start the tournament to create matches.</p>`;
-            document.getElementById('teamsResult').innerHTML = ``;
-            document.getElementById('roundNavControls').style.display = 'none';
-            document.getElementById('addNextRoundBtn').style.display = 'none';
-            switchTab('playersTab', document.querySelectorAll('.tab-btn')[0]);
+
+            document.getElementById(
+                'leagueTableBody'
+            ).innerHTML =
+                `<tr><td colspan="10" style="padding:20px; color:var(--text-sub);">Start the tournament first</td></tr>`;
+
+            document.getElementById(
+                'matchesList'
+            ).innerHTML =
+                `<p style="text-align:center; color:var(--text-sub); padding:10px; font-weight:700;">Start the tournament to create matches.</p>`;
+
+            document.getElementById(
+                'teamsResult'
+            ).innerHTML = '';
+
+            document.getElementById(
+                'roundNavControls'
+            ).style.display = 'none';
+
+            document.getElementById(
+                'addNextRoundBtn'
+            ).style.display = 'none';
+
+            switchTab(
+                'playersTab',
+                document.querySelectorAll('.tab-btn')[0]
+            );
         }
     }
 
     window.onload = async function() {
         initTheme();
+
         showOnlineStatus("🔄 Connecting...");
+
         await loadOnlineData();
 
-        // Rebuild the schedule helper after loading shared data.
-        baseCycleRounds = activeTeams.length ? buildBaseCycleSchedule(activeTeams) : [];
+        // Дополнительная проверка после загрузки.
+        const logosFixed = fixExistingTeamLogos();
+
+        if (logosFixed) {
+            await saveData();
+        }
+
+        baseCycleRounds =
+            activeTeams.length
+                ? buildBaseCycleSchedule(activeTeams)
+                : [];
 
         renderPlayers();
 
@@ -1599,7 +2436,10 @@
             renderLeagueTable();
             renderCurrentRoundMatches();
             renderTeamsCards();
-            document.getElementById('addNextRoundBtn').style.display = 'block';
+
+            document.getElementById(
+                'addNextRoundBtn'
+            ).style.display = 'block';
         }
 
         subscribeToOnlineChanges();
