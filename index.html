@@ -287,6 +287,10 @@
         .filter-btn { padding: 10px 18px; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 20px; font-size: 12px; font-weight: 800; color: var(--text-sub); cursor: pointer; white-space: nowrap; }
         .filter-btn.active { background: var(--primary-blue); color: #fff; border-color: var(--primary-blue); }
 
+        .leaderboard-mode-bar { display:flex; gap:8px; margin-bottom:12px; }
+        .leaderboard-mode-btn { flex:1; padding:12px 14px; background:var(--card-bg); border:1px solid var(--card-border); border-radius:12px; font-size:12px; font-weight:900; color:var(--text-sub); cursor:pointer; }
+        .leaderboard-mode-btn.active { background:var(--primary-blue); color:#fff; border-color:var(--primary-blue); }
+
         .leader-table { width: 100%; border-collapse: collapse; background: var(--card-bg); border-radius: 14px; overflow: hidden; border: 1px solid var(--card-border); box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
         .leader-table th, .leader-table td { padding: 14px 16px; text-align: left; font-size: 14px; font-weight: 700; border-bottom: 1px solid var(--card-border); }
         .leader-table th { background: var(--input-bg); color: var(--text-sub); font-size: 11px; text-transform: uppercase; }
@@ -381,6 +385,12 @@
         <div class="section-header">
             <span class="section-title">Leaderboard</span>
         </div>
+
+        <div class="leaderboard-mode-bar">
+            <button id="currentLeaderboardBtn" class="leaderboard-mode-btn active" onclick="setLeaderboardMode('current', this)">🏆 Current Tournament</button>
+            <button id="allTimeLeaderboardBtn" class="leaderboard-mode-btn" onclick="setLeaderboardMode('allTime', this)">👑 All Time</button>
+        </div>
+
         <div class="filter-bar">
             <button class="filter-btn active" onclick="renderLeaderboard('goals', this)">⚽ Top Scorers</button>
             <button class="filter-btn" onclick="renderLeaderboard('assists', this)">👟 Top Assists</button>
@@ -496,6 +506,10 @@
     let totalRounds = 0;
     let baseCycleRounds = [];
 
+    let leaderboardMode = 'current';
+    let leaderboardMetric = 'goals';
+    let allTimeStats = {};
+
     function getOnlineState() {
         return {
             id: APP_STATE_ID,
@@ -504,6 +518,7 @@
             matches: activeMatches,
             current_round: currentDisplayedRound,
             total_rounds: totalRounds,
+            all_time_stats: allTimeStats,
             updated_at: new Date().toISOString()
         };
     }
@@ -549,6 +564,9 @@
             activeMatches = Array.isArray(data.matches) ? data.matches : [];
             currentDisplayedRound = Number(data.current_round) || 1;
             totalRounds = Number(data.total_rounds) || 0;
+            allTimeStats = (data.all_time_stats && typeof data.all_time_stats === 'object')
+                ? data.all_time_stats
+                : {};
 
             playersData.forEach(p => {
                 if (!p.speed) p.speed = fixedSpeeds[p.name] || 3;
@@ -577,6 +595,9 @@
                     activeMatches = Array.isArray(payload.new.matches) ? payload.new.matches : [];
                     currentDisplayedRound = Number(payload.new.current_round) || 1;
                     totalRounds = Number(payload.new.total_rounds) || 0;
+                    allTimeStats = (payload.new.all_time_stats && typeof payload.new.all_time_stats === 'object')
+                        ? payload.new.all_time_stats
+                        : {};
                     baseCycleRounds = activeTeams.length ? buildBaseCycleSchedule(activeTeams) : [];
 
                     playersData.forEach(p => {
@@ -586,6 +607,10 @@
 
                     initTheme();
                     renderPlayers();
+
+                    if (document.getElementById('leadersTab').classList.contains('active')) {
+                        renderLeaderboard(leaderboardMetric);
+                    }
 
                     if (activeTeams.length > 0) {
                         setupRoundSelectOptions();
@@ -632,6 +657,11 @@
             renderTeamsCards();
             renderCurrentRoundMatches();
         }
+
+        if (document.getElementById('leadersTab').classList.contains('active')) {
+            renderLeaderboard(leaderboardMetric);
+        }
+
         alert("Changes saved successfully.");
         closeAdmin();
     }
@@ -740,7 +770,7 @@
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.getElementById(tabId).classList.add('active');
         if(btn) btn.classList.add('active');
-        if(tabId === 'leadersTab') renderLeaderboard('goals');
+        if(tabId === 'leadersTab') renderLeaderboard(leaderboardMetric);
         if(tabId === 'playersTab') renderPlayers();
     }
 
@@ -1008,6 +1038,11 @@
         if (!numTeams) {
             alert("Please select at least 4 players.");
             return;
+        }
+
+        if (activeTeams.length > 0) {
+            archiveCurrentTournament();
+            resetCurrentTournamentStats();
         }
 
         let distributed = distributeEquallyFlexible(selected, numTeams);
@@ -2009,6 +2044,10 @@
         renderLeagueTable();
         renderCurrentRoundMatches();
         renderTeamsCards();
+
+        if (document.getElementById('leadersTab').classList.contains('active')) {
+            renderLeaderboard(leaderboardMetric);
+        }
     }
 
     function recalculateStandings() {
@@ -2181,7 +2220,21 @@
         });
     }
 
+    function setLeaderboardMode(mode, btn) {
+        leaderboardMode = mode;
+
+        document
+            .querySelectorAll('.leaderboard-mode-btn')
+            .forEach(b => b.classList.remove('active'));
+
+        if (btn) btn.classList.add('active');
+
+        renderLeaderboard(leaderboardMetric);
+    }
+
     function renderLeaderboard(metric, btn) {
+        leaderboardMetric = metric || leaderboardMetric;
+
         if (btn) {
             document
                 .querySelectorAll('.filter-btn')
@@ -2190,97 +2243,116 @@
             btn.classList.add('active');
         }
 
-        const header =
-            document.getElementById('statColHeader');
-
-        const body =
-            document.getElementById('leaderboardBody');
-
+        const header = document.getElementById('statColHeader');
+        const body = document.getElementById('leaderboardBody');
         body.innerHTML = '';
 
-        let sorted = [...playersData];
+        let sorted;
+
+        if (leaderboardMode === 'allTime') {
+            sorted = playersData.map(player => {
+                const saved = allTimeStats[String(player.id)] || {};
+
+                return {
+                    id: player.id,
+                    name: saved.name || player.name,
+                    rating: player.rating,
+                    goals: Number(saved.goals) || 0,
+                    assists: Number(saved.assists) || 0,
+                    mvp: Number(saved.mvp) || 0
+                };
+            });
+        } else {
+            sorted = playersData.map(player => ({
+                ...player,
+                goals: Number(player.goals) || 0,
+                assists: Number(player.assists) || 0,
+                mvp: Number(player.mvp) || 0
+            }));
+        }
 
         if (metric === 'goals') {
-            header.innerText = 'Goals ⚽';
-
-            sorted.sort(
-                (a, b) => b.goals - a.goals
+            header.innerText = leaderboardMode === 'allTime' ? 'Total Goals ⚽' : 'Goals ⚽';
+            sorted.sort((a, b) =>
+                (b.goals - a.goals) ||
+                (b.assists - a.assists) ||
+                a.name.localeCompare(b.name)
             );
-
         } else if (metric === 'assists') {
-            header.innerText = 'Assists 👟';
-
-            sorted.sort(
-                (a, b) => b.assists - a.assists
+            header.innerText = leaderboardMode === 'allTime' ? 'Total Assists 👟' : 'Assists 👟';
+            sorted.sort((a, b) =>
+                (b.assists - a.assists) ||
+                (b.goals - a.goals) ||
+                a.name.localeCompare(b.name)
             );
-
         } else if (metric === 'points') {
-            header.innerText = 'G + A 🔥';
-
-            sorted.sort(
-                (a, b) =>
-                    (b.goals + b.assists) -
-                    (a.goals + a.assists)
+            header.innerText = leaderboardMode === 'allTime' ? 'Total G + A 🔥' : 'G + A 🔥';
+            sorted.sort((a, b) =>
+                ((b.goals + b.assists) - (a.goals + a.assists)) ||
+                (b.goals - a.goals) ||
+                a.name.localeCompare(b.name)
             );
-
         } else if (metric === 'mvp') {
-            header.innerHTML = `🏆 MVP`;
-
-            sorted.sort(
-                (a, b) => b.mvp - a.mvp
+            header.innerHTML = leaderboardMode === 'allTime' ? `🏆 Total MVP` : `🏆 MVP`;
+            sorted.sort((a, b) =>
+                (b.mvp - a.mvp) ||
+                (b.goals - a.goals) ||
+                a.name.localeCompare(b.name)
             );
         }
 
         sorted.forEach((p, index) => {
-
             let rankClass =
-                index === 0
-                    ? 'rank-1'
-                    : index === 1
-                        ? 'rank-2'
-                        : index === 2
-                            ? 'rank-3'
-                            : '';
+                index === 0 ? 'rank-1' :
+                index === 1 ? 'rank-2' :
+                index === 2 ? 'rank-3' : '';
 
             let val =
-                metric === 'goals'
-                    ? p.goals
-                    : metric === 'assists'
-                        ? p.assists
-                        : metric === 'points'
-                            ? (p.goals + p.assists)
-                            : p.mvp;
+                metric === 'goals' ? p.goals :
+                metric === 'assists' ? p.assists :
+                metric === 'points' ? (p.goals + p.assists) :
+                p.mvp;
 
             body.innerHTML += `
                 <tr>
-                    <td class="rank ${rankClass}">
-                        ${index + 1}
-                    </td>
-
+                    <td class="rank ${rankClass}">${index + 1}</td>
                     <td style="font-weight:800;">
                         ${p.name}
-                        <span
-                            style="
-                                font-size:11px;
-                                color:var(--primary-blue);
-                                font-weight:normal;
-                            "
-                        >
+                        <span style="font-size:11px;color:var(--primary-blue);font-weight:normal;">
                             (⭐${formatRating(p.rating)})
                         </span>
                     </td>
-
-                    <td
-                        style="
-                            text-align:right;
-                            font-weight:900;
-                            color:var(--primary-gold);
-                        "
-                    >
-                        ${val}
-                    </td>
+                    <td style="text-align:right;font-weight:900;color:var(--primary-gold);">${val}</td>
                 </tr>
             `;
+        });
+    }
+
+    function archiveCurrentTournament() {
+        playersData.forEach(player => {
+            const id = String(player.id);
+
+            if (!allTimeStats[id]) {
+                allTimeStats[id] = {
+                    name: player.name,
+                    goals: 0,
+                    assists: 0,
+                    mvp: 0
+                };
+            }
+
+            allTimeStats[id].name = player.name;
+            allTimeStats[id].goals += Number(player.goals) || 0;
+            allTimeStats[id].assists += Number(player.assists) || 0;
+            allTimeStats[id].mvp += Number(player.mvp) || 0;
+        });
+    }
+
+    function resetCurrentTournamentStats() {
+        playersData.forEach(player => {
+            player.goals = 0;
+            player.assists = 0;
+            player.mvp = 0;
         });
     }
 
@@ -2295,6 +2367,8 @@
                 JSON.parse(
                     JSON.stringify(initialPlayers)
                 );
+
+            allTimeStats = {};
 
             activeTeams = [];
             activeMatches = [];
