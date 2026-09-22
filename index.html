@@ -65,30 +65,337 @@
         
         header h1 span { color: var(--primary-blue); }
 
-        .admin-btn { background: var(--input-bg); border: 1px solid var(--card-border); color: var(--text-main); padding: 10px 14px; border-radius: 10px; cursor: pointer; font-weight: 900; font-size: 12px; }
+        .admin-btn {
+            background:var(--input-bg);
+            border:1px solid var(--card-border);
+            color:var(--text-main);
+            padding:10px 14px;
+            border-radius:10px;
+            cursor:pointer;
+            font-weight:900;
+            font-size:12px;
+            transition:all .2s ease;
+        }
+        .admin-btn:hover { border-color:var(--primary-blue); transform:translateY(-1px); }
         .admin-actions { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
-        .admin-modal { display:none; position:fixed; inset:0; z-index:1000; background:rgba(0,0,0,.55); padding:20px; overflow:auto; }
-        .admin-modal.show { display:flex; align-items:flex-start; justify-content:center; }
-        .admin-panel { width:min(720px,100%); margin-top:30px; background:var(--card-bg); border:1px solid var(--card-border); border-radius:16px; padding:18px; box-shadow:0 15px 50px rgba(0,0,0,.25); }
-        .admin-player { display:grid; grid-template-columns:1.5fr .7fr .7fr 1.4fr auto; gap:8px; align-items:center; padding:12px 0; border-bottom:1px solid var(--card-border); }
+
+        /* ===== MODERN ADMIN PANEL ===== */
+        .admin-modal {
+            display:none;
+            position:fixed;
+            inset:0;
+            z-index:1000;
+            background:rgba(15,23,42,.68);
+            backdrop-filter:blur(7px);
+            -webkit-backdrop-filter:blur(7px);
+            padding:20px;
+            overflow:auto;
+        }
+        .admin-modal.show {
+            display:flex;
+            align-items:flex-start;
+            justify-content:center;
+        }
+        .admin-panel {
+            width:min(820px,100%);
+            margin:10px auto 30px;
+            background:var(--card-bg);
+            border:1px solid var(--card-border);
+            border-radius:18px;
+            box-shadow:0 25px 80px rgba(0,0,0,.28);
+            overflow:hidden;
+            animation:adminPanelIn .22s ease-out;
+        }
+        @keyframes adminPanelIn {
+            from { opacity:0; transform:translateY(12px) scale(.985); }
+            to { opacity:1; transform:translateY(0) scale(1); }
+        }
+        .admin-topbar {
+            padding:20px 22px;
+            background:linear-gradient(135deg,rgba(49,130,206,.12),rgba(49,130,206,.03));
+            border-bottom:1px solid var(--card-border);
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            gap:15px;
+        }
+        .admin-title-wrap { display:flex; align-items:center; gap:13px; }
+        .admin-title-icon {
+            width:44px;
+            height:44px;
+            border-radius:13px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            background:var(--primary-blue);
+            color:#fff;
+            font-size:21px;
+            box-shadow:0 7px 18px rgba(49,130,206,.25);
+        }
+        .admin-title {
+            font-size:20px;
+            line-height:1.1;
+            font-weight:950;
+            color:var(--text-main);
+        }
+        .admin-subtitle {
+            margin-top:4px;
+            color:var(--text-sub);
+            font-size:11px;
+            font-weight:700;
+        }
+        .admin-close {
+            width:38px;
+            height:38px;
+            border-radius:11px;
+            border:1px solid var(--card-border);
+            background:var(--card-bg);
+            color:var(--text-sub);
+            cursor:pointer;
+            font-size:16px;
+            font-weight:900;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            transition:all .18s ease;
+        }
+        .admin-close:hover { color:var(--primary-red); border-color:var(--primary-red); background:rgba(229,62,62,.06); }
+
+        .admin-content { padding:18px 22px 22px; }
+        .admin-summary {
+            display:grid;
+            grid-template-columns:repeat(3,1fr);
+            gap:10px;
+            margin-bottom:16px;
+        }
+        .admin-summary-card {
+            background:var(--input-bg);
+            border:1px solid var(--card-border);
+            border-radius:13px;
+            padding:12px 14px;
+        }
+        .admin-summary-label {
+            color:var(--text-sub);
+            font-size:9px;
+            font-weight:900;
+            text-transform:uppercase;
+            letter-spacing:.7px;
+        }
+        .admin-summary-value {
+            margin-top:3px;
+            color:var(--text-main);
+            font-size:18px;
+            font-weight:950;
+        }
+
+        .admin-list-head {
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            gap:10px;
+            margin:4px 0 9px;
+        }
+        .admin-list-title {
+            font-size:12px;
+            font-weight:950;
+            text-transform:uppercase;
+            letter-spacing:.7px;
+            color:var(--text-main);
+        }
+        .admin-list-hint {
+            font-size:10px;
+            color:var(--text-sub);
+            font-weight:700;
+        }
+
+        .admin-heading {
+            display:grid;
+            grid-template-columns:minmax(220px,1.8fr) .85fr .85fr 1.55fr 74px;
+            gap:10px;
+            align-items:center;
+            padding:0 12px 8px;
+            color:var(--text-sub);
+            font-size:9px;
+            font-weight:900;
+            text-transform:uppercase;
+            letter-spacing:.7px;
+        }
+        .admin-players-list {
+            display:flex;
+            flex-direction:column;
+            gap:7px;
+            max-height:52vh;
+            overflow-y:auto;
+            padding:2px 3px 4px;
+            scrollbar-width:thin;
+        }
+        .admin-player {
+            display:grid;
+            grid-template-columns:minmax(220px,1.8fr) .85fr .85fr 1.55fr 74px;
+            gap:10px;
+            align-items:center;
+            padding:10px 12px;
+            background:var(--card-bg);
+            border:1px solid var(--card-border);
+            border-radius:13px;
+            transition:all .16s ease;
+        }
+        .admin-player:hover {
+            border-color:rgba(49,130,206,.5);
+            box-shadow:0 5px 18px rgba(0,0,0,.06);
+            transform:translateY(-1px);
+        }
+        .admin-player-main { display:flex; align-items:center; gap:10px; min-width:0; }
+        .admin-avatar {
+            width:34px;
+            height:34px;
+            flex:0 0 34px;
+            border-radius:10px;
+            background:rgba(49,130,206,.12);
+            color:var(--primary-blue);
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            font-size:11px;
+            font-weight:950;
+            border:1px solid rgba(49,130,206,.15);
+        }
+        .admin-player-name-wrap { min-width:0; }
+        .admin-player-id {
+            color:var(--text-sub);
+            font-size:9px;
+            font-weight:800;
+            margin-bottom:2px;
+        }
+        .admin-player input {
+            width:100%;
+            min-width:0;
+            padding:10px 11px;
+            border:1px solid var(--card-border);
+            border-radius:9px;
+            background:var(--input-bg);
+            color:var(--text-main);
+            font-weight:750;
+            outline:none;
+            transition:border-color .15s,box-shadow .15s;
+        }
+        .admin-player input:focus,
+        .admin-add input:focus {
+            border-color:var(--primary-blue);
+            box-shadow:0 0 0 3px rgba(49,130,206,.1);
+        }
         .admin-player-roles { display:flex; gap:5px; flex-wrap:wrap; }
-        .admin-role-btn { border:1px solid var(--card-border); background:var(--input-bg); color:var(--text-sub); padding:7px 8px; border-radius:8px; cursor:pointer; font-size:10px; font-weight:900; transition:all .15s; }
-        .admin-role-btn:hover { border-color:var(--primary-blue); }
+        .admin-role-btn {
+            border:1px solid var(--card-border);
+            background:var(--input-bg);
+            color:var(--text-sub);
+            padding:6px 8px;
+            border-radius:7px;
+            cursor:pointer;
+            font-size:9px;
+            font-weight:950;
+            transition:all .15s;
+        }
+        .admin-role-btn:hover { border-color:var(--primary-blue); transform:translateY(-1px); }
         .admin-role-btn.active[data-role="FWD"] { background:var(--primary-red); color:#fff; border-color:var(--primary-red); }
         .admin-role-btn.active[data-role="DEF"] { background:var(--primary-blue); color:#fff; border-color:var(--primary-blue); }
         .admin-role-btn.active[data-role="GK"] { background:var(--primary-gold); color:#fff; border-color:var(--primary-gold); }
-        .admin-roles-title { font-size:10px; color:var(--text-sub); font-weight:900; text-transform:uppercase; margin-bottom:5px; }
-        .role-display { display:flex; gap:5px; margin-top:8px; }
-        .role-display span { padding:4px 8px; border-radius:7px; font-size:10px; font-weight:900; color:#fff; }
-        .role-display .role-fwd { background:var(--primary-red); }
-        .role-display .role-def { background:var(--primary-blue); }
-        .role-display .role-gk { background:var(--primary-gold); }
-        .admin-heading { display:grid; grid-template-columns:1.5fr .7fr .7fr 1.4fr auto; gap:8px; margin:4px 0 0; padding:0 0 6px; color:var(--text-sub); font-size:10px; font-weight:900; text-transform:uppercase; letter-spacing:.5px; }
-        .admin-player input { width:100%; padding:9px; border:1px solid var(--card-border); border-radius:8px; background:var(--input-bg); color:var(--text-main); font-weight:700; }
-        .admin-player button { border:1px solid var(--card-border); background:var(--input-bg); color:var(--text-main); padding:9px 10px; border-radius:8px; cursor:pointer; font-weight:900; }
-        .admin-add { display:grid; grid-template-columns:1.5fr .8fr .8fr auto; gap:8px; margin-top:14px; }
-        .admin-add input { padding:10px; border:1px solid var(--card-border); border-radius:8px; background:var(--input-bg); color:var(--text-main); }
-        @media(max-width:700px){ .admin-player,.admin-add,.admin-heading{grid-template-columns:1fr 1fr;} .admin-player-roles,.admin-player button,.admin-add button{grid-column:1/-1;} .admin-heading{display:none;} }
+        .admin-roles-title { font-size:8px; color:var(--text-sub); font-weight:900; text-transform:uppercase; margin-bottom:4px; }
+        .admin-delete-btn {
+            width:100%;
+            padding:7px 7px;
+            border:1px solid rgba(229,62,62,.2);
+            background:rgba(229,62,62,.06);
+            color:var(--primary-red);
+            border-radius:9px;
+            cursor:pointer;
+            font-size:10px;
+            font-weight:950;
+            transition:all .15s;
+        }
+        .admin-delete-btn:hover { background:var(--primary-red); color:#fff; border-color:var(--primary-red); }
+
+        .admin-add-card {
+            margin-top:16px;
+            padding:15px;
+            border:1px dashed var(--card-border);
+            border-radius:15px;
+            background:var(--input-bg);
+        }
+        .admin-add-title {
+            font-size:11px;
+            font-weight:950;
+            color:var(--text-main);
+            margin-bottom:9px;
+        }
+        .admin-add {
+            display:grid;
+            grid-template-columns:minmax(180px,1.8fr) .75fr .75fr 105px;
+            gap:9px;
+            margin-top:0;
+        }
+        .admin-add input {
+            width:100%;
+            min-width:0;
+            padding:11px;
+            border:1px solid var(--card-border);
+            border-radius:9px;
+            background:var(--card-bg);
+            color:var(--text-main);
+            font-weight:700;
+            outline:none;
+        }
+        .admin-save-bar {
+            padding:14px 22px;
+            border-top:1px solid var(--card-border);
+            background:var(--input-bg);
+            display:flex;
+            justify-content:flex-end;
+            gap:10px;
+        }
+        .admin-save-btn {
+            width:auto;
+            min-width:120px;
+            margin:0;
+            padding:9px 13px;
+            border-radius:11px;
+        }
+        .admin-cancel-btn {
+            width:auto;
+            min-width:80px;
+            margin:0;
+            padding:9px 13px;
+            border-radius:11px;
+        }
+        @media(max-width:800px){
+            .admin-panel { margin:0 auto 20px; border-radius:18px; }
+            .admin-heading { display:none; }
+            .admin-players-list { max-height:none; overflow:visible; }
+            .admin-player {
+                grid-template-columns:1fr 1fr;
+                gap:9px;
+                padding:12px;
+            }
+            .admin-player-main,
+            .admin-player-roles,
+            .admin-delete-btn { grid-column:1/-1; }
+            .admin-player-roles { margin-top:-2px; }
+            .admin-add { grid-template-columns:1fr 1fr; }
+            .admin-add button { grid-column:1/-1; }
+        }
+        @media(max-width:520px){
+            .admin-modal { padding:8px; }
+            .admin-topbar { padding:16px; }
+            .admin-content { padding:14px; }
+            .admin-summary { grid-template-columns:1fr 1fr; }
+            .admin-summary-card:last-child { grid-column:1/-1; }
+            .admin-player { grid-template-columns:1fr; }
+            .admin-player-main,.admin-player-roles,.admin-delete-btn { grid-column:auto; }
+            .admin-add { grid-template-columns:1fr; }
+            .admin-add button { grid-column:auto; }
+            .admin-save-bar { padding:12px 14px; flex-direction:column-reverse; }
+            .admin-save-btn,.admin-cancel-btn { width:100%; }
+        }
 
         .theme-toggle-btn {
             background: var(--input-bg);
@@ -416,20 +723,58 @@
 
 <div id="adminModal" class="admin-modal">
   <div class="admin-panel">
-    <div class="section-header" style="margin-top:0;">
-      <span class="section-title">🔐 Admin Panel</span>
-      <button class="admin-btn" onclick="closeAdmin()">✕</button>
+    <div class="admin-topbar">
+      <div class="admin-title-wrap">
+        <div class="admin-title-icon">🔐</div>
+        <div>
+          <div class="admin-title">Admin Panel</div>
+          <div class="admin-subtitle">Manage players, ratings, speed and positions</div>
+        </div>
+      </div>
+      <button class="admin-close" onclick="closeAdmin()" title="Close">✕</button>
     </div>
-    <p style="color:var(--text-sub);font-size:12px;margin-bottom:14px;">Manage player name, ⭐ rating, ⚡ speed and positions. Changes are saved automatically.</p>
-    <div class="admin-heading"><span>Player</span><span>Rating</span><span>Speed</span><span>Positions</span><span></span></div>
-    <div id="adminPlayersList"></div>
-    <div class="admin-add">
-      <input id="newPlayerName" placeholder="Player name">
-      <input id="newPlayerRating" type="number" min="0" max="5" step="0.25" placeholder="Rating">
-      <input id="newPlayerSpeed" type="number" min="1" max="5" step="1" placeholder="Speed">
-      <button class="btn btn-green" style="margin:0;padding:10px;" onclick="addPlayerAdmin()">+ Add Player</button>
+
+    <div class="admin-content">
+      <div class="admin-summary">
+        <div class="admin-summary-card">
+          <div class="admin-summary-label">Players</div>
+          <div class="admin-summary-value" id="adminPlayerCount">0</div>
+        </div>
+        <div class="admin-summary-card">
+          <div class="admin-summary-label">Average Rating</div>
+          <div class="admin-summary-value" id="adminAverageRating">0</div>
+        </div>
+        <div class="admin-summary-card">
+          <div class="admin-summary-label">Tournament Status</div>
+          <div class="admin-summary-value" id="adminTournamentStatus">Ready</div>
+        </div>
+      </div>
+
+      <div class="admin-list-head">
+        <div class="admin-list-title">Player Management</div>
+        <div class="admin-list-hint">Changes are saved automatically</div>
+      </div>
+
+      <div class="admin-heading">
+        <span>Player</span><span>Rating</span><span>Speed</span><span>Positions</span><span>Action</span>
+      </div>
+      <div id="adminPlayersList" class="admin-players-list"></div>
+
+      <div class="admin-add-card">
+        <div class="admin-add-title">＋ Add New Player</div>
+        <div class="admin-add">
+          <input id="newPlayerName" placeholder="Player name">
+          <input id="newPlayerRating" type="number" min="0" max="5" step="0.25" placeholder="Rating">
+          <input id="newPlayerSpeed" type="number" min="1" max="5" step="1" placeholder="Speed">
+          <button class="btn btn-green" style="width:auto;margin:0;padding:9px 12px;border-radius:9px;font-size:11px;" onclick="addPlayerAdmin()">＋ Add</button>
+        </div>
+      </div>
     </div>
-    <button class="btn btn-green" style="margin-top:16px;" onclick="saveAdminChanges()">💾 Save Changes</button>
+
+    <div class="admin-save-bar">
+      <button class="btn btn-dark admin-cancel-btn" onclick="closeAdmin()">Cancel</button>
+      <button class="btn btn-green admin-save-btn" onclick="saveAdminChanges()">💾 Save Changes</button>
+    </div>
   </div>
 </div>
 
@@ -445,7 +790,7 @@
         { name: "Manchester United", type: "club", code: "mun", logo: "https://upload.wikimedia.org/wikipedia/en/7/7a/Manchester_United_FC_crest.svg" },
         { name: "Chelsea", type: "club", code: "che", logo: "https://upload.wikimedia.org/wikipedia/en/c/cc/Chelsea_FC.svg" },
         { name: "Inter Milan", type: "club", code: "int", logo: "https://upload.wikimedia.org/wikipedia/commons/0/05/FC_Internazionale_Milano_2021.svg" },
-        { name: "AC Milan", type: "club", code: "mil", logo: "https://upload.wikimedia.org/wikipedia/commons/d/d0/AC_Milan_logo.svg" },
+        { name: "AC Milan", type: "club", code: "mil", logo: "https://upload.wikimedia.org/wikipedia/commons/d/d0/Logo_of_AC_Milan.svg" },
         { name: "Borussia Dortmund", type: "club", code: "dor", logo: "https://upload.wikimedia.org/wikipedia/commons/6/67/Borussia_Dortmund_logo.svg" },
         { name: "France", type: "country", code: "fra", logo: "https://flagcdn.com/w160/fr.png" },
         { name: "Portugal", type: "country", code: "por", logo: "https://flagcdn.com/w160/pt.png" },
@@ -543,6 +888,15 @@
         if (el) el.innerText = text;
     }
 
+    function repairTeamLogos() {
+        const milanLogo = "https://upload.wikimedia.org/wikipedia/commons/d/d0/Logo_of_AC_Milan.svg";
+        activeTeams.forEach(team => {
+            if (team && (team.code === "mil" || team.name === "AC Milan")) {
+                team.logo = milanLogo;
+            }
+        });
+    }
+
     async function loadOnlineData() {
         const { data, error } = await supabaseClient
             .from("tournament_state")
@@ -561,6 +915,7 @@
                 ? data.players
                 : JSON.parse(JSON.stringify(initialPlayers));
             activeTeams = Array.isArray(data.teams) ? data.teams : [];
+            repairTeamLogos();
             activeMatches = Array.isArray(data.matches) ? data.matches : [];
             currentDisplayedRound = Number(data.current_round) || 1;
             totalRounds = Number(data.total_rounds) || 0;
@@ -592,6 +947,7 @@
 
                     playersData = Array.isArray(payload.new.players) ? payload.new.players : [];
                     activeTeams = Array.isArray(payload.new.teams) ? payload.new.teams : [];
+                    repairTeamLogos();
                     activeMatches = Array.isArray(payload.new.matches) ? payload.new.matches : [];
                     currentDisplayedRound = Number(payload.new.current_round) || 1;
                     totalRounds = Number(payload.new.total_rounds) || 0;
@@ -668,13 +1024,43 @@
 
     function renderAdminPlayers() {
         const box = document.getElementById("adminPlayersList");
-        box.innerHTML = playersData.map(p => {
+        const countEl = document.getElementById("adminPlayerCount");
+        const avgEl = document.getElementById("adminAverageRating");
+        const statusEl = document.getElementById("adminTournamentStatus");
+
+        if (countEl) countEl.innerText = playersData.length;
+
+        const avgRating = playersData.length
+            ? playersData.reduce((sum, p) => sum + (Number(p.rating) || 0), 0) / playersData.length
+            : 0;
+        if (avgEl) avgEl.innerText = `⭐ ${avgRating.toFixed(2).replace(/0+$/, '').replace(/\.$/, '')}`;
+
+        if (statusEl) statusEl.innerText = activeTeams.length > 0 ? "In Progress" : "Ready";
+
+        box.innerHTML = playersData.map((p, index) => {
           if (!Array.isArray(p.roles)) p.roles = [];
+          const initials = p.name
+            .split(/\s+/)
+            .filter(Boolean)
+            .slice(0, 2)
+            .map(part => part[0])
+            .join("")
+            .toUpperCase() || "?";
+
           return `
           <div class="admin-player">
-            <div><input value="${p.name.replace(/"/g,'&quot;')}" placeholder="Player name" title="Player name" onchange="adminUpdateName(${p.id}, this.value)"></div>
+            <div class="admin-player-main">
+              <div class="admin-avatar">${initials}</div>
+              <div class="admin-player-name-wrap">
+                <div class="admin-player-id">PLAYER #${index + 1}</div>
+                <input value="${p.name.replace(/"/g,'&quot;')}" placeholder="Player name" title="Player name" onchange="adminUpdateName(${p.id}, this.value)">
+              </div>
+            </div>
+
             <input type="number" min="0" max="5" step="0.25" value="${p.rating}" placeholder="Rating" title="Rating" onchange="adminUpdateRating(${p.id}, this.value)">
+
             <input type="number" min="1" max="5" step="1" value="${p.speed || 3}" placeholder="Speed" title="Speed" onchange="adminUpdateSpeed(${p.id}, this.value)">
+
             <div>
               <div class="admin-roles-title">Positions</div>
               <div class="admin-player-roles">
@@ -683,7 +1069,8 @@
                 <button type="button" class="admin-role-btn ${p.roles.includes('GK') ? 'active' : ''}" data-role="GK" onclick="adminToggleRole(${p.id}, 'GK')">🧤 GK</button>
               </div>
             </div>
-            <button onclick="deletePlayerAdmin(${p.id})">🗑️ Delete</button>
+
+            <button class="admin-delete-btn" onclick="deletePlayerAdmin(${p.id})">🗑️ Delete</button>
           </div>`;
         }).join("");
     }
@@ -1309,7 +1696,7 @@
                 <tr>
                     <td>${i + 1}</td>
                     <td class="team-cell">
-                        <img src="${t.logo}" class="team-logo" alt="">
+                        <img src="${t.logo || defaultLogo}" class="team-logo" alt="" onerror="this.onerror=null;this.src=defaultLogo;">
                         <div style="display:flex; flex-direction:column; line-height:1.2;">
                             <span>${t.name}</span>
                             <span class="country-code">${t.code || ''}</span>
@@ -1399,7 +1786,7 @@
 
                         <div class="match-main">
                             <div class="match-team">
-                                <img src="${t1 ? t1.logo : defaultLogo}" class="team-logo" alt="">
+                                <img src="${t1 ? (t1.logo || defaultLogo) : defaultLogo}" class="team-logo" alt="" onerror="this.onerror=null;this.src=defaultLogo;">
                                 <div style="display:flex; flex-direction:column; line-height:1.2;">
                                     <span>${t1 ? t1.name : 'T1'}</span>
                                     <span class="country-code">${t1 ? t1.code : ''}</span>
@@ -1416,7 +1803,7 @@
                                     <span class="country-code">${t2 ? t2.code : ''}</span>
                                 </div>
 
-                                <img src="${t2 ? t2.logo : defaultLogo}" class="team-logo" alt="">
+                                <img src="${t2 ? (t2.logo || defaultLogo) : defaultLogo}" class="team-logo" alt="" onerror="this.onerror=null;this.src=defaultLogo;">
                             </div>
                         </div>
 
@@ -1548,7 +1935,7 @@
 
                         <div class="match-main">
                             <div class="match-team">
-                                <img src="${t1 ? t1.logo : defaultLogo}" class="team-logo" alt="">
+                                <img src="${t1 ? (t1.logo || defaultLogo) : defaultLogo}" class="team-logo" alt="" onerror="this.onerror=null;this.src=defaultLogo;">
                                 <div style="display:flex; flex-direction:column; line-height:1.2;">
                                     <span>${t1 ? t1.name : 'T1'}</span>
                                     <span class="country-code">${t1 ? t1.code : ''}</span>
@@ -1581,7 +1968,7 @@
                                     <span class="country-code">${t2 ? t2.code : ''}</span>
                                 </div>
 
-                                <img src="${t2 ? t2.logo : defaultLogo}" class="team-logo" alt="">
+                                <img src="${t2 ? (t2.logo || defaultLogo) : defaultLogo}" class="team-logo" alt="" onerror="this.onerror=null;this.src=defaultLogo;">
                             </div>
                         </div>
 
