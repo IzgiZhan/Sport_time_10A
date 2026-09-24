@@ -77,6 +77,20 @@
             transition:all .2s ease;
         }
         .admin-btn:hover { border-color:var(--primary-blue); transform:translateY(-1px); }
+        button:disabled, input:disabled, select:disabled {
+            cursor:not-allowed !important;
+        }
+        .view-only-note {
+            margin: 0 0 14px;
+            padding: 10px 12px;
+            border: 1px solid var(--card-border);
+            background: var(--input-bg);
+            border-radius: 10px;
+            color: var(--text-sub);
+            font-size: 11px;
+            font-weight: 800;
+            text-align: center;
+        }
         .admin-actions { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
 
         /* ===== MODERN ADMIN PANEL ===== */
@@ -612,7 +626,7 @@
 
 <header>
     <h1>Sport Time <span>10A</span> ⚽</h1>
-    <div class="admin-actions"><span id="onlineStatus" style="font-size:11px;font-weight:900;color:var(--primary-green);">🔄 Connecting...</span><button class="admin-btn" onclick="openAdmin()">🔐 Admin</button><button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Toggle Dark/Light Mode">🌙</button></div>
+    <div class="admin-actions"><span id="onlineStatus" style="font-size:11px;font-weight:900;color:var(--primary-green);">🔄 Connecting...</span><span id="accessStatus" style="font-size:11px;font-weight:900;color:var(--text-sub);">👁 View only</span><button class="admin-btn" id="adminAccessBtn" onclick="openAdmin()">🔐 Admin</button><button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Toggle Dark/Light Mode">🌙</button></div>
 </header>
 
 <div class="tabs">
@@ -625,24 +639,25 @@
     <div id="playersTab" class="section active">
         <div class="tournament-type-selector">
             <label for="tournamentTypeSelect">Tournament Mode</label>
-            <select id="tournamentTypeSelect">
+            <select id="tournamentTypeSelect" disabled>
                 <option value="country">World Cup <img src="https://upload.wikimedia.org/wikipedia/commons/3/37/World_Cup_%28trophy%29.png" class="title-trophy-icon" alt=""></option>
                 <option value="club">Champions League <img src="https://upload.wikimedia.org/wikipedia/en/c/c2/UEFA_Champions_League_Logo.svg" class="title-trophy-icon" alt=""></option>
             </select>
         </div>
         <div class="section-header">
             <span class="section-title">Class Squad (<span id="selectedCount">0</span>)</span>
-            <button onclick="selectAll(true)" style="background:none; border:none; color:var(--primary-blue); font-size:13px; font-weight:900; cursor:pointer;">Select All</button>
+            <button id="selectAllBtn" onclick="selectAll(true)" style="background:none; border:none; color:var(--primary-blue); font-size:13px; font-weight:900; cursor:pointer;">Select All</button>
         </div>
+        <div id="viewOnlyNote" class="view-only-note">👁 View-only mode. Enter the Admin password to change tournament data.</div>
         <div class="player-grid" id="playersList"></div>
-        <button class="btn btn-green" onclick="startTournament()">🚀 Start Tournament</button>
+        <button id="startTournamentBtn" class="btn btn-green" onclick="startTournament()">🔒 Admin: Start Tournament</button>
     </div>
 
     <div id="teamsTab" class="section">
         <div class="section-header" style="margin-top:0;">
             <span class="section-title">⚙️ Squads & Clubs</span>
         </div>
-        <button class="btn btn-blue" style="margin-top:0; margin-bottom: 20px;" onclick="balanceExistingTeams()">Balance teams</button>
+        <button id="balanceTeamsBtn" class="btn btn-blue" style="margin-top:0; margin-bottom: 20px;" onclick="balanceExistingTeams()">🔒 Admin: Balance teams</button>
         
         <div id="teamsResult" class="teams-container"></div>
 
@@ -718,7 +733,7 @@
         </table>
     </div>
 
-    <button class="btn btn-dark" onclick="resetChanges()">🔄 Reset All Data</button>
+    <button id="resetAllBtn" class="btn btn-dark" onclick="resetChanges()">🔒 Admin: Reset All Data</button>
 </div>
 
 <div id="adminModal" class="admin-modal">
@@ -772,7 +787,7 @@
     </div>
 
     <div class="admin-save-bar">
-      <button class="btn btn-dark admin-cancel-btn" onclick="closeAdmin()">Cancel</button>
+      <button class="btn btn-dark admin-cancel-btn" onclick="lockAdmin()">🔒 Lock</button>
       <button class="btn btn-green admin-save-btn" onclick="saveAdminChanges()">💾 Save Changes</button>
     </div>
   </div>
@@ -833,6 +848,124 @@
 
     const fixedSpeeds = { Mark:1, Alim:2, Rakhman:2, "Alseit abi":5, "Abdulluahid agay":3, Ismail:5, Dias:3, Madiyar:2, Omar:5, Akhmad:4, Akhmet:3, Batyr:3, Tamerlan:4, Abdirasul:3, Nurtas:3, Ilfat:4, Islam:4, Azamat:3, Amir:2, Yeramir:2, Oraz:3, Arnat:3, Sultan:4, Bauyrzhan:3 };
     initialPlayers.forEach(p => p.speed = fixedSpeeds[p.name] || 3);
+
+    // ================= ACCESS CONTROL =================
+    // Viewers can see the whole tournament, but only an authenticated admin
+    // can change tournament data. The hash avoids keeping the password as
+    // plain text in the page, but real database security should still use
+    // Supabase Auth + RLS.
+    const ADMIN_PASSWORD_HASH = "57ed14dc9c2b468c3ce988c54a4156ba44d33a963db49921b000aa0e43bc4ed6";
+    let isAdminAuthenticated = false;
+
+    async function sha256(value) {
+        const data = new TextEncoder().encode(value);
+        const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+        return Array.from(new Uint8Array(hashBuffer))
+            .map(b => b.toString(16).padStart(2, "0"))
+            .join("");
+    }
+
+    async function verifyAdminPassword(password) {
+        if (!password) return false;
+        return (await sha256(password)) === ADMIN_PASSWORD_HASH;
+    }
+
+    function requireAdmin(action = "this action") {
+        if (isAdminAuthenticated) return true;
+        alert("🔒 Admin access required. Only the admin can " + action + ".");
+        return false;
+    }
+
+    function updateAccessUI() {
+        const accessStatus = document.getElementById("accessStatus");
+        const adminBtn = document.getElementById("adminAccessBtn");
+        const startBtn = document.getElementById("startTournamentBtn");
+        const balanceBtn = document.getElementById("balanceTeamsBtn");
+        const resetBtn = document.getElementById("resetAllBtn");
+        const typeSelect = document.getElementById("tournamentTypeSelect");
+        const selectAllBtn = document.getElementById("selectAllBtn");
+        const prevBtn = document.getElementById("prevRoundBtn");
+        const nextBtn = document.getElementById("nextRoundBtn");
+        const roundSelect = document.getElementById("roundSelect");
+        const addRoundBtn = document.getElementById("addNextRoundBtn");
+
+        if (accessStatus) {
+            accessStatus.innerText = isAdminAuthenticated ? "🔓 Admin mode" : "👁 View only";
+            accessStatus.style.color = isAdminAuthenticated ? "var(--primary-green)" : "var(--text-sub)";
+        }
+
+        if (adminBtn) adminBtn.innerText = isAdminAuthenticated ? "🔓 Admin" : "🔐 Admin";
+
+        if (startBtn) {
+            startBtn.disabled = !isAdminAuthenticated;
+            startBtn.innerText = isAdminAuthenticated ? "🚀 Start Tournament" : "🔒 Admin: Start Tournament";
+        }
+        if (balanceBtn) {
+            balanceBtn.disabled = !isAdminAuthenticated;
+            balanceBtn.innerText = isAdminAuthenticated ? "Balance teams" : "🔒 Admin: Balance teams";
+        }
+        if (resetBtn) {
+            resetBtn.disabled = !isAdminAuthenticated;
+            resetBtn.innerText = isAdminAuthenticated ? "🔄 Reset All Data" : "🔒 Admin: Reset All Data";
+        }
+        if (typeSelect) typeSelect.disabled = !isAdminAuthenticated;
+        if (selectAllBtn) selectAllBtn.disabled = !isAdminAuthenticated;
+
+        // Round navigation is safe for viewers, but adding a new round is not.
+        if (addRoundBtn) addRoundBtn.disabled = !isAdminAuthenticated;
+        if (roundSelect) roundSelect.disabled = false;
+        if (prevBtn) prevBtn.disabled = false;
+        if (nextBtn) nextBtn.disabled = false;
+
+        document.querySelectorAll('#playersList input[type="checkbox"]').forEach(cb => {
+            cb.disabled = !isAdminAuthenticated;
+        });
+
+        const viewOnlyNote = document.getElementById("viewOnlyNote");
+        if (viewOnlyNote) {
+            viewOnlyNote.style.display = isAdminAuthenticated ? "none" : "block";
+        }
+
+        document.querySelectorAll('.team-select').forEach(select => {
+            select.disabled = !isAdminAuthenticated;
+        });
+
+        document.querySelectorAll('.match-card input, .match-card select, .match-card .match-btn').forEach(el => {
+            el.disabled = !isAdminAuthenticated;
+        });
+    }
+
+    async function openAdmin() {
+        if (isAdminAuthenticated) {
+            document.getElementById("adminModal").classList.add("show");
+            renderAdminPlayers();
+            return;
+        }
+
+        const password = prompt("Enter admin password:");
+        if (password === null) return;
+
+        const correct = await verifyAdminPassword(password);
+        if (!correct) {
+            alert("❌ Incorrect admin password.");
+            return;
+        }
+
+        isAdminAuthenticated = true;
+        updateAccessUI();
+        document.getElementById("adminModal").classList.add("show");
+        renderAdminPlayers();
+        alert("🔓 Admin access granted for this session.");
+    }
+
+    function lockAdmin() {
+        isAdminAuthenticated = false;
+        closeAdmin();
+        updateAccessUI();
+        renderPlayers();
+        renderTeamsCards();
+        renderCurrentRoundMatches();
+    }
 
     // ================= ONLINE DATABASE =================
     const SUPABASE_URL = "https://fjxlvwtxtswdwlkfromz.supabase.co";
@@ -995,16 +1128,10 @@
             });
     }
 
-    function openAdmin() {
-        const password = prompt("Enter admin password:");
-        if (password !== "1234") { if (password !== null) alert("Incorrect password!"); return; }
-        document.getElementById("adminModal").classList.add("show");
-        renderAdminPlayers();
-    }
-
     function closeAdmin() { document.getElementById("adminModal").classList.remove("show"); }
 
     function saveAdminChanges() {
+        if (!requireAdmin("save admin changes")) return;
         saveData();
         renderPlayers();
         if (activeTeams.length > 0) {
@@ -1075,11 +1202,15 @@
         }).join("");
     }
 
-    function adminUpdateName(id, value) { const p=playersData.find(x=>x.id===id); if(p && value.trim()){p.name=value.trim();saveData();renderPlayers();renderTeamsCards();renderCurrentRoundMatches();renderAdminPlayers();} }
-    function adminUpdateRating(id, value) { const p=playersData.find(x=>x.id===id); if(p){p.rating=Math.max(0,Math.min(5,parseFloat(value)||0));saveData();renderPlayers();} }
-    function adminUpdateSpeed(id, value) { const p=playersData.find(x=>x.id===id); if(p){p.speed=Math.max(1,Math.min(5,parseInt(value)||1));saveData();renderPlayers();} }
+    function adminUpdateName(id, value) {
+        if (!requireAdmin("edit a player")) return; const p=playersData.find(x=>x.id===id); if(p && value.trim()){p.name=value.trim();saveData();renderPlayers();renderTeamsCards();renderCurrentRoundMatches();renderAdminPlayers();} }
+    function adminUpdateRating(id, value) {
+        if (!requireAdmin("edit a player rating")) return; const p=playersData.find(x=>x.id===id); if(p){p.rating=Math.max(0,Math.min(5,parseFloat(value)||0));saveData();renderPlayers();} }
+    function adminUpdateSpeed(id, value) {
+        if (!requireAdmin("edit player speed")) return; const p=playersData.find(x=>x.id===id); if(p){p.speed=Math.max(1,Math.min(5,parseInt(value)||1));saveData();renderPlayers();} }
 
     function adminToggleRole(id, role) {
+        if (!requireAdmin("edit player positions")) return;
         const p = playersData.find(x => x.id === id);
         if (!p) return;
         if (!Array.isArray(p.roles)) p.roles = [];
@@ -1092,6 +1223,7 @@
     }
 
     function addPlayerAdmin() {
+        if (!requireAdmin("add a player")) return;
         const name=document.getElementById("newPlayerName").value.trim();
         const rating=parseFloat(document.getElementById("newPlayerRating").value);
         const speed=parseInt(document.getElementById("newPlayerSpeed").value);
@@ -1122,6 +1254,7 @@
     }
 
     function deletePlayerAdmin(id) {
+        if (!requireAdmin("delete a player")) return;
         const p=playersData.find(x=>x.id===id);
         if(!p)return;
 
@@ -1198,9 +1331,11 @@
         });
 
         updateCount();
+        updateAccessUI();
     }
 
     function toggleRole(id, role) {
+        if (!requireAdmin("edit player positions")) return;
         openAdmin();
     }
 
@@ -1210,6 +1345,7 @@
     }
 
     function selectAll(status) {
+        if (!requireAdmin("select players")) return;
         document.querySelectorAll('#playersList input[type="checkbox"]').forEach(c => c.checked = status);
         updateCount();
     }
@@ -1409,6 +1545,7 @@
     }
 
     function startTournament() {
+        if (!requireAdmin("start the tournament")) return;
         let selected = playersData.filter(p => {
             const cb = document.getElementById(`check_${p.id}`);
             return cb && cb.checked;
@@ -1495,6 +1632,7 @@
     }
 
     function balanceExistingTeams() {
+        if (!requireAdmin("rebalance teams")) return;
         if (activeTeams.length === 0) {
             alert("No active teams to balance!");
             return;
@@ -1577,6 +1715,7 @@
     }
 
     function generateNextRoundManual() {
+        if (!requireAdmin("add a new round")) return;
         appendRoundToSchedule();
         setupRoundSelectOptions();
         selectRound(totalRounds);
@@ -1599,7 +1738,7 @@
 
     function selectRound(tourNum) {
         currentDisplayedRound = parseInt(tourNum);
-        saveData();
+        if (isAdminAuthenticated) saveData();
         renderCurrentRoundMatches();
     }
 
@@ -1611,12 +1750,13 @@
             document.getElementById('roundSelect').value =
                 currentDisplayedRound;
 
-            saveData();
+            if (isAdminAuthenticated) saveData();
             renderCurrentRoundMatches();
         }
     }
 
     function changeTeamPreset(teamId, selectedName) {
+        if (!requireAdmin("change a team")) return;
         let team = activeTeams.find(t => t.id === teamId);
         if (!team) return;
 
@@ -1843,6 +1983,7 @@
                                 <select
                                     id="m_${m.id}_t1_g${i}_scorer"
                                     onchange="updateScorerOrAssist(${m.id}, 't1', ${i})"
+                                    ${isAdminAuthenticated ? '' : 'disabled'}
                                 >
                                     ${t1.players.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
                                 </select>
@@ -1852,6 +1993,7 @@
                                         type="checkbox"
                                         id="m_${m.id}_t1_g${i}_og"
                                         onchange="toggleAutogolView(${m.id}, 't1', ${i})"
+                                        ${isAdminAuthenticated ? '' : 'disabled'}
                                     >
                                     Own Goal
                                 </label>
@@ -1861,6 +2003,7 @@
                                 <select
                                     id="m_${m.id}_t1_g${i}_assistant"
                                     onchange="updateScorerOrAssist(${m.id}, 't1', ${i})"
+                                    ${isAdminAuthenticated ? '' : 'disabled'}
                                 >
                                     <option value="">None</option>
 
@@ -1889,6 +2032,7 @@
                                 <select
                                     id="m_${m.id}_t2_g${i}_scorer"
                                     onchange="updateScorerOrAssist(${m.id}, 't2', ${i})"
+                                    ${isAdminAuthenticated ? '' : 'disabled'}
                                 >
                                     ${t2.players.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
                                 </select>
@@ -1898,6 +2042,7 @@
                                         type="checkbox"
                                         id="m_${m.id}_t2_g${i}_og"
                                         onchange="toggleAutogolView(${m.id}, 't2', ${i})"
+                                        ${isAdminAuthenticated ? '' : 'disabled'}
                                     >
                                     Own Goal
                                 </label>
@@ -1907,6 +2052,7 @@
                                 <select
                                     id="m_${m.id}_t2_g${i}_assistant"
                                     onchange="updateScorerOrAssist(${m.id}, 't2', ${i})"
+                                    ${isAdminAuthenticated ? '' : 'disabled'}
                                 >
                                     <option value="">None</option>
 
@@ -1949,6 +2095,7 @@
                                     id="m_${m.id}_s1"
                                     value="${val1}"
                                     onchange="updateMatchEventsView(${m.id})"
+                                    ${isAdminAuthenticated ? '' : 'disabled'}
                                 >
 
                                 <span>:</span>
@@ -1959,6 +2106,7 @@
                                     id="m_${m.id}_s2"
                                     value="${val2}"
                                     onchange="updateMatchEventsView(${m.id})"
+                                    ${isAdminAuthenticated ? '' : 'disabled'}
                                 >
                             </div>
 
@@ -1979,16 +2127,19 @@
                         <button
                             class="match-btn"
                             onclick="saveMatchResult(${m.id})"
+                            ${isAdminAuthenticated ? '' : 'disabled'}
                         >
-                            End match
+                            ${isAdminAuthenticated ? 'End match' : '🔒 Admin: End match'}
                         </button>
                     </div>
                 `;
             }
         });
+        updateAccessUI();
     }
 
     function toggleAutogolView(matchId, teamTag, goalIdx) {
+        if (!requireAdmin("edit match events")) return;
         let isOg =
             document.getElementById(
                 `m_${matchId}_${teamTag}_g${goalIdx}_og`
@@ -2037,6 +2188,7 @@
     }
 
     function updateScorerOrAssist(matchId, teamTag, goalIdx) {
+        if (!requireAdmin("edit match events")) return;
         let scorerSelect =
             document.getElementById(
                 `m_${matchId}_${teamTag}_g${goalIdx}_scorer`
@@ -2100,6 +2252,7 @@
     }
 
     function updateMatchEventsView(matchId) {
+        if (!requireAdmin("edit match events")) return;
         let s1Val =
             document.getElementById(`m_${matchId}_s1`).value;
 
@@ -2126,6 +2279,7 @@
     }
 
     function saveMatchResult(matchId) {
+        if (!requireAdmin("save a match result")) return;
         let match =
             activeMatches.find(m => m.id === matchId);
 
@@ -2582,6 +2736,7 @@
                             <select
                                 class="team-select"
                                 onchange="changeTeamPreset(${t.id}, this.value)"
+                                ${isAdminAuthenticated ? '' : 'disabled'}
                             >
                                 ${optionsHtml}
                             </select>
@@ -2605,6 +2760,7 @@
                 </div>
             `;
         });
+        updateAccessUI();
     }
 
     function setLeaderboardMode(mode, btn) {
@@ -2744,6 +2900,7 @@
     }
 
     function resetChanges() {
+        if (!requireAdmin("reset all tournament data")) return;
         if (
             confirm(
                 "Are you sure you want to reset all tournament data and player stats?"
@@ -2809,6 +2966,7 @@
                 : [];
 
         renderPlayers();
+        updateAccessUI();
 
         if (activeTeams.length > 0) {
             setupRoundSelectOptions();
