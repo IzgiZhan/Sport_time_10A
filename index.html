@@ -2984,4 +2984,39 @@
     };
 </script>
 </body>
+    <style>
+/* Пока не введён пароль, всё лишнее скрыто */
+body:not(.is-admin) #startTournamentBtn,
+body:not(.is-admin) #balanceTeamsBtn,
+body:not(.is-admin) #resetAllBtn,
+body:not(.is-admin) #selectAllBtn,
+body:not(.is-admin) #addNextRoundBtn,
+body:not(.is-admin) .tournament-type-selector,
+body:not(.is-admin) .player-info input[type="checkbox"],
+body:not(.is-admin) .match-btn,
+body:not(.is-admin) .goal-events-container { display: none !important; }
+
+/* "View only" убрано совсем */
+#accessStatus, #viewOnlyNote { display: none !important; }
+
+/* Кнопка админа справа сверху, компактная */
+#adminAccessBtn { padding: 8px 11px; font-size: 16px; }
+</style>
+
+<script>
+(function () {
+    // Новый пароль: Izgi_Zhan
+    const NEW_HASH = "a73b6d7dadf6dc128c6b52ca38514a158e3e3fa56ef5182540f3561586de0160";
+    window.verifyAdminPassword = async function (password) {
+        return !!password && (await sha256(password)) === NEW_HASH;
+    };
+
+    // После правильного пароля показываем кнопки
+    const baseUpdate = window.updateAccessUI;
+    window.updateAccessUI = function () {
+        document.body.classList.toggle("is-admin", isAdminAuthenticated);
+        baseUpdate();
+    };
+})();
+</script>
 </html>
