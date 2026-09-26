@@ -94,142 +94,53 @@
         .admin-actions { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
 
         /* ===== MODERN ADMIN PANEL ===== */
-        .admin-modal {
-            display:none;
-            position:fixed;
-            inset:0;
-            z-index:1000;
-            background:rgba(15,23,42,.68);
-            backdrop-filter:blur(7px);
-            -webkit-backdrop-filter:blur(7px);
-            padding:20px;
-            overflow:auto;
-        }
-        .admin-modal.show {
-            display:flex;
-            align-items:flex-start;
-            justify-content:center;
-        }
-        .admin-panel {
-            width:min(820px,100%);
-            margin:10px auto 30px;
-            background:var(--card-bg);
-            border:1px solid var(--card-border);
-            border-radius:18px;
-            box-shadow:0 25px 80px rgba(0,0,0,.28);
-            overflow:hidden;
-            animation:adminPanelIn .22s ease-out;
+        #adminTab {
+            max-width:none;
+            width:100vw;
+            margin-left:calc(50% - 50vw);
+            margin-right:calc(50% - 50vw);
+            box-sizing:border-box;
+            padding:0 clamp(16px,4vw,48px) 30px;
         }
         @keyframes adminPanelIn {
             from { opacity:0; transform:translateY(12px) scale(.985); }
             to { opacity:1; transform:translateY(0) scale(1); }
         }
-        .admin-topbar {
-            padding:20px 22px;
-            background:linear-gradient(135deg,rgba(49,130,206,.12),rgba(49,130,206,.03));
-            border-bottom:1px solid var(--card-border);
-            display:flex;
-            justify-content:space-between;
-            align-items:center;
-            gap:15px;
-        }
-        .admin-title-wrap { display:flex; align-items:center; gap:13px; }
-        .admin-title-icon {
-            width:44px;
-            height:44px;
-            border-radius:13px;
-            display:flex;
-            align-items:center;
-            justify-content:center;
-            background:var(--primary-blue);
-            color:#fff;
-            font-size:21px;
-            box-shadow:0 7px 18px rgba(49,130,206,.25);
-        }
-        .admin-title {
-            font-size:20px;
-            line-height:1.1;
-            font-weight:950;
-            color:var(--text-main);
-        }
-        .admin-subtitle {
-            margin-top:4px;
-            color:var(--text-sub);
-            font-size:11px;
-            font-weight:700;
-        }
-        .admin-close {
-            width:38px;
-            height:38px;
-            border-radius:11px;
-            border:1px solid var(--card-border);
-            background:var(--card-bg);
-            color:var(--text-sub);
-            cursor:pointer;
-            font-size:16px;
-            font-weight:900;
-            display:flex;
-            align-items:center;
-            justify-content:center;
-            transition:all .18s ease;
-        }
-        .admin-close:hover { color:var(--primary-red); border-color:var(--primary-red); background:rgba(229,62,62,.06); }
 
-        .admin-content { padding:18px 22px 22px; }
         .admin-summary {
             display:grid;
             grid-template-columns:repeat(3,1fr);
-            gap:10px;
-            margin-bottom:16px;
+            gap:12px;
+            margin-bottom:18px;
         }
         .admin-summary-card {
             background:var(--input-bg);
             border:1px solid var(--card-border);
-            border-radius:13px;
-            padding:12px 14px;
+            border-radius:14px;
+            padding:12px 16px;
         }
         .admin-summary-label {
             color:var(--text-sub);
-            font-size:9px;
+            font-size:10px;
             font-weight:900;
             text-transform:uppercase;
             letter-spacing:.7px;
         }
         .admin-summary-value {
-            margin-top:3px;
+            margin-top:4px;
             color:var(--text-main);
-            font-size:18px;
+            font-size:19px;
             font-weight:950;
-        }
-
-        .admin-list-head {
-            display:flex;
-            justify-content:space-between;
-            align-items:center;
-            gap:10px;
-            margin:4px 0 9px;
-        }
-        .admin-list-title {
-            font-size:12px;
-            font-weight:950;
-            text-transform:uppercase;
-            letter-spacing:.7px;
-            color:var(--text-main);
-        }
-        .admin-list-hint {
-            font-size:10px;
-            color:var(--text-sub);
-            font-weight:700;
         }
 
         .admin-heading {
             display:grid;
-            grid-template-columns:minmax(220px,1.8fr) .85fr .85fr 1.55fr 74px;
-            gap:10px;
+            grid-template-columns:minmax(240px,1.8fr) .8fr .8fr 1.5fr 74px;
+            gap:12px;
             align-items:center;
-            padding:0 12px 8px;
+            padding:0 14px 8px;
             color:var(--text-sub);
-            font-size:9px;
+            font-size:11px;
             font-weight:900;
             text-transform:uppercase;
             letter-spacing:.7px;
@@ -237,18 +148,18 @@
         .admin-players-list {
             display:flex;
             flex-direction:column;
-            gap:7px;
-            max-height:52vh;
+            gap:8px;
+            max-height:62vh;
             overflow-y:auto;
             padding:2px 3px 4px;
             scrollbar-width:thin;
         }
         .admin-player {
             display:grid;
-            grid-template-columns:minmax(220px,1.8fr) .85fr .85fr 1.55fr 74px;
-            gap:10px;
+            grid-template-columns:minmax(240px,1.8fr) .8fr .8fr 1.5fr 74px;
+            gap:12px;
             align-items:center;
-            padding:10px 12px;
+            padding:11px 14px;
             background:var(--card-bg);
             border:1px solid var(--card-border);
             border-radius:13px;
@@ -259,37 +170,38 @@
             box-shadow:0 5px 18px rgba(0,0,0,.06);
             transform:translateY(-1px);
         }
-        .admin-player-main { display:flex; align-items:center; gap:10px; min-width:0; }
+        .admin-player-main { display:flex; align-items:center; gap:12px; min-width:0; }
         .admin-avatar {
-            width:34px;
-            height:34px;
-            flex:0 0 34px;
-            border-radius:10px;
+            width:42px;
+            height:42px;
+            flex:0 0 42px;
+            border-radius:12px;
             background:rgba(49,130,206,.12);
             color:var(--primary-blue);
             display:flex;
             align-items:center;
             justify-content:center;
-            font-size:11px;
+            font-size:14px;
             font-weight:950;
             border:1px solid rgba(49,130,206,.15);
         }
         .admin-player-name-wrap { min-width:0; }
         .admin-player-id {
             color:var(--text-sub);
-            font-size:9px;
+            font-size:11px;
             font-weight:800;
-            margin-bottom:2px;
+            margin-bottom:3px;
         }
         .admin-player input {
             width:100%;
             min-width:0;
-            padding:10px 11px;
+            padding:12px 13px;
             border:1px solid var(--card-border);
-            border-radius:9px;
+            border-radius:10px;
             background:var(--input-bg);
             color:var(--text-main);
             font-weight:750;
+            font-size:14px;
             outline:none;
             transition:border-color .15s,box-shadow .15s;
         }
@@ -298,15 +210,15 @@
             border-color:var(--primary-blue);
             box-shadow:0 0 0 3px rgba(49,130,206,.1);
         }
-        .admin-player-roles { display:flex; gap:5px; flex-wrap:wrap; }
+        .admin-player-roles { display:flex; gap:7px; flex-wrap:wrap; }
         .admin-role-btn {
             border:1px solid var(--card-border);
             background:var(--input-bg);
             color:var(--text-sub);
-            padding:6px 8px;
-            border-radius:7px;
+            padding:8px 11px;
+            border-radius:8px;
             cursor:pointer;
-            font-size:9px;
+            font-size:11px;
             font-weight:950;
             transition:all .15s;
         }
@@ -314,16 +226,16 @@
         .admin-role-btn.active[data-role="FWD"] { background:var(--primary-red); color:#fff; border-color:var(--primary-red); }
         .admin-role-btn.active[data-role="DEF"] { background:var(--primary-blue); color:#fff; border-color:var(--primary-blue); }
         .admin-role-btn.active[data-role="GK"] { background:var(--primary-gold); color:#fff; border-color:var(--primary-gold); }
-        .admin-roles-title { font-size:8px; color:var(--text-sub); font-weight:900; text-transform:uppercase; margin-bottom:4px; }
+        .admin-roles-title { font-size:10px; color:var(--text-sub); font-weight:900; text-transform:uppercase; margin-bottom:5px; }
         .admin-delete-btn {
             width:100%;
-            padding:7px 7px;
+            padding:9px 9px;
             border:1px solid rgba(229,62,62,.2);
             background:rgba(229,62,62,.06);
             color:var(--primary-red);
-            border-radius:9px;
+            border-radius:10px;
             cursor:pointer;
-            font-size:10px;
+            font-size:12px;
             font-weight:950;
             transition:all .15s;
         }
@@ -331,21 +243,15 @@
 
         .admin-add-card {
             margin-top:16px;
-            padding:15px;
+            padding:14px;
             border:1px dashed var(--card-border);
-            border-radius:15px;
+            border-radius:14px;
             background:var(--input-bg);
-        }
-        .admin-add-title {
-            font-size:11px;
-            font-weight:950;
-            color:var(--text-main);
-            margin-bottom:9px;
         }
         .admin-add {
             display:grid;
-            grid-template-columns:minmax(180px,1.8fr) .75fr .75fr 105px;
-            gap:9px;
+            grid-template-columns:minmax(220px,1.8fr) .75fr .75fr 130px;
+            gap:10px;
             margin-top:0;
         }
         .admin-add input {
@@ -353,42 +259,44 @@
             min-width:0;
             padding:11px;
             border:1px solid var(--card-border);
-            border-radius:9px;
+            border-radius:10px;
             background:var(--card-bg);
             color:var(--text-main);
             font-weight:700;
+            font-size:13px;
             outline:none;
         }
         .admin-save-bar {
-            padding:14px 22px;
-            border-top:1px solid var(--card-border);
-            background:var(--input-bg);
+            padding:14px 0 0;
+            border-top:none;
+            background:none;
             display:flex;
             justify-content:flex-end;
             gap:10px;
         }
         .admin-save-btn {
             width:auto;
-            min-width:120px;
+            min-width:110px;
             margin:0;
-            padding:9px 13px;
+            padding:10px 16px;
             border-radius:11px;
+            font-size:13px;
         }
         .admin-cancel-btn {
             width:auto;
-            min-width:80px;
+            min-width:90px;
             margin:0;
-            padding:9px 13px;
+            padding:10px 16px;
             border-radius:11px;
+            font-size:13px;
         }
-        @media(max-width:800px){
-            .admin-panel { margin:0 auto 20px; border-radius:18px; }
+        @media(max-width:1000px){
             .admin-heading { display:none; }
             .admin-players-list { max-height:none; overflow:visible; }
             .admin-player {
                 grid-template-columns:1fr 1fr;
-                gap:9px;
-                padding:12px;
+                gap:10px;
+                padding:14px;
             }
             .admin-player-main,
             .admin-player-roles,
@@ -398,16 +306,14 @@
             .admin-add button { grid-column:1/-1; }
         }
         @media(max-width:520px){
-            .admin-modal { padding:8px; }
-            .admin-topbar { padding:16px; }
-            .admin-content { padding:14px; }
+            #adminTab { padding:0 10px 20px; }
             .admin-summary { grid-template-columns:1fr 1fr; }
             .admin-summary-card:last-child { grid-column:1/-1; }
             .admin-player { grid-template-columns:1fr; }
             .admin-player-main,.admin-player-roles,.admin-delete-btn { grid-column:auto; }
             .admin-add { grid-template-columns:1fr; }
             .admin-add button { grid-column:auto; }
-            .admin-save-bar { padding:12px 14px; flex-direction:column-reverse; }
+            .admin-save-bar { padding:14px 16px; flex-direction:column-reverse; }
             .admin-save-btn,.admin-cancel-btn { width:100%; }
         }
 
@@ -630,6 +536,7 @@
         body:not(.is-admin) #resetAllBtn,
         body:not(.is-admin) #selectAllBtn,
         body:not(.is-admin) #addNextRoundBtn,
+        body:not(.is-admin) #adminTabBtn,
         body:not(.is-admin) .tournament-type-selector,
         body:not(.is-admin) .player-info input[type="checkbox"],
         body:not(.is-admin) .match-btn,
@@ -643,13 +550,14 @@
 
 <header>
     <h1>Sport Time <span>10A</span> ⚽</h1>
-    <div class="admin-actions"><span id="onlineStatus" style="font-size:11px;font-weight:900;color:var(--primary-green);">🔄 Connecting...</span><span id="accessStatus" style="font-size:11px;font-weight:900;color:var(--text-sub);">👁 View only</span><button class="admin-btn" id="adminAccessBtn" onclick="openAdmin()">🔐 Admin</button><button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Toggle Dark/Light Mode">🌙</button></div>
+    <div class="admin-actions"><span id="onlineStatus" style="font-size:11px;font-weight:900;color:var(--primary-green);">🔄 Connecting...</span><span id="accessStatus" style="font-size:11px;font-weight:900;color:var(--text-sub);">👁 View only</span><button class="admin-btn" id="adminAccessBtn" onclick="unlockAccess()">🔑</button><button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Toggle Dark/Light Mode">🌙</button></div>
 </header>
 
 <div class="tabs">
-    <button class="tab-btn active" onclick="switchTab('playersTab', this)">👥 Players</button>
+    <button class="tab-btn active" id="playersTabBtn" onclick="switchTab('playersTab', this)">👥 Players</button>
     <button class="tab-btn" onclick="switchTab('teamsTab', this)">⚔️ Matches & Table</button>
     <button class="tab-btn" onclick="switchTab('leadersTab', this)">🏆 Leaderboard</button>
+    <button class="tab-btn" id="adminTabBtn" onclick="switchTab('adminTab', this)">🔐 Admin</button>
 </div>
 
 <div class="container">
@@ -755,49 +663,34 @@
     </div>
 
     <button id="resetAllBtn" class="btn btn-dark" onclick="resetChanges()">🔒 Admin: Reset All Data</button>
-</div>
 
-<div id="adminModal" class="admin-modal">
-  <div class="admin-panel">
-    <div class="admin-topbar">
-      <div class="admin-title-wrap">
-        <div class="admin-title-icon">🔐</div>
-        <div>
-          <div class="admin-title">Admin Panel</div>
-          <div class="admin-subtitle">Manage players, ratings, speed and positions</div>
-        </div>
+    <div id="adminTab" class="section">
+      <div class="section-header" style="margin-top:0;">
+        <span class="section-title">🔐 Admin</span>
       </div>
-      <button class="admin-close" onclick="closeAdmin()" title="Close">✕</button>
-    </div>
+      <div id="adminViewOnlyNote" class="view-only-note">👁 View-only. Enter the key to make changes.</div>
 
-    <div class="admin-content">
       <div class="admin-summary">
         <div class="admin-summary-card">
           <div class="admin-summary-label">Players</div>
           <div class="admin-summary-value" id="adminPlayerCount">0</div>
         </div>
         <div class="admin-summary-card">
-          <div class="admin-summary-label">Average Rating</div>
+          <div class="admin-summary-label">Avg Rating</div>
           <div class="admin-summary-value" id="adminAverageRating">0</div>
         </div>
         <div class="admin-summary-card">
-          <div class="admin-summary-label">Tournament Status</div>
+          <div class="admin-summary-label">Status</div>
           <div class="admin-summary-value" id="adminTournamentStatus">Ready</div>
         </div>
       </div>
 
-      <div class="admin-list-head">
-        <div class="admin-list-title">Player Management</div>
-        <div class="admin-list-hint">Changes are saved automatically</div>
-      </div>
-
       <div class="admin-heading">
-        <span>Player</span><span>Rating</span><span>Speed</span><span>Positions</span><span>Action</span>
+        <span>Player</span><span>Rating</span><span>Speed</span><span>Positions</span><span></span>
       </div>
       <div id="adminPlayersList" class="admin-players-list"></div>
 
       <div class="admin-add-card">
-        <div class="admin-add-title">＋ Add New Player</div>
         <div class="admin-add">
           <input id="newPlayerName" placeholder="Player name">
           <input id="newPlayerRating" type="number" min="0" max="10" step="0.25" placeholder="Rating">
@@ -805,13 +698,12 @@
           <button class="btn btn-green" style="width:auto;margin:0;padding:9px 12px;border-radius:9px;font-size:11px;" onclick="addPlayerAdmin()">＋ Add</button>
         </div>
       </div>
-    </div>
 
-    <div class="admin-save-bar">
-      <button class="btn btn-dark admin-cancel-btn" onclick="lockAdmin()">🔒 Lock</button>
-      <button class="btn btn-green admin-save-btn" onclick="saveAdminChanges()">💾 Save Changes</button>
+      <div class="admin-save-bar">
+        <button class="btn btn-dark admin-cancel-btn" onclick="lockAdmin()">🔒 Lock</button>
+        <button class="btn btn-green admin-save-btn" onclick="saveAdminChanges()">Save</button>
+      </div>
     </div>
-  </div>
 </div>
 
 <script>
@@ -922,7 +814,9 @@
             accessStatus.style.color = isAdminAuthenticated ? "var(--primary-green)" : "var(--text-sub)";
         }
 
-        if (adminBtn) adminBtn.innerText = isAdminAuthenticated ? "🔓 Admin" : "🔐 Admin";
+        if (adminBtn) adminBtn.innerText = isAdminAuthenticated ? "🔓" : "🔑";
+        const adminTabBtn = document.getElementById("adminTabBtn");
+        if (adminTabBtn) adminTabBtn.innerText = isAdminAuthenticated ? "🔓 Admin" : "🔐 Admin";
 
         if (startBtn) {
             startBtn.disabled = !isAdminAuthenticated;
@@ -954,6 +848,11 @@
             viewOnlyNote.style.display = isAdminAuthenticated ? "none" : "block";
         }
 
+        const adminViewOnlyNote = document.getElementById("adminViewOnlyNote");
+        if (adminViewOnlyNote) {
+            adminViewOnlyNote.style.display = isAdminAuthenticated ? "none" : "block";
+        }
+
         document.querySelectorAll('.team-select').forEach(select => {
             select.disabled = !isAdminAuthenticated;
         });
@@ -963,9 +862,29 @@
         });
     }
 
-    async function openAdmin() {
+    async function unlockAccess() {
         if (isAdminAuthenticated) {
-            document.getElementById("adminModal").classList.add("show");
+            updateAccessUI();
+            return;
+        }
+
+        const password = prompt("Enter admin password:");
+        if (password === null) return;
+
+        const correct = await verifyAdminPassword(password);
+        if (!correct) {
+            alert("❌ Incorrect admin password.");
+            return;
+        }
+
+        isAdminAuthenticated = true;
+        updateAccessUI();
+    }
+
+    async function openAdmin() {
+        const adminTabBtn = document.getElementById("adminTabBtn");
+        if (isAdminAuthenticated) {
+            switchTab('adminTab', adminTabBtn);
             renderAdminPlayers();
             return;
         }
@@ -981,18 +900,17 @@
 
         isAdminAuthenticated = true;
         updateAccessUI();
-        document.getElementById("adminModal").classList.add("show");
+        switchTab('adminTab', adminTabBtn);
         renderAdminPlayers();
-        alert("🔓 Admin access granted for this session.");
     }
 
     function lockAdmin() {
         isAdminAuthenticated = false;
-        closeAdmin();
         updateAccessUI();
         renderPlayers();
         renderTeamsCards();
         renderCurrentRoundMatches();
+        switchTab('playersTab', document.getElementById("playersTabBtn"));
     }
 
     // ================= ONLINE DATABASE =================
@@ -1156,7 +1074,7 @@
             });
     }
 
-    function closeAdmin() { document.getElementById("adminModal").classList.remove("show"); }
+    function closeAdmin() { switchTab('playersTab', document.getElementById("playersTabBtn")); }
 
     function saveAdminChanges() {
         if (!requireAdmin("save admin changes")) return;
@@ -1174,7 +1092,6 @@
         }
 
         alert("Changes saved successfully.");
-        closeAdmin();
     }
 
     function renderAdminPlayers() {
@@ -1320,6 +1237,7 @@
         if(btn) btn.classList.add('active');
         if(tabId === 'leadersTab') renderLeaderboard(leaderboardMetric);
         if(tabId === 'playersTab') renderPlayers();
+        if(tabId === 'adminTab') renderAdminPlayers();
     }
 
     function formatRating(value) {
@@ -2157,7 +2075,7 @@
                             onclick="saveMatchResult(${m.id})"
                             ${isAdminAuthenticated ? '' : 'disabled'}
                         >
-                            ${isAdminAuthenticated ? 'End match' : '🔒 Admin: End match'}
+                            End match
                         </button>
                     </div>
                 `;
