@@ -107,32 +107,6 @@
             to { opacity:1; transform:translateY(0) scale(1); }
         }
 
-        .admin-summary {
-            display:grid;
-            grid-template-columns:repeat(3,1fr);
-            gap:12px;
-            margin-bottom:18px;
-        }
-        .admin-summary-card {
-            background:var(--input-bg);
-            border:1px solid var(--card-border);
-            border-radius:14px;
-            padding:12px 16px;
-        }
-        .admin-summary-label {
-            color:var(--text-sub);
-            font-size:10px;
-            font-weight:900;
-            text-transform:uppercase;
-            letter-spacing:.7px;
-        }
-        .admin-summary-value {
-            margin-top:4px;
-            color:var(--text-main);
-            font-size:19px;
-            font-weight:950;
-        }
-
         .admin-heading {
             display:grid;
             grid-template-columns:minmax(240px,1.8fr) .8fr .8fr 1.5fr 74px;
@@ -266,30 +240,38 @@
             font-size:13px;
             outline:none;
         }
+
+        /* Compact Save / Lock buttons */
         .admin-save-bar {
-            padding:14px 0 0;
-            border-top:none;
-            background:none;
+            padding:12px 0 0;
             display:flex;
             justify-content:flex-end;
-            gap:10px;
+            gap:8px;
+        }
+        .admin-save-btn,
+        .admin-lock-btn {
+            width:auto;
+            margin:0;
+            padding:7px 14px;
+            border-radius:8px;
+            font-size:12px;
+            font-weight:800;
+            cursor:pointer;
+            transition:all .15s ease;
         }
         .admin-save-btn {
-            width:auto;
-            min-width:110px;
-            margin:0;
-            padding:10px 16px;
-            border-radius:11px;
-            font-size:13px;
+            background:var(--primary-green);
+            color:#fff;
+            border:1px solid var(--primary-green);
         }
-        .admin-cancel-btn {
-            width:auto;
-            min-width:90px;
-            margin:0;
-            padding:10px 16px;
-            border-radius:11px;
-            font-size:13px;
+        .admin-lock-btn {
+            background:var(--input-bg);
+            color:var(--text-sub);
+            border:1px solid var(--card-border);
         }
+        .admin-save-btn:hover,
+        .admin-lock-btn:hover { filter:brightness(.95); transform:translateY(-1px); }
+
         @media(max-width:1000px){
             .admin-heading { display:none; }
             .admin-players-list { max-height:none; overflow:visible; }
@@ -307,14 +289,11 @@
         }
         @media(max-width:520px){
             #adminTab { padding:0 10px 20px; }
-            .admin-summary { grid-template-columns:1fr 1fr; }
-            .admin-summary-card:last-child { grid-column:1/-1; }
             .admin-player { grid-template-columns:1fr; }
             .admin-player-main,.admin-player-roles,.admin-delete-btn { grid-column:auto; }
             .admin-add { grid-template-columns:1fr; }
             .admin-add button { grid-column:auto; }
-            .admin-save-bar { padding:14px 16px; flex-direction:column-reverse; }
-            .admin-save-btn,.admin-cancel-btn { width:100%; }
+            .admin-save-bar { padding:12px 0 0; flex-direction:row; justify-content:flex-end; }
         }
 
         .theme-toggle-btn {
@@ -530,6 +509,17 @@
         .mode-card { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 14px 8px; background: var(--input-bg); border: 2px solid var(--card-border); border-radius: 14px; cursor: pointer; color: var(--text-sub); font-weight: 900; font-size: 13px; transition: all .2s ease; }
         .mode-card:hover { border-color: var(--primary-blue); transform: translateY(-1px); }
         .mode-card.active { border-color: var(--primary-blue); background: rgba(49,130,206,.12); color: var(--text-main); box-shadow: 0 4px 14px rgba(49,130,206,.18); }
+        .match-cancel-btn { align-self: flex-end; background: rgba(229,62,62,.08); color: var(--primary-red); border: 1px solid rgba(229,62,62,.25); padding: 7px 14px; border-radius: 8px; font-size: 12px; font-weight: 800; cursor: pointer; transition: all .15s ease; }
+        .match-cancel-btn:hover { background: var(--primary-red); color: #fff; border-color: var(--primary-red); }
+
+        .rating-rules { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px; padding: 14px 16px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+        .rating-rules-title { font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: .5px; color: var(--text-sub); margin-bottom: 10px; }
+        .rating-rules-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; }
+        .rating-rule { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 10px; background: var(--input-bg); border: 1px solid var(--card-border); border-radius: 10px; font-size: 12px; font-weight: 800; color: var(--text-main); }
+        .rating-rule b { font-weight: 900; }
+        .rating-rule.plus b { color: var(--primary-green); }
+        .rating-rule.minus b { color: var(--primary-red); }
+
         /* ===== Скрыто, пока не введён пароль ===== */
         body:not(.is-admin) #startTournamentBtn,
         body:not(.is-admin) #balanceTeamsBtn,
@@ -540,6 +530,7 @@
         body:not(.is-admin) .tournament-type-selector,
         body:not(.is-admin) .player-info input[type="checkbox"],
         body:not(.is-admin) .match-btn,
+        body:not(.is-admin) .match-cancel-btn,
         body:not(.is-admin) .goal-events-container { display: none !important; }
         #accessStatus, #viewOnlyNote { display: none !important; }
         #adminAccessBtn { padding: 8px 11px; font-size: 16px; }
@@ -572,6 +563,10 @@
                 <button type="button" class="mode-card active" data-mode="country" onclick="setTournamentMode('country')"><svg viewBox="0 0 64 64" width="46" height="46" aria-hidden="true"><defs><linearGradient id="gWC" x1="0" x2="1"><stop offset="0" stop-color="#f6e05e"/><stop offset="1" stop-color="#b7791f"/></linearGradient></defs><path d="M23 60h18l-1.5-7h-15z" fill="#276749"/><path d="M24.5 53c0-10 1.5-14 4-18-6-3-10-9-10-16C18.500 11 24 6 32 6s13.500 5 13.500 13c0 7-4 13-10 16 2.500 4 4 8 4 18z" fill="url(#gWC)"/><circle cx="32" cy="19" r="8" fill="#fff" fill-opacity=".28"/><path d="M26 46h12" stroke="#276749" stroke-width="3" stroke-linecap="round"/></svg><span>World Cup</span></button>
                 <button type="button" class="mode-card" data-mode="club" onclick="setTournamentMode('club')"><svg viewBox="0 0 64 64" width="46" height="46" aria-hidden="true"><defs><linearGradient id="gUCL" x1="0" x2="1"><stop offset="0" stop-color="#e2e8f0"/><stop offset="1" stop-color="#8fa1b8"/></linearGradient></defs><path d="M20 8h24v14c0 8-5 14-12 14s-12-6-12-14z" fill="url(#gUCL)"/><path d="M20 12h-8c0 8 3 13 9 14M44 12h8c0 8-3 13-9 14" fill="none" stroke="#8fa1b8" stroke-width="3" stroke-linecap="round"/><rect x="29" y="36" width="6" height="12" fill="#8fa1b8"/><path d="M22 57h20l-3-9H25z" fill="url(#gUCL)"/><circle cx="32" cy="21" r="5" fill="#fff" fill-opacity=".45"/></svg><span>Champions League</span></button>
             </div>
+        </div>
+        <div class="rating-rules">
+            <div class="rating-rules-title">⭐ How rating works</div>
+            <div class="rating-rules-grid" id="ratingRulesGrid"></div>
         </div>
         <div class="section-header">
             <span class="section-title">Class Squad (<span id="selectedCount">0</span>)</span>
@@ -668,22 +663,6 @@
       <div class="section-header" style="margin-top:0;">
         <span class="section-title">🔐 Admin</span>
       </div>
-      <div id="adminViewOnlyNote" class="view-only-note">👁 View-only. Enter the key to make changes.</div>
-
-      <div class="admin-summary">
-        <div class="admin-summary-card">
-          <div class="admin-summary-label">Players</div>
-          <div class="admin-summary-value" id="adminPlayerCount">0</div>
-        </div>
-        <div class="admin-summary-card">
-          <div class="admin-summary-label">Avg Rating</div>
-          <div class="admin-summary-value" id="adminAverageRating">0</div>
-        </div>
-        <div class="admin-summary-card">
-          <div class="admin-summary-label">Status</div>
-          <div class="admin-summary-value" id="adminTournamentStatus">Ready</div>
-        </div>
-      </div>
 
       <div class="admin-heading">
         <span>Player</span><span>Rating</span><span>Speed</span><span>Positions</span><span></span>
@@ -700,8 +679,8 @@
       </div>
 
       <div class="admin-save-bar">
-        <button class="btn btn-dark admin-cancel-btn" onclick="lockAdmin()">🔒 Lock</button>
-        <button class="btn btn-green admin-save-btn" onclick="saveAdminChanges()">Save</button>
+        <button class="admin-lock-btn" onclick="lockAdmin()">🔒 Lock</button>
+        <button class="admin-save-btn" onclick="saveAdminChanges()">Save</button>
       </div>
     </div>
 </div>
@@ -731,6 +710,25 @@
 
     const defaultLogo = "https://upload.wikimedia.org/wikipedia/commons/d/d3/Soccerball.svg";
     const worldCupTrophyImg = "https://upload.wikimedia.org/wikipedia/commons/3/37/World_Cup_%28trophy%29.png";
+
+    // Rating changes (used both in the calculations and in the info card)
+    const RATING_RULES = { goal: 0.10, assist: 0.10, ownGoal: 0.05, mvp: 0.10, win: 0.025 };
+
+    function renderRatingRules() {
+        const grid = document.getElementById('ratingRulesGrid');
+        if (!grid) return;
+        const R = RATING_RULES;
+        const items = [
+            ['⚽', 'Goal', '+' + R.goal, 'plus'],
+            ['👟', 'Assist', '+' + R.assist, 'plus'],
+            ['🥅', 'Own goal', '−' + R.ownGoal, 'minus'],
+            ['🏆', 'MVP', '+' + R.mvp, 'plus'],
+            ['✅', 'Win (whole team)', '+' + R.win, 'plus']
+        ];
+        grid.innerHTML = items.map(i =>
+            `<div class="rating-rule ${i[3]}"><span>${i[0]} ${i[1]}</span><b>${i[2]}</b></div>`
+        ).join('');
+    }
 
     const initialPlayers = [
         { id: 1, name: "Mark", rating: 0.5, roles: ["DEF"], goals: 0, assists: 0, mvp: 0 },
@@ -846,11 +844,6 @@
         const viewOnlyNote = document.getElementById("viewOnlyNote");
         if (viewOnlyNote) {
             viewOnlyNote.style.display = isAdminAuthenticated ? "none" : "block";
-        }
-
-        const adminViewOnlyNote = document.getElementById("adminViewOnlyNote");
-        if (adminViewOnlyNote) {
-            adminViewOnlyNote.style.display = isAdminAuthenticated ? "none" : "block";
         }
 
         document.querySelectorAll('.team-select').forEach(select => {
@@ -1096,18 +1089,6 @@
 
     function renderAdminPlayers() {
         const box = document.getElementById("adminPlayersList");
-        const countEl = document.getElementById("adminPlayerCount");
-        const avgEl = document.getElementById("adminAverageRating");
-        const statusEl = document.getElementById("adminTournamentStatus");
-
-        if (countEl) countEl.innerText = playersData.length;
-
-        const avgRating = playersData.length
-            ? playersData.reduce((sum, p) => sum + (Number(p.rating) || 0), 0) / playersData.length
-            : 0;
-        if (avgEl) avgEl.innerText = `⭐ ${avgRating.toFixed(2).replace(/0+$/, '').replace(/\.$/, '')}`;
-
-        if (statusEl) statusEl.innerText = activeTeams.length > 0 ? "In Progress" : "Ready";
 
         box.innerHTML = playersData.map((p, index) => {
           if (!Array.isArray(p.roles)) p.roles = [];
@@ -1901,6 +1882,8 @@
 
                             ${mvpHtml}
                         </div>
+
+                        <button class="match-cancel-btn" onclick="cancelMatchResult(${m.id})">↩ Cancel</button>
                     </div>
                 `;
             } else {
@@ -2339,18 +2322,22 @@
             });
         }
 
+        // remember ratings before this match so it can be cancelled later
+        const ratingBefore = {};
+        playersData.forEach(p => { ratingBefore[p.id] = p.rating; });
+
         match.s1 = s1;
         match.s2 = s2;
         match.played = true;
         match.goalsDetails = matchGoalsEvents;
 
-        // WIN BONUS: every player of the winning team gets +0.025 rating
+        // WIN BONUS: every player of the winning team gets a rating bonus
         if (s1 !== s2) {
             const winnerTeam = s1 > s2 ? t1 : t2;
             winnerTeam.players.forEach(tp => {
                 const pl = playersData.find(p => p.id === tp.id);
-                if (pl) pl.rating = Math.min(10.0, pl.rating + 0.025);
-                tp.rating = Math.min(10.0, tp.rating + 0.025);
+                if (pl) pl.rating = Math.min(10.0, pl.rating + RATING_RULES.win);
+                if (tp !== pl) tp.rating = Math.min(10.0, tp.rating + RATING_RULES.win);
             });
         }
 
@@ -2378,7 +2365,7 @@
                 if (e.isOg) {
                     // Own goal: negative MVP impact
                     scorer.rating =
-                        Math.max(0, scorer.rating - 0.05);
+                        Math.max(0, scorer.rating - RATING_RULES.ownGoal);
 
                     matchScores[scorer.id] =
                         (matchScores[scorer.id] || 0) - 1;
@@ -2388,7 +2375,7 @@
                     scorer.goals += 1;
 
                     scorer.rating =
-                        Math.min(10.0, scorer.rating + 0.10);
+                        Math.min(10.0, scorer.rating + RATING_RULES.goal);
 
                     // GOAL = 2 MVP POINTS
                     matchScores[scorer.id] =
@@ -2404,7 +2391,7 @@
                     assistant.assists += 1;
 
                     assistant.rating =
-                        Math.min(10.0, assistant.rating + 0.10);
+                        Math.min(10.0, assistant.rating + RATING_RULES.assist);
 
                     // ASSIST = 1 MVP POINT
                     matchScores[assistant.id] =
@@ -2529,18 +2516,101 @@
                 mvpPlayer.rating =
                     Math.min(
                         10.0,
-                        mvpPlayer.rating + 0.10
+                        mvpPlayer.rating + RATING_RULES.mvp
                     );
             }
         }
 
         match.mvpId = mvpPlayerId;
 
+        // save the exact rating change of this match (used by Cancel)
+        match.ratingDeltas = {};
+        playersData.forEach(p => {
+            const d = Math.round((p.rating - ratingBefore[p.id]) * 10000) / 10000;
+            if (d) match.ratingDeltas[p.id] = d;
+        });
+
         saveData();
         recalculateStandings();
         renderLeagueTable();
         renderCurrentRoundMatches();
         renderTeamsCards();
+
+        if (document.getElementById('leadersTab').classList.contains('active')) {
+            renderLeaderboard(leaderboardMetric);
+        }
+    }
+
+    function cancelMatchResult(matchId) {
+        if (!requireAdmin("cancel a match result")) return;
+        const match = activeMatches.find(m => m.id === matchId);
+        if (!match || !match.played) return;
+
+        if (!confirm(`Cancel the result of match #${match.id}? Goals, assists, MVP and rating changes from this match will be removed.`)) return;
+
+        const t1 = activeTeams.find(t => t.id === match.t1);
+        const t2 = activeTeams.find(t => t.id === match.t2);
+        const R = RATING_RULES;
+
+        // 1) remove goals / assists / MVP from the stats
+        (match.goalsDetails || []).forEach(e => {
+            if (e.isOg) return;
+            const scorer = playersData.find(p => p.id === e.scorerId);
+            if (scorer) scorer.goals = Math.max(0, (Number(scorer.goals) || 0) - 1);
+            if (e.assistantId) {
+                const assistant = playersData.find(p => p.id === e.assistantId);
+                if (assistant) assistant.assists = Math.max(0, (Number(assistant.assists) || 0) - 1);
+            }
+        });
+        if (match.mvpId) {
+            const mvp = playersData.find(p => p.id === match.mvpId);
+            if (mvp) mvp.mvp = Math.max(0, (Number(mvp.mvp) || 0) - 1);
+        }
+
+        // 2) take back the rating changes
+        let deltas = match.ratingDeltas;
+        if (!deltas) {
+            // older matches (saved before Cancel existed): rebuild the changes from the rules
+            deltas = {};
+            const add = (id, v) => { deltas[id] = (deltas[id] || 0) + v; };
+            (match.goalsDetails || []).forEach(e => {
+                if (e.isOg) add(e.scorerId, -R.ownGoal);
+                else {
+                    add(e.scorerId, R.goal);
+                    if (e.assistantId) add(e.assistantId, R.assist);
+                }
+            });
+            if (match.mvpId) add(match.mvpId, R.mvp);
+            if (match.s1 !== match.s2) {
+                const winner = match.s1 > match.s2 ? t1 : t2;
+                if (winner) winner.players.forEach(tp => add(tp.id, R.win));
+            }
+        }
+        Object.keys(deltas).forEach(id => {
+            const pl = playersData.find(p => p.id === Number(id));
+            if (pl) pl.rating = Math.max(0, Math.min(10, pl.rating - deltas[id]));
+        });
+        [t1, t2].forEach(t => {
+            if (!t) return;
+            t.players.forEach(tp => {
+                const pl = playersData.find(p => p.id === tp.id);
+                if (pl) tp.rating = pl.rating;
+            });
+        });
+
+        // 3) make the match unplayed again
+        match.played = false;
+        match.s1 = null;
+        match.s2 = null;
+        match.goalsDetails = [];
+        match.mvpId = null;
+        delete match.ratingDeltas;
+
+        recalculateStandings();
+        renderLeagueTable();
+        renderCurrentRoundMatches();
+        renderTeamsCards();
+        renderPlayers();
 
         if (document.getElementById('leadersTab').classList.contains('active')) {
             renderLeaderboard(leaderboardMetric);
@@ -2921,6 +2991,7 @@
                 ? buildBaseCycleSchedule(activeTeams)
                 : [];
 
+        renderRatingRules();
         renderPlayers();
         updateAccessUI();
 
