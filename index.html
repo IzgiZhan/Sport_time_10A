@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sport Time 10A - Tournament</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@1,900&display=swap" rel="stylesheet">
     <link rel="manifest" href="manifest.json">
     <style>
         :root {
@@ -64,6 +67,17 @@
         }
         
         header h1 span { color: var(--primary-blue); }
+        header h1 .brand-author {
+            margin-left: 10px;
+            font-family: "Montserrat", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+            font-size: 26px;
+            font-weight: 900;
+            font-style: italic;
+            letter-spacing: 0.5px;
+            text-transform: none;
+            color: var(--text-main);
+            white-space: nowrap;
+        }
 
         .admin-btn {
             background:var(--input-bg);
@@ -155,7 +169,7 @@
             display:flex;
             align-items:center;
             justify-content:center;
-            font-size:14px;
+            font-size:20px;
             font-weight:950;
             border:1px solid rgba(49,130,206,.15);
         }
@@ -487,6 +501,7 @@
         .team-goals-column { display: flex; flex-direction: column; gap: 4px; }
         .team-goals-column.right { text-align: right; }
         .goal-item { font-size: 11px; color: var(--text-sub); font-weight: 700; line-height: 1.3; }
+        .og-ball { display: inline-block; filter: sepia(1) saturate(8) hue-rotate(-50deg); }
         .mvp-banner { text-align: center; margin-top: 12px; font-size: 12px; font-weight: 900; color: var(--primary-gold); background: rgba(214, 158, 46, 0.1); border: 1px solid var(--card-border); padding: 6px; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 6px; }
 
         .filter-bar { display: flex; gap: 8px; margin-bottom: 16px; overflow-x: auto; }
@@ -540,7 +555,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <header>
-    <h1>Sport Time <span>10A</span> ⚽</h1>
+    <h1>Sport Time <span>10A</span> ⚽ <small class="brand-author">Izgi_Zhan</small></h1>
     <div class="admin-actions"><span id="onlineStatus" style="font-size:11px;font-weight:900;color:var(--primary-green);">🔄 Connecting...</span><span id="accessStatus" style="font-size:11px;font-weight:900;color:var(--text-sub);">👁 View only</span><button class="admin-btn" id="adminAccessBtn" onclick="unlockAccess()">🔑</button><button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Toggle Dark/Light Mode">🌙</button></div>
 </header>
 
@@ -639,10 +654,10 @@
 
         <div class="filter-bar">
             <button class="filter-btn active" onclick="renderLeaderboard('goals', this)">⚽ Top Scorers</button>
-            <button class="filter-btn" onclick="renderLeaderboard('assists', this)">👟 Top Assists</button>
+            <button class="filter-btn" onclick="renderLeaderboard('assists', this)">🅰️ Top Assists</button>
             <button class="filter-btn" onclick="renderLeaderboard('points', this)">🔥 Goal + Assist</button>
             <button class="filter-btn" onclick="renderLeaderboard('mvp', this)">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/3/37/World_Cup_%28trophy%29.png" style="width:14px; height:14px; vertical-align:middle; margin-right:4px;" alt=""> MVP
+                🏆 MVP
             </button>
         </div>
         <table class="leader-table">
@@ -720,7 +735,7 @@
         const R = RATING_RULES;
         const items = [
             ['⚽', 'Goal', '+' + R.goal, 'plus'],
-            ['👟', 'Assist', '+' + R.assist, 'plus'],
+            ['🅰️', 'Assist', '+' + R.assist, 'plus'],
             ['🥅', 'Own goal', '−' + R.ownGoal, 'minus'],
             ['🏆', 'MVP', '+' + R.mvp, 'plus'],
             ['✅', 'Win (whole team)', '+' + R.win, 'plus']
@@ -1092,20 +1107,12 @@
 
         box.innerHTML = playersData.map((p, index) => {
           if (!Array.isArray(p.roles)) p.roles = [];
-          const initials = p.name
-            .split(/\s+/)
-            .filter(Boolean)
-            .slice(0, 2)
-            .map(part => part[0])
-            .join("")
-            .toUpperCase() || "?";
-
           return `
           <div class="admin-player">
             <div class="admin-player-main">
-              <div class="admin-avatar">${initials}</div>
+              <div class="admin-avatar">👤</div>
               <div class="admin-player-name-wrap">
-                <div class="admin-player-id">PLAYER #${index + 1}</div>
+                <div class="admin-player-id">PLAYER #${index + 1} · ⚽ ${p.goals || 0} · 🅰️ ${p.assists || 0} · 🏆 ${p.mvp || 0}</div>
                 <input value="${p.name.replace(/"/g,'&quot;')}" placeholder="Player name" title="Player name" onchange="adminUpdateName(${p.id}, this.value)">
               </div>
             </div>
@@ -1821,7 +1828,7 @@
                             : null;
 
                     if (g.isOg) {
-                        return `<div class="goal-item">⚽ ${scorerName} (OG)</div>`;
+                        return `<div class="goal-item"><span class="og-ball">⚽</span> ${scorerName} (OG)</div>`;
                     }
 
                     if (assistName) {
@@ -2848,7 +2855,7 @@
                 a.name.localeCompare(b.name)
             );
         } else if (metric === 'assists') {
-            header.innerText = leaderboardMode === 'allTime' ? 'Total Assists 👟' : 'Assists 👟';
+            header.innerText = leaderboardMode === 'allTime' ? 'Total Assists 🅰️' : 'Assists 🅰️';
             sorted.sort((a, b) =>
                 (b.assists - a.assists) ||
                 (b.goals - a.goals) ||
