@@ -877,7 +877,7 @@
 
     async function unlockAccess() {
         if (isAdminAuthenticated) {
-            updateAccessUI();
+            lockAdmin();
             return;
         }
 
