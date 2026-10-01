@@ -707,7 +707,7 @@
         { name: "Manchester City", type: "club", code: "mci", logo: "https://upload.wikimedia.org/wikipedia/en/e/eb/Manchester_City_FC_badge.svg" },
         { name: "Bayern Munich", type: "club", code: "bay", logo: "https://upload.wikimedia.org/wikipedia/commons/1/1b/FC_Bayern_M%C3%BCnchen_logo_%282017%29.svg" },
         { name: "PSG", type: "club", code: "psg", logo: "https://upload.wikimedia.org/wikipedia/en/a/a7/Paris_Saint-Germain_F.C..svg" },
-        { name: "Liverpool", type: "club", code: "liv", logo: "liverpool.png" },
+        { name: "Liverpool", type: "club", code: "liv", logo: "https://upload.wikimedia.org/wikipedia/en/0/0c/Liverpool_FC.svg" },
         { name: "Arsenal", type: "club", code: "ars", logo: "https://upload.wikimedia.org/wikipedia/en/5/53/Arsenal_FC.svg" },
         { name: "Manchester United", type: "club", code: "mun", logo: "https://upload.wikimedia.org/wikipedia/en/7/7a/Manchester_United_FC_crest.svg" },
         { name: "Chelsea", type: "club", code: "che", logo: "https://upload.wikimedia.org/wikipedia/en/c/cc/Chelsea_FC.svg" },
@@ -785,7 +785,7 @@
     // can change tournament data. The hash avoids keeping the password as
     // plain text in the page, but real database security should still use
     // Supabase Auth + RLS.
-    const ADMIN_PASSWORD_HASH = "a73b6d7dadf6dc128c6b52ca38514a158e3e3fa56ef5182540f3561586de0160";
+    const ADMIN_PASSWORD_HASH = "b04f7a8653c1385ebccef06c403171eae399486bb14f9148cdef5b008a316881";
     let isAdminAuthenticated = false;
 
     async function sha256(value) {
