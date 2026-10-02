@@ -8,15 +8,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@1,900&display=swap" rel="stylesheet">
     <link rel="manifest" href="manifest.json">
-    /* ===== Bigger "add player" block ===== */
-.admin-add-card { padding: 24px; margin-top: 22px; border-radius: 18px; }
-.admin-add { gap: 14px; }
-.admin-add input { padding: 16px 16px; font-size: 16px; border-radius: 12px; }
-.admin-add .btn { padding: 16px 20px !important; font-size: 15px !important; border-radius: 12px !important; }
-
-/* ===== Big Save button ===== */
-.admin-save-bar { padding: 18px 0 0; display: block; }
-.admin-save-btn { width: 100%; padding: 18px; font-size: 17px; font-weight: 900; border-radius: 14px; }
     <style>
         :root {
             --bg-color: #f4f6f9;
@@ -558,6 +549,15 @@
         body:not(.is-admin) .goal-events-container { display: none !important; }
         #accessStatus, #viewOnlyNote { display: none !important; }
         #adminAccessBtn { padding: 8px 11px; font-size: 16px; }
+            /* ===== Bigger "add player" block ===== */
+        .admin-add-card { padding: 24px; margin-top: 22px; border-radius: 18px; }
+        .admin-add { gap: 14px; }
+        .admin-add input { padding: 16px 16px; font-size: 16px; border-radius: 12px; }
+        .admin-add .btn { padding: 16px 20px !important; font-size: 15px !important; border-radius: 12px !important; }
+        
+        /* ===== Big Save button ===== */
+        .admin-save-bar { padding: 18px 0 0; display: block; }
+        .admin-save-btn { width: 100%; padding: 18px; font-size: 17px; font-weight: 900; border-radius: 14px; }
     </style>
 </head>
 <body data-theme="light">
@@ -705,7 +705,6 @@
 <div class="admin-save-bar">
   <button class="admin-save-btn" onclick="saveAdminChanges()">💾 Save</button>
 </div>
-      </div>
     </div>
 </div>
 
@@ -1248,15 +1247,8 @@
     }
 
     function renderPlayers() {
-      const container = document.getElementById('matchesList');
-
-// запоминаем выбранное, чтобы перерисовка ничего не сбрасывала
-const savedSel = {};
-container.querySelectorAll('.goal-row select, .goal-row input[type="checkbox"]').forEach(el => {
-    savedSel[el.id] = el.type === 'checkbox' ? el.checked : el.value;
-});
-
-container.innerHTML = '';
+        const container = document.getElementById('playersList');
+        container.innerHTML = '';
 
         playersData.forEach(p => {
             if (!Array.isArray(p.roles)) p.roles = [];
@@ -1812,6 +1804,13 @@ container.innerHTML = '';
 
     function renderCurrentRoundMatches() {
         const container = document.getElementById('matchesList');
+
+        // remember selections so re-rendering does not reset them
+        const savedSel = {};
+        container.querySelectorAll('.goal-row select, .goal-row input[type="checkbox"]').forEach(el => {
+            savedSel[el.id] = el.type === 'checkbox' ? el.checked : el.value;
+        });
+
         container.innerHTML = '';
 
         let roundMatches =
@@ -2092,8 +2091,10 @@ container.innerHTML = '';
                 `;
             }
         });
+        syncAllGoalRows(savedSel);
         updateAccessUI();
     }
+
     function syncGoalRow(matchId, tag, gi, saved) {
     const base = `m_${matchId}_${tag}_g${gi}`;
     const match = activeMatches.find(m => m.id === matchId);
@@ -2867,8 +2868,6 @@ function syncAllGoalRows(saved) {
                 </div>
             `;
         });
-        syncAllGoalRows(savedSel);
-        updateAccessUI();
         updateAccessUI();
     }
 
