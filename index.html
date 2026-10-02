@@ -8,6 +8,15 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@1,900&display=swap" rel="stylesheet">
     <link rel="manifest" href="manifest.json">
+    /* ===== Bigger "add player" block ===== */
+.admin-add-card { padding: 24px; margin-top: 22px; border-radius: 18px; }
+.admin-add { gap: 14px; }
+.admin-add input { padding: 16px 16px; font-size: 16px; border-radius: 12px; }
+.admin-add .btn { padding: 16px 20px !important; font-size: 15px !important; border-radius: 12px !important; }
+
+/* ===== Big Save button ===== */
+.admin-save-bar { padding: 18px 0 0; display: block; }
+.admin-save-btn { width: 100%; padding: 18px; font-size: 17px; font-weight: 900; border-radius: 14px; }
     <style>
         :root {
             --bg-color: #f4f6f9;
@@ -693,9 +702,9 @@
         </div>
       </div>
 
-      <div class="admin-save-bar">
-        <button class="admin-lock-btn" onclick="lockAdmin()">🔒 Lock</button>
-        <button class="admin-save-btn" onclick="saveAdminChanges()">Save</button>
+<div class="admin-save-bar">
+  <button class="admin-save-btn" onclick="saveAdminChanges()">💾 Save</button>
+</div>
       </div>
     </div>
 </div>
@@ -1239,8 +1248,15 @@
     }
 
     function renderPlayers() {
-        const container = document.getElementById('playersList');
-        container.innerHTML = '';
+      const container = document.getElementById('matchesList');
+
+// запоминаем выбранное, чтобы перерисовка ничего не сбрасывала
+const savedSel = {};
+container.querySelectorAll('.goal-row select, .goal-row input[type="checkbox"]').forEach(el => {
+    savedSel[el.id] = el.type === 'checkbox' ? el.checked : el.value;
+});
+
+container.innerHTML = '';
 
         playersData.forEach(p => {
             if (!Array.isArray(p.roles)) p.roles = [];
@@ -2078,7 +2094,60 @@
         });
         updateAccessUI();
     }
+    function syncGoalRow(matchId, tag, gi, saved) {
+    const base = `m_${matchId}_${tag}_g${gi}`;
+    const match = activeMatches.find(m => m.id === matchId);
+    if (!match) return;
 
+    const t1 = activeTeams.find(t => t.id === match.t1);
+    const t2 = activeTeams.find(t => t.id === match.t2);
+    if (!t1 || !t2) return;
+
+    const own = tag === 't1' ? t1 : t2;
+    const opp = tag === 't1' ? t2 : t1;
+
+    const ogEl = document.getElementById(base + '_og');
+    const scorerEl = document.getElementById(base + '_scorer');
+    const assistEl = document.getElementById(base + '_assistant');
+    if (!ogEl || !scorerEl || !assistEl) return;
+
+    if (saved && saved[base + '_og'] !== undefined) ogEl.checked = !!saved[base + '_og'];
+    const isOg = ogEl.checked;
+
+    // автор: своя команда, а при автогole — команда соперника
+    const scorerTeam = isOg ? opp : own;
+    scorerEl.innerHTML = scorerTeam.players
+        .map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+
+    const savedScorer = saved && saved[base + '_scorer'];
+    if (savedScorer && scorerTeam.players.some(p => String(p.id) === String(savedScorer))) {
+        scorerEl.value = savedScorer;
+    }
+
+    if (isOg) {
+        assistEl.innerHTML = '<option value="">None</option>';
+        assistEl.disabled = true;
+        return;
+    }
+
+    // ассистенты: своя команда БЕЗ выбранного автора
+    assistEl.innerHTML = '<option value="">None</option>' + own.players
+        .filter(p => String(p.id) !== String(scorerEl.value))
+        .map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+
+    const savedAssist = saved && saved[base + '_assistant'];
+    if (savedAssist && String(savedAssist) !== String(scorerEl.value) &&
+        own.players.some(p => String(p.id) === String(savedAssist))) {
+        assistEl.value = savedAssist;
+    }
+}
+
+function syncAllGoalRows(saved) {
+    document.querySelectorAll('.goal-row').forEach(row => {
+        const m = row.id.match(/^m_(\d+)_(t[12])_g(\d+)_row$/);
+        if (m) syncGoalRow(parseInt(m[1]), m[2], parseInt(m[3]), saved);
+    });
+}
     function toggleAutogolView(matchId, teamTag, goalIdx) {
         if (!requireAdmin("edit match events")) return;
         let isOg =
@@ -2798,6 +2867,8 @@
                 </div>
             `;
         });
+        syncAllGoalRows(savedSel);
+        updateAccessUI();
         updateAccessUI();
     }
 
