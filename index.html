@@ -564,6 +564,37 @@
         /* ===== Big Save button ===== */
         .admin-save-bar { padding: 18px 0 0; display: block; }
         .admin-save-btn { width: 100%; padding: 18px; font-size: 17px; font-weight: 900; border-radius: 14px; }
+        /* ===== History design ===== */
+        .hist-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 18px; overflow: hidden; margin-bottom: 18px; box-shadow: 0 6px 20px rgba(0,0,0,.07); }
+        .hist-head { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; padding: 12px 16px; background: linear-gradient(135deg, #1a365d, #3182ce); color: #fff; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .5px; }
+        .hist-winner { display: flex; align-items: center; gap: 14px; padding: 16px; background: linear-gradient(135deg, rgba(214,158,46,.20), rgba(214,158,46,.04)); border-bottom: 1px solid var(--card-border); }
+        .hist-winner img { width: 54px; height: 54px; object-fit: contain; background: #fff; border-radius: 50%; padding: 4px; border: 3px solid var(--primary-gold); }
+        .hist-winner > div:nth-child(2) { flex: 1; min-width: 0; }
+        .hist-winner small { display: block; font-size: 11px; font-weight: 900; color: var(--primary-gold); letter-spacing: 1px; }
+        .hist-winner b { display: block; font-size: 20px; font-weight: 900; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .hist-winner-pts { text-align: center; font-size: 28px; font-weight: 900; color: var(--primary-green); line-height: 1; }
+        .hist-winner-pts small { color: var(--text-sub); font-size: 11px; letter-spacing: 0; }
+        .hist-table { width: 100%; border-collapse: collapse; }
+        .hist-table th { background: var(--input-bg); color: var(--text-sub); font-size: 11px; font-weight: 800; text-transform: uppercase; padding: 10px 12px; text-align: center; border-bottom: 1px solid var(--card-border); }
+        .hist-table td { padding: 11px 12px; text-align: center; font-weight: 800; font-size: 14px; border-bottom: 1px solid var(--card-border); }
+        .hist-table tbody tr:nth-child(even) { background: var(--input-bg); }
+        .hist-table tbody tr.hist-first { background: rgba(214,158,46,.10); }
+        .hist-team { display: flex; align-items: center; gap: 10px; text-align: left !important; }
+        .hist-team img { width: 26px; height: 26px; object-fit: contain; background: #fff; border-radius: 50%; padding: 2px; border: 1px solid var(--card-border); }
+        .hist-gf { color: var(--text-sub); }
+        .hist-pts { color: var(--primary-green); font-size: 16px !important; font-weight: 900 !important; }
+        .hist-rank { display: inline-flex; width: 26px; height: 26px; align-items: center; justify-content: center; border-radius: 50%; background: var(--card-border); color: var(--text-main); font-size: 12px; font-weight: 900; }
+        .hist-rank-1 { background: #d69e2e; color: #fff; }
+        .hist-rank-2 { background: #a0aec0; color: #fff; }
+        .hist-rank-3 { background: #dd6b20; color: #fff; }
+        .hist-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; padding: 14px; }
+        .hist-chip { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--input-bg); border: 1px solid var(--card-border); border-radius: 12px; }
+        .hist-chip-icon { font-size: 22px; }
+        .hist-chip small { display: block; font-size: 10px; font-weight: 800; color: var(--text-sub); text-transform: uppercase; }
+        .hist-chip b { display: block; font-size: 14px; font-weight: 900; color: var(--text-main); }
+        .hist-chip span { font-size: 12px; font-weight: 800; color: var(--primary-blue); }
+        .hist-empty { text-align: center; padding: 40px 16px; font-size: 40px; color: var(--text-sub); font-weight: 700; line-height: 1.6; }
+        .hist-empty small { font-size: 13px; }
     </style>
 </head>
 <body data-theme="light">
@@ -3023,28 +3054,174 @@ function syncAllGoalRows(saved) {
         });
     }
 
+    function loadImg(src) {
+        return new Promise(res => {
+            const i = new Image();
+            i.crossOrigin = 'anonymous';
+            i.onload = () => res(i);
+            i.onerror = () => res(null);
+            setTimeout(() => res(null), 4000);
+            i.src = src;
+        });
+    }
+
+    async function buildResultsImage() {
+        const teams = getSortedTeams();
+        const logos = await Promise.all(teams.map(t => loadImg(t.logo || defaultLogo)));
+        const topN = (key) => [...playersData].filter(p => (p[key] || 0) > 0)
+            .sort((a, b) => (b[key] || 0) - (a[key] || 0) || (b.goals + b.assists) - (a.goals + a.assists)).slice(0, 5);
+        const scorers = topN('goals'), assists = topN('assists');
+
+        const W = 1440, pad = 40, rowH = 92, rows = 5;
+        const tableTop = 230, tableH = 70 + teams.length * rowH + 20;
+        const statsTop = tableTop + tableH + 30;
+        const statsH = 76 + rows * 60 + 16;
+        const H = statsTop + statsH + 90;
+
+        const c = document.createElement('canvas');
+        c.width = W; c.height = H;
+        const x = c.getContext('2d');
+        const rr = (X, Y, w, h, r) => {
+            x.beginPath();
+            x.moveTo(X + r, Y); x.arcTo(X + w, Y, X + w, Y + h, r);
+            x.arcTo(X + w, Y + h, X, Y + h, r); x.arcTo(X, Y + h, X, Y, r);
+            x.arcTo(X, Y, X + w, Y, r); x.closePath();
+        };
+        const fit = (t, max) => { while (x.measureText(t).width > max && t.length > 3) t = t.slice(0, -2); return t; };
+        const F = (w, s) => `${w} ${s}px system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif`;
+
+        const g = x.createLinearGradient(0, 0, W, H);
+        g.addColorStop(0, '#0f2742'); g.addColorStop(1, '#2b6cb0');
+        x.fillStyle = g; x.fillRect(0, 0, W, H);
+        x.fillStyle = 'rgba(255,255,255,0.05)';
+        for (let i = -H; i < W; i += 60) { x.save(); x.translate(i, 0); x.rotate(Math.PI / 4); x.fillRect(0, 0, 18, H * 2); x.restore(); }
+
+        x.textBaseline = 'alphabetic'; x.textAlign = 'left';
+        x.fillStyle = '#fff'; x.font = F('900', 64);
+        x.fillText('SPORT TIME 10A', pad, 100);
+        x.fillStyle = '#90cdf4'; x.font = F('700', 34);
+        x.fillText(`Round ${currentDisplayedRound} of ${totalRounds}  ·  ${new Date().toLocaleDateString()}`, pad, 155);
+        x.fillStyle = '#f6e05e'; x.fillRect(pad, 180, 120, 6);
+
+        // table card + header
+        x.fillStyle = '#fff'; rr(pad, tableTop, W - pad * 2, tableH, 28); x.fill();
+        x.fillStyle = '#edf2f7'; rr(pad, tableTop, W - pad * 2, 60, 28); x.fill();
+        x.fillRect(pad, tableTop + 30, W - pad * 2, 30);
+        const col = { rank: 80, team: 150, mp: 650, w: 725, d: 795, l: 865, gf: 985, gd: 1095, pts: 1170, form: 1235 };
+        x.fillStyle = '#718096'; x.font = F('800', 22); x.textAlign = 'center';
+        [['#', col.rank], ['MP', col.mp], ['W', col.w], ['D', col.d], ['L', col.l], ['GF-GA', col.gf], ['GD', col.gd], ['PTS', col.pts]]
+            .forEach(([t, px]) => x.fillText(t, px, tableTop + 40));
+        x.fillText('FORM', col.form + 82, tableTop + 40);
+        x.textAlign = 'left'; x.fillText('TEAM', col.team, tableTop + 40);
+
+        const medal = ['#d69e2e', '#a0aec0', '#dd6b20'];
+        const formColor = { W: '#38a169', D: '#d69e2e', L: '#e53e3e' };
+        teams.forEach((t, i) => {
+            const y = tableTop + 70 + i * rowH, cy = y + rowH / 2;
+            if (i % 2 === 1) { x.fillStyle = '#f7fafc'; x.fillRect(pad, y, W - pad * 2, rowH); }
+            if (i === 0) { x.fillStyle = 'rgba(214,158,46,0.12)'; x.fillRect(pad, y, W - pad * 2, rowH); }
+            x.fillStyle = medal[i] || '#e2e8f0';
+            x.beginPath(); x.arc(col.rank, cy, 22, 0, Math.PI * 2); x.fill();
+            x.fillStyle = i < 3 ? '#fff' : '#4a5568'; x.font = F('900', 26); x.textAlign = 'center';
+            x.fillText(String(i + 1), col.rank, cy + 9);
+            if (logos[i]) {
+                x.save(); x.beginPath(); x.arc(col.team + 28, cy, 28, 0, Math.PI * 2); x.clip();
+                x.fillStyle = '#fff'; x.fillRect(col.team, cy - 28, 56, 56);
+                const r = Math.min(48 / logos[i].width, 48 / logos[i].height);
+                const w = logos[i].width * r, h = logos[i].height * r;
+                x.drawImage(logos[i], col.team + 28 - w / 2, cy - h / 2, w, h);
+                x.restore();
+                x.strokeStyle = '#e2e8f0'; x.lineWidth = 2;
+                x.beginPath(); x.arc(col.team + 28, cy, 28, 0, Math.PI * 2); x.stroke();
+            }
+            x.fillStyle = '#1a202c'; x.font = F('900', 32); x.textAlign = 'left';
+            x.fillText(fit(t.name, 380), col.team + 72, cy + 11);
+            x.font = F('800', 30); x.fillStyle = '#2d3748'; x.textAlign = 'center';
+            x.fillText(String(t.played), col.mp, cy + 10);
+            x.fillText(String(t.win), col.w, cy + 10);
+            x.fillText(String(t.draw), col.d, cy + 10);
+            x.fillText(String(t.loss), col.l, cy + 10);
+            x.fillText(`${t.gf}-${t.ga}`, col.gf, cy + 10);
+            x.fillText(t.gd > 0 ? '+' + t.gd : String(t.gd), col.gd, cy + 10);
+            x.fillStyle = '#38a169'; rr(col.pts - 39, cy - 26, 78, 52, 14); x.fill();
+            x.fillStyle = '#fff'; x.font = F('900', 32);
+            x.fillText(String(t.pts), col.pts, cy + 11);
+            // form: last 5 results
+            const f = getFormLetters(t.id);
+            if (!f.length) { x.fillStyle = '#a0aec0'; x.font = F('800', 30); x.fillText('-', col.form + 82, cy + 10); }
+            f.forEach((L, k) => {
+                const bx = col.form + 14 + k * 33;
+                x.fillStyle = formColor[L];
+                x.beginPath(); x.arc(bx + 14, cy, 14, 0, Math.PI * 2); x.fill();
+                x.fillStyle = '#fff'; x.font = F('900', 17); x.textAlign = 'center';
+                x.fillText(L, bx + 14, cy + 6);
+            });
+        });
+
+        // stats cards: name + count with unit
+        const half = (W - pad * 2 - 24) / 2;
+        const card = (cx, title, list, key, unit, color) => {
+            x.fillStyle = '#fff'; rr(cx, statsTop, half, statsH, 28); x.fill();
+            x.fillStyle = color; rr(cx, statsTop, half, 56, 28); x.fill();
+            x.fillRect(cx, statsTop + 28, half, 28);
+            x.fillStyle = '#fff'; x.font = F('900', 26); x.textAlign = 'left';
+            x.fillText(title, cx + 24, statsTop + 38);
+            if (!list.length) { x.fillStyle = '#a0aec0'; x.font = F('700', 26); x.fillText('—', cx + 24, statsTop + 110); return; }
+            list.forEach((p, i) => {
+                const y = statsTop + 76 + i * 60;
+                x.fillStyle = '#a0aec0'; x.font = F('900', 26); x.textAlign = 'left';
+                x.fillText(String(i + 1), cx + 24, y + 30);
+                x.fillStyle = '#1a202c'; x.font = F('800', 28);
+                x.fillText(fit(p.name, half - 260), cx + 64, y + 30);
+                x.fillStyle = color; x.font = F('900', 30); x.textAlign = 'right';
+                x.fillText(`${p[key]} ${unit}`, cx + half - 24, y + 30);
+            });
+        };
+        card(pad, '⚽ TOP SCORERS', scorers, 'goals', 'goals', '#3182ce');
+        card(pad + half + 24, '🅰️ TOP ASSISTS', assists, 'assists', 'assists', '#38a169');
+
+        x.textAlign = 'center'; x.fillStyle = 'rgba(255,255,255,0.7)'; x.font = F('700', 26);
+        x.fillText('Sport Time 10A · Izgi_Zhan', W / 2, H - 36);
+
+        return await new Promise(res => c.toBlob(res, 'image/png'));
+    }
+
     async function shareResults() {
         if (!activeTeams.length) { alert("No tournament yet."); return; }
-        const medals = ['🥇', '🥈', '🥉'];
-        const lines = ['⚽ Sport Time 10A', `Round ${currentDisplayedRound} / ${totalRounds}`, '', '📊 Standings:'];
-        getSortedTeams().forEach((t, i) =>
-            lines.push(`${medals[i] || (i + 1) + '.'} ${t.name} — ${t.pts} pts (${t.win}W ${t.draw}D ${t.loss}L, ${t.gf}-${t.ga})`));
-        const top = [...playersData].filter(p => p.goals > 0)
-            .sort((a, b) => b.goals - a.goals || b.assists - a.assists).slice(0, 3);
-        if (top.length) {
-            lines.push('', '👟 Top scorers:');
-            top.forEach(p => lines.push(`${p.name} — ${p.goals}`));
-        }
-        const text = lines.join('\n');
+        let blob;
+        try { blob = await buildResultsImage(); } catch (e) { console.error(e); }
+        if (!blob) { alert("Could not create the image."); return; }
+        const file = new File([blob], 'sport-time-10a.png', { type: 'image/png' });
         try {
-            if (navigator.share) { await navigator.share({ text }); return; }
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                await navigator.share({ files: [file] });
+                return;
+            }
         } catch (e) { if (e && e.name === 'AbortError') return; }
-        try {
-            await navigator.clipboard.writeText(text);
-            alert("Copied! Paste it into the chat.");
-        } catch (e) {
-            prompt("Copy this text:", text);
-        }
+        // fallback (computer): download the picture
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = 'sport-time-10a.png';
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 2000);
+    }
+
+    function getFormLetters(teamId, n = 5) {
+        return activeMatches
+            .filter(m => m.played && (m.t1 === teamId || m.t2 === teamId))
+            .sort((a, b) => a.tour - b.tour || a.id - b.id)
+            .slice(-n)
+            .map(m => {
+                const my = m.t1 === teamId ? m.s1 : m.s2;
+                const opp = m.t1 === teamId ? m.s2 : m.s1;
+                return my > opp ? 'W' : my === opp ? 'D' : 'L';
+            });
+    }
+
+    function formBadgesHtml(letters) {
+        if (!letters || !letters.length) return '<span style="color:var(--text-sub);">-</span>';
+        const cls = { W: 'streak-w', D: 'streak-d', L: 'streak-l' };
+        return '<div class="form-streak">' + letters.map(l => `<span class="streak-badge ${cls[l]}">${l}</span>`).join('') + '</div>';
     }
 
     function getSortedTeams() {
@@ -3055,15 +3232,18 @@ function syncAllGoalRows(saved) {
     function saveTournamentToHistory() {
         if (!activeMatches.some(m => m.played)) return;
         const sorted = getSortedTeams();
-        const byGoals = [...playersData].sort((a, b) => (b.goals || 0) - (a.goals || 0))[0];
-        const byMvp = [...playersData].sort((a, b) => (b.mvp || 0) - (a.mvp || 0))[0];
+        const best = key => {
+            const p = [...playersData].sort((x, y) => (y[key] || 0) - (x[key] || 0))[0];
+            return p && p[key] > 0 ? { name: p.name, value: p[key] } : null;
+        };
         if (!Array.isArray(allTimeStats.__history)) allTimeStats.__history = [];
         allTimeStats.__history.push({
             date: new Date().toISOString(),
             rounds: totalRounds,
-            teams: sorted.map(t => ({ name: t.name, logo: t.logo, pts: t.pts, gf: t.gf, ga: t.ga })),
-            topScorer: byGoals && byGoals.goals > 0 ? { name: byGoals.name, goals: byGoals.goals } : null,
-            mvp: byMvp && byMvp.mvp > 0 ? { name: byMvp.name, mvp: byMvp.mvp } : null
+            teams: sorted.map(t => ({ name: t.name, logo: t.logo, pts: t.pts, gf: t.gf, ga: t.ga, mp: t.played, w: t.win, d: t.draw, l: t.loss, form: getFormLetters(t.id) })),
+            topScorer: best('goals'),
+            topAssist: best('assists'),
+            mvp: best('mvp')
         });
     }
 
@@ -3071,24 +3251,46 @@ function syncAllGoalRows(saved) {
         const box = document.getElementById('historyList');
         const list = Array.isArray(allTimeStats.__history) ? [...allTimeStats.__history].reverse() : [];
         if (!list.length) {
-            box.innerHTML = `<p style="text-align:center;color:var(--text-sub);padding:16px;font-weight:700;">No finished tournaments yet. A tournament is saved here when the next one is started.</p>`;
+            box.innerHTML = `<div class="hist-empty">📜<br>No finished tournaments yet.<br><small>A tournament is saved here when the next one is started.</small></div>`;
             return;
         }
         box.innerHTML = list.map((h, i) => {
             const d = new Date(h.date).toLocaleDateString();
             const w = h.teams[0];
-            const rows = h.teams.map((t, k) =>
-                `<div style="display:flex;justify-content:space-between;font-size:13px;font-weight:700;padding:4px 0;"><span>${k + 1}. ${esc(t.name)}</span><span style="color:var(--text-sub);">${t.pts} pts · ${t.gf}-${t.ga}</span></div>`).join('');
+            const rows = h.teams.map((t, k) => `
+                <tr class="${k === 0 ? 'hist-first' : ''}">
+                    <td><span class="hist-rank hist-rank-${k + 1}">${k + 1}</span></td>
+                    <td class="hist-team"><img src="${esc(t.logo || defaultLogo)}" alt="" onerror="this.onerror=null;this.src=defaultLogo;"><span>${esc(t.name)}</span></td>
+                    <td>${t.mp ?? '-'}</td><td>${t.w ?? '-'}</td><td>${t.d ?? '-'}</td><td>${t.l ?? '-'}</td>
+                    <td class="hist-gf">${t.gf}-${t.ga}</td>
+                    <td class="hist-pts">${t.pts}</td>
+                    <td>${formBadgesHtml(t.form)}</td>
+                </tr>`).join('');
+            const chip = (icon, label, p, unit) => p ? `
+                <div class="hist-chip"><div class="hist-chip-icon">${icon}</div>
+                <div><small>${label}</small><b>${esc(p.name)}</b><span>${p.value} ${unit}</span></div></div>` : '';
             return `
-                <div class="match-card">
-                    <div class="match-badge">Tournament #${list.length - i} · ${esc(d)} · ${h.rounds} rounds</div>
-                    <div style="display:flex;align-items:center;gap:10px;font-size:16px;font-weight:900;">
-                        <img src="${esc(w.logo || defaultLogo)}" class="team-logo" alt="" onerror="this.onerror=null;this.src=defaultLogo;">
-                        🥇 ${esc(w.name)}
+                <div class="hist-card">
+                    <div class="hist-head">
+                        <span>Tournament #${list.length - i}</span>
+                        <span>${esc(d)} · ${h.rounds} rounds</span>
                     </div>
-                    <div>${rows}</div>
-                    ${h.topScorer ? `<div class="goal-item">⚽ Top scorer: ${esc(h.topScorer.name)} (${h.topScorer.goals})</div>` : ''}
-                    ${h.mvp ? `<div class="goal-item">🏆 Most MVP: ${esc(h.mvp.name)} (${h.mvp.mvp})</div>` : ''}
+                    <div class="hist-winner">
+                        <img src="${esc(w.logo || defaultLogo)}" alt="" onerror="this.onerror=null;this.src=defaultLogo;">
+                        <div><small>🏆 CHAMPION</small><b>${esc(w.name)}</b></div>
+                        <div class="hist-winner-pts">${w.pts}<small>pts</small></div>
+                    </div>
+                    <div style="overflow-x:auto;">
+                    <table class="hist-table">
+                        <thead><tr><th>#</th><th style="text-align:left;">Team</th><th>MP</th><th>W</th><th>D</th><th>L</th><th>GF-GA</th><th>Pts</th><th>Form</th></tr></thead>
+                        <tbody>${rows}</tbody>
+                    </table>
+                    </div>
+                    <div class="hist-stats">
+                        ${chip('⚽', 'Top scorer', h.topScorer, 'goals')}
+                        ${chip('🅰️', 'Top assist', h.topAssist, 'assists')}
+                        ${chip('🏆', 'Most MVP', h.mvp, 'MVP')}
+                    </div>
                 </div>`;
         }).join('');
     }
