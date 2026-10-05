@@ -595,6 +595,8 @@
         .hist-chip span { font-size: 12px; font-weight: 800; color: var(--primary-blue); }
         .hist-empty { text-align: center; padding: 40px 16px; font-size: 40px; color: var(--text-sub); font-weight: 700; line-height: 1.6; }
         .hist-empty small { font-size: 13px; }
+        .hist-roster { display: block; margin-top: 3px; font-size: 11px; font-weight: 700; line-height: 1.35; color: var(--text-sub); }
+        .hist-share { background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.4); color: #fff; border-radius: 8px; padding: 3px 10px; font-size: 11px; font-weight: 900; cursor: pointer; }
     </style>
 </head>
 <body data-theme="light">
@@ -3191,19 +3193,154 @@ function syncAllGoalRows(saved) {
         let blob;
         try { blob = await buildResultsImage(); } catch (e) { console.error(e); }
         if (!blob) { alert("Could not create the image."); return; }
-        const file = new File([blob], 'sport-time-10a.png', { type: 'image/png' });
+        await shareBlob(blob, 'sport-time-10a.png');
+    }
+
+    async function shareBlob(blob, name) {
+        const file = new File([blob], name, { type: 'image/png' });
         try {
             if (navigator.canShare && navigator.canShare({ files: [file] })) {
                 await navigator.share({ files: [file] });
                 return;
             }
         } catch (e) { if (e && e.name === 'AbortError') return; }
-        // fallback (computer): download the picture
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
-        a.href = url; a.download = 'sport-time-10a.png';
+        a.href = url; a.download = name;
         document.body.appendChild(a); a.click(); a.remove();
         setTimeout(() => URL.revokeObjectURL(url), 2000);
+    }
+
+    async function shareHistory(idx) {
+        const h = (allTimeStats.__history || [])[idx];
+        if (!h) return;
+        let blob;
+        try { blob = await buildHistoryImage(h, idx + 1); } catch (e) { console.error(e); }
+        if (!blob) { alert("Could not create the image."); return; }
+        await shareBlob(blob, `sport-time-tournament-${idx + 1}.png`);
+    }
+
+    async function buildHistoryImage(h, num) {
+        const teams = h.teams;
+        const logos = await Promise.all(teams.map(t => loadImg(t.logo || defaultLogo)));
+        const W = 1280, pad = 40;
+        const F = (w, sz) => `${w} ${sz}px system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif`;
+        const probe = document.createElement('canvas').getContext('2d');
+
+        // roster lines of the champion (small font, wrapped)
+        probe.font = F('700', 24);
+        const roster = (teams[0].players || []).join('  ·  ');
+        const lines = [];
+        if (roster) {
+            let cur = '';
+            roster.split('  ·  ').forEach(n => {
+                const t = cur ? cur + '  ·  ' + n : n;
+                if (probe.measureText(t).width > W - pad * 2 - 300 && cur) { lines.push(cur); cur = n; } else cur = t;
+            });
+            if (cur) lines.push(cur);
+        }
+        const champTop = 230, champH = 150 + (lines.length ? lines.length * 34 + 10 : 0);
+        const rowH = 84, tableTop = champTop + champH + 30, tableH = 70 + teams.length * rowH + 20;
+        const statsTop = tableTop + tableH + 30, statsH = 130;
+        const H = statsTop + statsH + 90;
+
+        const c = document.createElement('canvas');
+        c.width = W; c.height = H;
+        const x = c.getContext('2d');
+        const rr = (X, Y, w, h2, r) => {
+            x.beginPath();
+            x.moveTo(X + r, Y); x.arcTo(X + w, Y, X + w, Y + h2, r);
+            x.arcTo(X + w, Y + h2, X, Y + h2, r); x.arcTo(X, Y + h2, X, Y, r);
+            x.arcTo(X, Y, X + w, Y, r); x.closePath();
+        };
+        const fit = (t, max) => { while (x.measureText(t).width > max && t.length > 3) t = t.slice(0, -2); return t; };
+        const drawLogo = (img, cx, cy, R) => {
+            if (!img) return;
+            x.save(); x.beginPath(); x.arc(cx, cy, R, 0, Math.PI * 2); x.clip();
+            x.fillStyle = '#fff'; x.fillRect(cx - R, cy - R, R * 2, R * 2);
+            const r = Math.min((R * 1.7) / img.width, (R * 1.7) / img.height);
+            x.drawImage(img, cx - img.width * r / 2, cy - img.height * r / 2, img.width * r, img.height * r);
+            x.restore();
+        };
+
+        const g = x.createLinearGradient(0, 0, W, H);
+        g.addColorStop(0, '#0f2742'); g.addColorStop(1, '#2b6cb0');
+        x.fillStyle = g; x.fillRect(0, 0, W, H);
+        x.fillStyle = 'rgba(255,255,255,0.05)';
+        for (let i = -H; i < W; i += 60) { x.save(); x.translate(i, 0); x.rotate(Math.PI / 4); x.fillRect(0, 0, 18, H * 2); x.restore(); }
+
+        x.textAlign = 'left'; x.fillStyle = '#fff'; x.font = F('900', 60);
+        x.fillText('SPORT TIME 10A', pad, 100);
+        x.fillStyle = '#90cdf4'; x.font = F('700', 32);
+        x.fillText(`Tournament #${num}  ·  ${new Date(h.date).toLocaleDateString()}  ·  ${h.rounds} rounds`, pad, 155);
+        x.fillStyle = '#f6e05e'; x.fillRect(pad, 180, 120, 6);
+
+        // champion card
+        x.fillStyle = '#fff'; rr(pad, champTop, W - pad * 2, champH, 28); x.fill();
+        x.fillStyle = 'rgba(214,158,46,0.15)'; rr(pad, champTop, W - pad * 2, champH, 28); x.fill();
+        drawLogo(logos[0], pad + 90, champTop + 75, 52);
+        x.strokeStyle = '#d69e2e'; x.lineWidth = 5; x.beginPath(); x.arc(pad + 90, champTop + 75, 52, 0, Math.PI * 2); x.stroke();
+        x.fillStyle = '#d69e2e'; x.font = F('900', 24); x.textAlign = 'left';
+        x.fillText('🏆 CHAMPION', pad + 170, champTop + 55);
+        x.fillStyle = '#1a202c'; x.font = F('900', 48);
+        x.fillText(fit(teams[0].name, 700), pad + 170, champTop + 108);
+        x.fillStyle = '#38a169'; x.font = F('900', 56); x.textAlign = 'right';
+        x.fillText(`${teams[0].pts} pts`, W - pad - 40, champTop + 95);
+        x.fillStyle = '#4a5568'; x.font = F('700', 24); x.textAlign = 'left';
+        lines.forEach((ln, k) => x.fillText(ln, pad + 40, champTop + 160 + k * 34));
+
+        // table
+        x.fillStyle = '#fff'; rr(pad, tableTop, W - pad * 2, tableH, 28); x.fill();
+        x.fillStyle = '#edf2f7'; rr(pad, tableTop, W - pad * 2, 60, 28); x.fill();
+        x.fillRect(pad, tableTop + 30, W - pad * 2, 30);
+        const col = { rank: 80, team: 140, mp: 580, w: 650, d: 715, l: 780, gf: 885, pts: 990, form: 1040 };
+        x.fillStyle = '#718096'; x.font = F('800', 22); x.textAlign = 'center';
+        [['#', col.rank], ['MP', col.mp], ['W', col.w], ['D', col.d], ['L', col.l], ['GF-GA', col.gf], ['PTS', col.pts]]
+            .forEach(([t, px]) => x.fillText(t, px, tableTop + 40));
+        x.fillText('FORM', col.form + 82, tableTop + 40);
+        x.textAlign = 'left'; x.fillText('TEAM', col.team, tableTop + 40);
+        const medal = ['#d69e2e', '#a0aec0', '#dd6b20'], fc = { W: '#38a169', D: '#d69e2e', L: '#e53e3e' };
+        teams.forEach((t, i) => {
+            const y = tableTop + 70 + i * rowH, cy = y + rowH / 2;
+            if (i % 2 === 1) { x.fillStyle = '#f7fafc'; x.fillRect(pad, y, W - pad * 2, rowH); }
+            if (i === 0) { x.fillStyle = 'rgba(214,158,46,0.12)'; x.fillRect(pad, y, W - pad * 2, rowH); }
+            x.fillStyle = medal[i] || '#e2e8f0'; x.beginPath(); x.arc(col.rank, cy, 21, 0, Math.PI * 2); x.fill();
+            x.fillStyle = i < 3 ? '#fff' : '#4a5568'; x.font = F('900', 24); x.textAlign = 'center';
+            x.fillText(String(i + 1), col.rank, cy + 9);
+            drawLogo(logos[i], col.team + 26, cy, 26);
+            x.fillStyle = '#1a202c'; x.font = F('900', 30); x.textAlign = 'left';
+            x.fillText(fit(t.name, 320), col.team + 66, cy + 10);
+            x.font = F('800', 28); x.fillStyle = '#2d3748'; x.textAlign = 'center';
+            x.fillText(String(t.mp ?? '-'), col.mp, cy + 10);
+            x.fillText(String(t.w ?? '-'), col.w, cy + 10);
+            x.fillText(String(t.d ?? '-'), col.d, cy + 10);
+            x.fillText(String(t.l ?? '-'), col.l, cy + 10);
+            x.fillText(`${t.gf}-${t.ga}`, col.gf, cy + 10);
+            x.fillStyle = '#38a169'; rr(col.pts - 38, cy - 24, 76, 48, 13); x.fill();
+            x.fillStyle = '#fff'; x.font = F('900', 30); x.fillText(String(t.pts), col.pts, cy + 10);
+            (t.form || []).forEach((L, k) => {
+                const bx = col.form + 14 + k * 33;
+                x.fillStyle = fc[L]; x.beginPath(); x.arc(bx + 14, cy, 14, 0, Math.PI * 2); x.fill();
+                x.fillStyle = '#fff'; x.font = F('900', 17); x.fillText(L, bx + 14, cy + 6);
+            });
+        });
+
+        // 3 stat cards
+        const items = [['⚽ TOP SCORER', h.topScorer, 'goals', '#3182ce'], ['🅰️ TOP ASSIST', h.topAssist, 'assists', '#38a169'], ['🏆 MOST MVP', h.mvp, 'MVP', '#d69e2e']];
+        const cw = (W - pad * 2 - 48) / 3;
+        items.forEach(([title, p, unit, color], k) => {
+            const cx = pad + k * (cw + 24);
+            x.fillStyle = '#fff'; rr(cx, statsTop, cw, statsH, 24); x.fill();
+            x.fillStyle = color; rr(cx, statsTop, cw, 46, 24); x.fill(); x.fillRect(cx, statsTop + 24, cw, 22);
+            x.fillStyle = '#fff'; x.font = F('900', 22); x.textAlign = 'left'; x.fillText(title, cx + 20, statsTop + 32);
+            x.fillStyle = '#1a202c'; x.font = F('900', 28);
+            x.fillText(p ? fit(p.name, cw - 40) : '—', cx + 20, statsTop + 88);
+            if (p) { x.fillStyle = color; x.font = F('800', 22); x.fillText(`${p.value} ${unit}`, cx + 20, statsTop + 118); }
+        });
+
+        x.textAlign = 'center'; x.fillStyle = 'rgba(255,255,255,0.7)'; x.font = F('700', 26);
+        x.fillText('Sport Time 10A · Izgi_Zhan', W / 2, H - 36);
+        return await new Promise(res => c.toBlob(res, 'image/png'));
     }
 
     function getFormLetters(teamId, n = 5) {
@@ -3240,7 +3377,7 @@ function syncAllGoalRows(saved) {
         allTimeStats.__history.push({
             date: new Date().toISOString(),
             rounds: totalRounds,
-            teams: sorted.map(t => ({ name: t.name, logo: t.logo, pts: t.pts, gf: t.gf, ga: t.ga, mp: t.played, w: t.win, d: t.draw, l: t.loss, form: getFormLetters(t.id) })),
+            teams: sorted.map(t => ({ name: t.name, logo: t.logo, pts: t.pts, gf: t.gf, ga: t.ga, mp: t.played, w: t.win, d: t.draw, l: t.loss, form: getFormLetters(t.id), players: (t.players || []).map(p => (playersData.find(x => x.id === p.id) || p).name) })),
             topScorer: best('goals'),
             topAssist: best('assists'),
             mvp: best('mvp')
@@ -3274,10 +3411,11 @@ function syncAllGoalRows(saved) {
                     <div class="hist-head">
                         <span>Tournament #${list.length - i}</span>
                         <span>${esc(d)} · ${h.rounds} rounds</span>
+                        <button class="hist-share" onclick="shareHistory(${list.length - 1 - i})">📤 Share</button>
                     </div>
                     <div class="hist-winner">
                         <img src="${esc(w.logo || defaultLogo)}" alt="" onerror="this.onerror=null;this.src=defaultLogo;">
-                        <div><small>🏆 CHAMPION</small><b>${esc(w.name)}</b></div>
+                        <div><small>🏆 CHAMPION</small><b>${esc(w.name)}</b>${(w.players && w.players.length) ? `<span class="hist-roster">${w.players.map(esc).join(' · ')}</span>` : ''}</div>
                         <div class="hist-winner-pts">${w.pts}<small>pts</small></div>
                     </div>
                     <div style="overflow-x:auto;">
