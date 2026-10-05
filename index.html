@@ -8,6 +8,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@1,900&display=swap" rel="stylesheet">
     <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#3182ce">
+    <link rel="icon" href="icon-192.png">
+    <link rel="apple-touch-icon" href="icon-192.png">
     <style>
         :root {
             --bg-color: #f4f6f9;
@@ -525,6 +528,9 @@
         .mode-card:hover { border-color: var(--primary-blue); transform: translateY(-1px); }
         .mode-card.active { border-color: var(--primary-blue); background: rgba(49,130,206,.12); color: var(--text-main); box-shadow: 0 4px 14px rgba(49,130,206,.18); }
         .match-cancel-btn { align-self: flex-end; background: rgba(229,62,62,.08); color: var(--primary-red); border: 1px solid rgba(229,62,62,.25); padding: 7px 14px; border-radius: 8px; font-size: 12px; font-weight: 800; cursor: pointer; transition: all .15s ease; }
+        .match-actions { display: flex; justify-content: flex-end; gap: 8px; }
+        .match-edit-btn { background: rgba(49,130,206,.08); color: var(--primary-blue); border-color: rgba(49,130,206,.25); }
+        .match-edit-btn:hover { background: var(--primary-blue); color: #fff; border-color: var(--primary-blue); }
         .match-cancel-btn:hover { background: var(--primary-red); color: #fff; border-color: var(--primary-red); }
 
         .rating-rules { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px; padding: 14px 16px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
@@ -611,6 +617,7 @@
 
         <div class="section-header">
             <span class="section-title">📊 League Standings</span>
+            <button onclick="shareResults()" style="background:none;border:none;color:var(--primary-blue);font-size:13px;font-weight:900;cursor:pointer;">📤 Share</button>
         </div>
         <div class="table-wrapper">
             <table class="league-table">
@@ -659,6 +666,7 @@
         <div class="leaderboard-mode-bar">
             <button id="currentLeaderboardBtn" class="leaderboard-mode-btn active" onclick="setLeaderboardMode('current', this)">🏆 Current Tournament</button>
             <button id="allTimeLeaderboardBtn" class="leaderboard-mode-btn" onclick="setLeaderboardMode('allTime', this)">👑 All Time</button>
+            <button id="historyLeaderboardBtn" class="leaderboard-mode-btn" onclick="setLeaderboardMode('history', this)">📜 History</button>
         </div>
 
         <div class="filter-bar">
@@ -679,6 +687,7 @@
             </thead>
             <tbody id="leaderboardBody"></tbody>
         </table>
+        <div id="historyList" style="display:none;"></div>
     </div>
 
     <button id="resetAllBtn" class="btn btn-dark" onclick="resetChanges()">🔒 Admin: Reset All Data</button>
@@ -1126,7 +1135,7 @@
               <div class="admin-avatar">👤</div>
               <div class="admin-player-name-wrap">
                 <div class="admin-player-id">PLAYER #${index + 1} · ⚽ ${p.goals || 0} · 🅰️ ${p.assists || 0} · 🏆 ${p.mvp || 0}</div>
-                <input value="${p.name.replace(/"/g,'&quot;')}" placeholder="Player name" title="Player name" onchange="adminUpdateName(${p.id}, this.value)">
+                <input value="${esc(p.name)}" placeholder="Player name" title="Player name" onchange="adminUpdateName(${p.id}, this.value)">
               </div>
             </div>
 
@@ -1241,6 +1250,11 @@
         if(tabId === 'adminTab') renderAdminPlayers();
     }
 
+    function esc(v) {
+        return String(v == null ? '' : v).replace(/[&<>"']/g, c =>
+            ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
     function formatRating(value) {
         const n = Number(value);
         return Number.isFinite(n) ? n.toFixed(2).replace(/0+$/, "").replace(/\.$/, "") : "0";
@@ -1263,7 +1277,7 @@
                         <input type="checkbox" id="check_${p.id}" value="${p.id}" checked onchange="updateCount()">
                         <div>
                             <div style="display:flex; align-items:center; gap:6px;">
-                                <span class="player-name">${p.name}</span>
+                                <span class="player-name">${esc(p.name)}</span>
                                 <span class="player-rating">⭐ ${formatRating(p.rating)} &nbsp; ⚡ ${p.speed || 3}</span>
                             </div>
                             <div class="role-display">
@@ -1785,7 +1799,7 @@
                     <td class="team-cell">
                         <img src="${t.logo || defaultLogo}" class="team-logo" alt="" onerror="this.onerror=null;this.src=defaultLogo;">
                         <div style="display:flex; flex-direction:column; line-height:1.2;">
-                            <span>${t.name}</span>
+                            <span>${esc(t.name)}</span>
                             <span class="country-code">${t.code || ''}</span>
                         </div>
                     </td>
@@ -1848,14 +1862,14 @@
                             : null;
 
                     if (g.isOg) {
-                        return `<div class="goal-item"><span class="og-ball">⚽</span> ${scorerName} (OG)</div>`;
+                        return `<div class="goal-item"><span class="og-ball">⚽</span> ${esc(scorerName)} (OG)</div>`;
                     }
 
                     if (assistName) {
-                        return `<div class="goal-item">⚽ ${scorerName} (${assistName})</div>`;
+                        return `<div class="goal-item">⚽ ${esc(scorerName)} (${esc(assistName)})</div>`;
                     }
 
-                    return `<div class="goal-item">⚽ ${scorerName}</div>`;
+                    return `<div class="goal-item">⚽ ${esc(scorerName)}</div>`;
                 };
 
                 let t1GoalsHtml =
@@ -1871,7 +1885,7 @@
 
                 let mvpHtml =
                     mvpPlayer
-                        ? `<div class="mvp-banner">🏆 MVP: ${mvpPlayer.name}</div>`
+                        ? `<div class="mvp-banner">🏆 MVP: ${esc(mvpPlayer.name)}</div>`
                         : '';
 
                 container.innerHTML += `
@@ -1882,7 +1896,7 @@
                             <div class="match-team">
                                 <img src="${t1 ? (t1.logo || defaultLogo) : defaultLogo}" class="team-logo" alt="" onerror="this.onerror=null;this.src=defaultLogo;">
                                 <div style="display:flex; flex-direction:column; line-height:1.2;">
-                                    <span>${t1 ? t1.name : 'T1'}</span>
+                                    <span>${esc(t1 ? t1.name : 'T1')}</span>
                                     <span class="country-code">${t1 ? t1.code : ''}</span>
                                 </div>
                             </div>
@@ -1893,7 +1907,7 @@
 
                             <div class="match-team right">
                                 <div style="display:flex; flex-direction:column; line-height:1.2; text-align:right;">
-                                    <span>${t2 ? t2.name : 'T2'}</span>
+                                    <span>${esc(t2 ? t2.name : 'T2')}</span>
                                     <span class="country-code">${t2 ? t2.code : ''}</span>
                                 </div>
 
@@ -1910,7 +1924,10 @@
                             ${mvpHtml}
                         </div>
 
-                        <button class="match-cancel-btn" onclick="cancelMatchResult(${m.id})">↩ Cancel</button>
+                        <div class="match-actions">
+                            <button class="match-cancel-btn match-edit-btn" onclick="cancelMatchResult(${m.id}, true)">✏️ Edit</button>
+                            <button class="match-cancel-btn" onclick="cancelMatchResult(${m.id})">↩ Cancel</button>
+                        </div>
                     </div>
                 `;
             } else {
@@ -1933,7 +1950,7 @@
                     for(let i = 0; i < goalsCount1; i++) {
                         eventsHtml += `
                             <div class="goal-row" id="m_${m.id}_t1_g${i}_row">
-                                <span style="font-size:11px; font-weight:800; color:var(--primary-blue);">${t1.name} Goal #${i+1}:</span>
+                                <span style="font-size:11px; font-weight:800; color:var(--primary-blue);">${esc(t1.name)} Goal #${i+1}:</span>
                                 <label>Scorer:</label>
 
                                 <select
@@ -1941,7 +1958,7 @@
                                     onchange="updateScorerOrAssist(${m.id}, 't1', ${i})"
                                     ${isAdminAuthenticated ? '' : 'disabled'}
                                 >
-                                    ${t1.players.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
+                                    ${t1.players.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('')}
                                 </select>
 
                                 <label class="autogol-label">
@@ -1972,7 +1989,7 @@
                                         return !scorerSelect ||
                                             p.id != scorerSelect.value;
                                     }).map(p =>
-                                        `<option value="${p.id}">${p.name}</option>`
+                                        `<option value="${p.id}">${esc(p.name)}</option>`
                                     ).join('')}
                                 </select>
                             </div>
@@ -1982,7 +1999,7 @@
                     for(let i = 0; i < goalsCount2; i++) {
                         eventsHtml += `
                             <div class="goal-row" id="m_${m.id}_t2_g${i}_row">
-                                <span style="font-size:11px; font-weight:800; color:var(--primary-red);">${t2.name} Goal #${i+1}:</span>
+                                <span style="font-size:11px; font-weight:800; color:var(--primary-red);">${esc(t2.name)} Goal #${i+1}:</span>
                                 <label>Scorer:</label>
 
                                 <select
@@ -1990,7 +2007,7 @@
                                     onchange="updateScorerOrAssist(${m.id}, 't2', ${i})"
                                     ${isAdminAuthenticated ? '' : 'disabled'}
                                 >
-                                    ${t2.players.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
+                                    ${t2.players.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('')}
                                 </select>
 
                                 <label class="autogol-label">
@@ -2021,7 +2038,7 @@
                                         return !scorerSelect ||
                                             p.id != scorerSelect.value;
                                     }).map(p =>
-                                        `<option value="${p.id}">${p.name}</option>`
+                                        `<option value="${p.id}">${esc(p.name)}</option>`
                                     ).join('')}
                                 </select>
                             </div>
@@ -2039,7 +2056,7 @@
                             <div class="match-team">
                                 <img src="${t1 ? (t1.logo || defaultLogo) : defaultLogo}" class="team-logo" alt="" onerror="this.onerror=null;this.src=defaultLogo;">
                                 <div style="display:flex; flex-direction:column; line-height:1.2;">
-                                    <span>${t1 ? t1.name : 'T1'}</span>
+                                    <span>${esc(t1 ? t1.name : 'T1')}</span>
                                     <span class="country-code">${t1 ? t1.code : ''}</span>
                                 </div>
                             </div>
@@ -2068,7 +2085,7 @@
 
                             <div class="match-team right">
                                 <div style="display:flex; flex-direction:column; line-height:1.2; text-align:right;">
-                                    <span>${t2 ? t2.name : 'T2'}</span>
+                                    <span>${esc(t2 ? t2.name : 'T2')}</span>
                                     <span class="country-code">${t2 ? t2.code : ''}</span>
                                 </div>
 
@@ -2091,7 +2108,8 @@
                 `;
             }
         });
-        syncAllGoalRows(savedSel);
+        syncAllGoalRows(Object.assign({}, pendingDrafts, savedSel));
+        pendingDrafts = {};
         updateAccessUI();
     }
 
@@ -2118,7 +2136,7 @@
     // автор: своя команда, а при автогole — команда соперника
     const scorerTeam = isOg ? opp : own;
     scorerEl.innerHTML = scorerTeam.players
-        .map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+        .map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('');
 
     const savedScorer = saved && saved[base + '_scorer'];
     if (savedScorer && scorerTeam.players.some(p => String(p.id) === String(savedScorer))) {
@@ -2134,7 +2152,7 @@
     // ассистенты: своя команда БЕЗ выбранного автора
     assistEl.innerHTML = '<option value="">None</option>' + own.players
         .filter(p => String(p.id) !== String(scorerEl.value))
-        .map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+        .map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('');
 
     const savedAssist = saved && saved[base + '_assistant'];
     if (savedAssist && String(savedAssist) !== String(scorerEl.value) &&
@@ -2181,7 +2199,7 @@ function syncAllGoalRows(saved) {
         if (isOg) {
             scorerSelect.innerHTML =
                 targetTeam.players
-                    .map(p => `<option value="${p.id}">${p.name}</option>`)
+                    .map(p => `<option value="${p.id}">${esc(p.name)}</option>`)
                     .join('');
 
             assistSelect.value = "";
@@ -2189,7 +2207,7 @@ function syncAllGoalRows(saved) {
         } else {
             scorerSelect.innerHTML =
                 (teamTag === 't1' ? t1 : t2).players
-                    .map(p => `<option value="${p.id}">${p.name}</option>`)
+                    .map(p => `<option value="${p.id}">${esc(p.name)}</option>`)
                     .join('');
 
             assistSelect.disabled = false;
@@ -2252,7 +2270,7 @@ function syncAllGoalRows(saved) {
             assistSelect.innerHTML =
                 '<option value="">None</option>' +
                 availableAssistPlayers
-                    .map(p => `<option value="${p.id}">${p.name}</option>`)
+                    .map(p => `<option value="${p.id}">${esc(p.name)}</option>`)
                     .join('');
 
             assistSelect.value =
@@ -2623,12 +2641,31 @@ function syncAllGoalRows(saved) {
         }
     }
 
-    function cancelMatchResult(matchId) {
-        if (!requireAdmin("cancel a match result")) return;
+    let pendingDrafts = {};
+
+    function cancelMatchResult(matchId, edit = false) {
+        if (!requireAdmin(edit ? "edit a match result" : "cancel a match result")) return;
         const match = activeMatches.find(m => m.id === matchId);
         if (!match || !match.played) return;
 
-        if (!confirm(`Cancel the result of match #${match.id}? Goals, assists, MVP and rating changes from this match will be removed.`)) return;
+        const msg = edit
+            ? `Edit match #${match.id}? Its stats and rating changes are taken back, and you can change the score and goals, then press End match.`
+            : `Cancel the result of match #${match.id}? Goals, assists, MVP and rating changes from this match will be removed.`;
+        if (!confirm(msg)) return;
+
+        // for Edit: remember the old score and goal events to pre-fill the form
+        const oldS1 = match.s1, oldS2 = match.s2;
+        const draft = {};
+        if (edit) {
+            const cnt = { [match.t1]: 0, [match.t2]: 0 };
+            (match.goalsDetails || []).forEach(e => {
+                const tag = e.teamId === match.t1 ? 't1' : 't2';
+                const base = `m_${match.id}_${tag}_g${cnt[e.teamId]++}`;
+                draft[base + '_og'] = !!e.isOg;
+                draft[base + '_scorer'] = String(e.scorerId);
+                draft[base + '_assistant'] = e.assistantId ? String(e.assistantId) : '';
+            });
+        }
 
         const t1 = activeTeams.find(t => t.id === match.t1);
         const t2 = activeTeams.find(t => t.id === match.t2);
@@ -2682,11 +2719,12 @@ function syncAllGoalRows(saved) {
 
         // 3) make the match unplayed again
         match.played = false;
-        match.s1 = null;
-        match.s2 = null;
+        match.s1 = edit ? oldS1 : null;
+        match.s2 = edit ? oldS2 : null;
         match.goalsDetails = [];
         match.mvpId = null;
         delete match.ratingDeltas;
+        pendingDrafts = edit ? draft : {};
 
         recalculateStandings();
         renderLeagueTable();
@@ -2754,7 +2792,7 @@ function syncAllGoalRows(saved) {
             t.gd = t.gf - t.ga;
         });
 
-        saveData();
+        if (isAdminAuthenticated) saveData();
     }
 
     function renderTeamsCards() {
@@ -2806,7 +2844,7 @@ function syncAllGoalRows(saved) {
                             value="${cleanName}"
                             ${cleanName === t.name ? 'selected' : ''}
                         >
-                            ${p.name}
+                            ${esc(p.name)}
                         </option>
                     `;
                 }).join('');
@@ -2822,7 +2860,7 @@ function syncAllGoalRows(saved) {
             let playersListHtml =
                 sortedTeamPlayers.map(p => `
                     <li>
-                        <span>${p.name}</span>
+                        <span>${esc(p.name)}</span>
                         <span style="color:var(--primary-blue);">
                             ⭐ ${formatRating(p.rating)}
                         </span>
@@ -2885,6 +2923,12 @@ function syncAllGoalRows(saved) {
 
     function renderLeaderboard(metric, btn) {
         leaderboardMetric = metric || leaderboardMetric;
+
+        const isHist = leaderboardMode === 'history';
+        document.querySelector('.filter-bar').style.display = isHist ? 'none' : 'flex';
+        document.querySelector('.leader-table').style.display = isHist ? 'none' : 'table';
+        document.getElementById('historyList').style.display = isHist ? 'block' : 'none';
+        if (isHist) { renderHistory(); return; }
 
         if (btn) {
             document
@@ -2968,7 +3012,7 @@ function syncAllGoalRows(saved) {
                 <tr>
                     <td class="rank ${rankClass}">${index + 1}</td>
                     <td style="font-weight:800;">
-                        ${p.name}
+                        ${esc(p.name)}
                         <span style="font-size:11px;color:var(--primary-blue);font-weight:normal;">
                             (⭐${formatRating(p.rating)})
                         </span>
@@ -2979,7 +3023,78 @@ function syncAllGoalRows(saved) {
         });
     }
 
+    async function shareResults() {
+        if (!activeTeams.length) { alert("No tournament yet."); return; }
+        const medals = ['🥇', '🥈', '🥉'];
+        const lines = ['⚽ Sport Time 10A', `Round ${currentDisplayedRound} / ${totalRounds}`, '', '📊 Standings:'];
+        getSortedTeams().forEach((t, i) =>
+            lines.push(`${medals[i] || (i + 1) + '.'} ${t.name} — ${t.pts} pts (${t.win}W ${t.draw}D ${t.loss}L, ${t.gf}-${t.ga})`));
+        const top = [...playersData].filter(p => p.goals > 0)
+            .sort((a, b) => b.goals - a.goals || b.assists - a.assists).slice(0, 3);
+        if (top.length) {
+            lines.push('', '👟 Top scorers:');
+            top.forEach(p => lines.push(`${p.name} — ${p.goals}`));
+        }
+        const text = lines.join('\n');
+        try {
+            if (navigator.share) { await navigator.share({ text }); return; }
+        } catch (e) { if (e && e.name === 'AbortError') return; }
+        try {
+            await navigator.clipboard.writeText(text);
+            alert("Copied! Paste it into the chat.");
+        } catch (e) {
+            prompt("Copy this text:", text);
+        }
+    }
+
+    function getSortedTeams() {
+        return [...activeTeams].sort((a, b) =>
+            (b.pts - a.pts) || (b.gd - a.gd) || (b.gf - a.gf));
+    }
+
+    function saveTournamentToHistory() {
+        if (!activeMatches.some(m => m.played)) return;
+        const sorted = getSortedTeams();
+        const byGoals = [...playersData].sort((a, b) => (b.goals || 0) - (a.goals || 0))[0];
+        const byMvp = [...playersData].sort((a, b) => (b.mvp || 0) - (a.mvp || 0))[0];
+        if (!Array.isArray(allTimeStats.__history)) allTimeStats.__history = [];
+        allTimeStats.__history.push({
+            date: new Date().toISOString(),
+            rounds: totalRounds,
+            teams: sorted.map(t => ({ name: t.name, logo: t.logo, pts: t.pts, gf: t.gf, ga: t.ga })),
+            topScorer: byGoals && byGoals.goals > 0 ? { name: byGoals.name, goals: byGoals.goals } : null,
+            mvp: byMvp && byMvp.mvp > 0 ? { name: byMvp.name, mvp: byMvp.mvp } : null
+        });
+    }
+
+    function renderHistory() {
+        const box = document.getElementById('historyList');
+        const list = Array.isArray(allTimeStats.__history) ? [...allTimeStats.__history].reverse() : [];
+        if (!list.length) {
+            box.innerHTML = `<p style="text-align:center;color:var(--text-sub);padding:16px;font-weight:700;">No finished tournaments yet. A tournament is saved here when the next one is started.</p>`;
+            return;
+        }
+        box.innerHTML = list.map((h, i) => {
+            const d = new Date(h.date).toLocaleDateString();
+            const w = h.teams[0];
+            const rows = h.teams.map((t, k) =>
+                `<div style="display:flex;justify-content:space-between;font-size:13px;font-weight:700;padding:4px 0;"><span>${k + 1}. ${esc(t.name)}</span><span style="color:var(--text-sub);">${t.pts} pts · ${t.gf}-${t.ga}</span></div>`).join('');
+            return `
+                <div class="match-card">
+                    <div class="match-badge">Tournament #${list.length - i} · ${esc(d)} · ${h.rounds} rounds</div>
+                    <div style="display:flex;align-items:center;gap:10px;font-size:16px;font-weight:900;">
+                        <img src="${esc(w.logo || defaultLogo)}" class="team-logo" alt="" onerror="this.onerror=null;this.src=defaultLogo;">
+                        🥇 ${esc(w.name)}
+                    </div>
+                    <div>${rows}</div>
+                    ${h.topScorer ? `<div class="goal-item">⚽ Top scorer: ${esc(h.topScorer.name)} (${h.topScorer.goals})</div>` : ''}
+                    ${h.mvp ? `<div class="goal-item">🏆 Most MVP: ${esc(h.mvp.name)} (${h.mvp.mvp})</div>` : ''}
+                </div>`;
+        }).join('');
+    }
+
     function archiveCurrentTournament() {
+        saveTournamentToHistory();
         playersData.forEach(player => {
             const id = String(player.id);
 
