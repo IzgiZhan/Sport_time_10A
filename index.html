@@ -568,7 +568,7 @@
         .hist-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 18px; overflow: hidden; margin-bottom: 18px; box-shadow: 0 6px 20px rgba(0,0,0,.07); }
         .hist-head { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; padding: 12px 16px; background: linear-gradient(135deg, #1a365d, #3182ce); color: #fff; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .5px; }
         .hist-winner { display: flex; align-items: center; gap: 14px; padding: 16px; background: linear-gradient(135deg, rgba(214,158,46,.20), rgba(214,158,46,.04)); border-bottom: 1px solid var(--card-border); }
-        .hist-winner img { width: 54px; height: 54px; object-fit: contain; background: #fff; border-radius: 50%; padding: 4px; border: 3px solid var(--primary-gold); }
+        .hist-winner img { width: 64px; height: 64px; object-fit: contain; }
         .hist-winner > div:nth-child(2) { flex: 1; min-width: 0; }
         .hist-winner small { display: block; font-size: 11px; font-weight: 900; color: var(--primary-gold); letter-spacing: 1px; }
         .hist-winner b { display: block; font-size: 20px; font-weight: 900; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -595,6 +595,9 @@
         .hist-chip span { font-size: 12px; font-weight: 800; color: var(--primary-blue); }
         .hist-empty { text-align: center; padding: 40px 16px; font-size: 40px; color: var(--text-sub); font-weight: 700; line-height: 1.6; }
         .hist-empty small { font-size: 13px; }
+        .hist-chip-logo { width: 32px; height: 32px; object-fit: contain; display: block; }
+        .hist-team-info { display: flex; flex-direction: column; min-width: 140px; }
+        .hist-team-info .hist-roster { font-size: 10px; font-weight: 600; margin-top: 2px; }
         .hist-roster { display: block; margin-top: 3px; font-size: 11px; font-weight: 700; line-height: 1.35; color: var(--text-sub); }
         .hist-share { background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.4); color: #fff; border-radius: 8px; padding: 3px 10px; font-size: 11px; font-weight: 900; cursor: pointer; }
     </style>
@@ -779,6 +782,40 @@
     ];
 
     const defaultLogo = "https://upload.wikimedia.org/wikipedia/commons/d/d3/Soccerball.svg";
+    // ===== Club logo fallbacks: 1) original  2) Wikipedia FilePath (PNG)  3) generated badge =====
+    const LOGO_COLORS = { rma:'#1b2a6b', bar:'#a50044', mci:'#6cabdd', bay:'#dc052d', psg:'#004170', liv:'#c8102e', ars:'#ef0107', mun:'#da291c', che:'#034694', int:'#0068a8', mil:'#fb090b', dor:'#fde100' };
+
+    function badgeLogo(name, code) {
+        const c = String(code || '?').toUpperCase().slice(0, 3);
+        const bg = LOGO_COLORS[String(code || '').toLowerCase()] || '#3182ce';
+        const fg = ['dor', 'mci'].includes(String(code || '').toLowerCase()) ? '#1a202c' : '#ffffff';
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="48" fill="${bg}" stroke="rgba(0,0,0,.25)" stroke-width="3"/><text x="50" y="62" font-family="Arial,Helvetica,sans-serif" font-size="34" font-weight="900" text-anchor="middle" fill="${fg}">${c}</text></svg>`;
+        return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+    }
+
+    function wikiAltLogo(url) {
+        const m = String(url || '').match(/\/wikipedia\/(en|commons)\/[^/]+\/[^/]+\/([^/?]+)$/);
+        if (!m) return null;
+        return (m[1] === 'en' ? 'https://en.wikipedia.org' : 'https://commons.wikimedia.org') + '/wiki/Special:FilePath/' + m[2] + '?width=200';
+    }
+
+    function presetByLogo(src) {
+        return clubPresets.find(p => p.logo === src || wikiAltLogo(p.logo) === src);
+    }
+
+    function logoFallback(img) {
+        const step = Number(img.dataset.step || 0);
+        const src = img.getAttribute('src') || '';
+        const p = presetByLogo(src);
+        if (step === 0) {
+            const alt = p ? wikiAltLogo(p.logo) : null;
+            if (alt && alt !== src) { img.dataset.step = '1'; img.src = alt; return; }
+        }
+        img.dataset.step = '2';
+        img.onerror = null;
+        img.src = p ? badgeLogo(p.name, p.code) : badgeLogo('', '?');
+    }
+
     const worldCupTrophyImg = "https://upload.wikimedia.org/wikipedia/commons/3/37/World_Cup_%28trophy%29.png";
 
     // Rating changes (used both in the calculations and in the info card)
@@ -990,6 +1027,7 @@
     let activeTeams = [];
     let activeMatches = [];
     let currentDisplayedRound = 1;
+    let lastRemoteRound = null;
     let totalRounds = 0;
     let baseCycleRounds = [];
 
@@ -1060,6 +1098,7 @@
             repairTeamLogos();
             activeMatches = Array.isArray(data.matches) ? data.matches : [];
             currentDisplayedRound = Number(data.current_round) || 1;
+            lastRemoteRound = currentDisplayedRound;
             totalRounds = Number(data.total_rounds) || 0;
             allTimeStats = (data.all_time_stats && typeof data.all_time_stats === 'object')
                 ? data.all_time_stats
@@ -1091,8 +1130,13 @@
                     activeTeams = Array.isArray(payload.new.teams) ? payload.new.teams : [];
                     repairTeamLogos();
                     activeMatches = Array.isArray(payload.new.matches) ? payload.new.matches : [];
-                    currentDisplayedRound = Number(payload.new.current_round) || 1;
+                    // the admin never gets thrown back by an old echo of his own save;
+                    // viewers follow the admin only when the admin really changes the round
+                    const remoteRound = Number(payload.new.current_round) || 1;
+                    if (!isAdminAuthenticated && remoteRound !== lastRemoteRound) currentDisplayedRound = remoteRound;
+                    lastRemoteRound = remoteRound;
                     totalRounds = Number(payload.new.total_rounds) || 0;
+                    currentDisplayedRound = Math.min(Math.max(currentDisplayedRound || 1, 1), Math.max(totalRounds, 1));
                     allTimeStats = (payload.new.all_time_stats && typeof payload.new.all_time_stats === 'object')
                         ? payload.new.all_time_stats
                         : {};
@@ -1710,6 +1754,7 @@
 
     function generateNextRoundManual() {
         if (!requireAdmin("add a new round")) return;
+        currentDisplayedRound = totalRounds + 1;   // set BEFORE the first save so the old round is never sent
         appendRoundToSchedule();
         setupRoundSelectOptions();
         selectRound(totalRounds);
@@ -1830,7 +1875,7 @@
                 <tr>
                     <td>${i + 1}</td>
                     <td class="team-cell">
-                        <img src="${t.logo || defaultLogo}" class="team-logo" alt="" onerror="this.onerror=null;this.src=defaultLogo;">
+                        <img src="${t.logo || defaultLogo}" class="team-logo" alt="" onerror="logoFallback(this)">
                         <div style="display:flex; flex-direction:column; line-height:1.2;">
                             <span>${esc(t.name)}</span>
                             <span class="country-code">${t.code || ''}</span>
@@ -1927,7 +1972,7 @@
 
                         <div class="match-main">
                             <div class="match-team">
-                                <img src="${t1 ? (t1.logo || defaultLogo) : defaultLogo}" class="team-logo" alt="" onerror="this.onerror=null;this.src=defaultLogo;">
+                                <img src="${t1 ? (t1.logo || defaultLogo) : defaultLogo}" class="team-logo" alt="" onerror="logoFallback(this)">
                                 <div style="display:flex; flex-direction:column; line-height:1.2;">
                                     <span>${esc(t1 ? t1.name : 'T1')}</span>
                                     <span class="country-code">${t1 ? t1.code : ''}</span>
@@ -1944,7 +1989,7 @@
                                     <span class="country-code">${t2 ? t2.code : ''}</span>
                                 </div>
 
-                                <img src="${t2 ? (t2.logo || defaultLogo) : defaultLogo}" class="team-logo" alt="" onerror="this.onerror=null;this.src=defaultLogo;">
+                                <img src="${t2 ? (t2.logo || defaultLogo) : defaultLogo}" class="team-logo" alt="" onerror="logoFallback(this)">
                             </div>
                         </div>
 
@@ -2087,7 +2132,7 @@
 
                         <div class="match-main">
                             <div class="match-team">
-                                <img src="${t1 ? (t1.logo || defaultLogo) : defaultLogo}" class="team-logo" alt="" onerror="this.onerror=null;this.src=defaultLogo;">
+                                <img src="${t1 ? (t1.logo || defaultLogo) : defaultLogo}" class="team-logo" alt="" onerror="logoFallback(this)">
                                 <div style="display:flex; flex-direction:column; line-height:1.2;">
                                     <span>${esc(t1 ? t1.name : 'T1')}</span>
                                     <span class="country-code">${t1 ? t1.code : ''}</span>
@@ -2122,7 +2167,7 @@
                                     <span class="country-code">${t2 ? t2.code : ''}</span>
                                 </div>
 
-                                <img src="${t2 ? (t2.logo || defaultLogo) : defaultLogo}" class="team-logo" alt="" onerror="this.onerror=null;this.src=defaultLogo;">
+                                <img src="${t2 ? (t2.logo || defaultLogo) : defaultLogo}" class="team-logo" alt="" onerror="logoFallback(this)">
                             </div>
                         </div>
 
@@ -2910,6 +2955,7 @@ function syncAllGoalRows(saved) {
                                 src="${t.logo}"
                                 class="team-logo"
                                 alt=""
+                                onerror="logoFallback(this)"
                             >
 
                             <select
@@ -3067,9 +3113,17 @@ function syncAllGoalRows(saved) {
         });
     }
 
+    async function loadLogo(src) {
+        const p = presetByLogo(src);
+        let img = await loadImg(src || defaultLogo);
+        if (!img && p) { const alt = wikiAltLogo(p.logo); if (alt) img = await loadImg(alt); }
+        if (!img) img = await loadImg(badgeLogo(p ? p.name : '', p ? p.code : '?'));
+        return img;
+    }
+
     async function buildResultsImage() {
         const teams = getSortedTeams();
-        const logos = await Promise.all(teams.map(t => loadImg(t.logo || defaultLogo)));
+        const logos = await Promise.all(teams.map(t => loadLogo(t.logo || defaultLogo)));
         const topN = (key) => [...playersData].filter(p => (p[key] || 0) > 0)
             .sort((a, b) => (b[key] || 0) - (a[key] || 0) || (b.goals + b.assists) - (a.goals + a.assists)).slice(0, 5);
         const scorers = topN('goals'), assists = topN('assists');
@@ -3222,14 +3276,14 @@ function syncAllGoalRows(saved) {
 
     async function buildHistoryImage(h, num) {
         const teams = h.teams;
-        const logos = await Promise.all(teams.map(t => loadImg(t.logo || defaultLogo)));
+        const logos = await Promise.all(teams.map(t => loadLogo(t.logo || defaultLogo)));
         const W = 1280, pad = 40;
         const F = (w, sz) => `${w} ${sz}px system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif`;
         const probe = document.createElement('canvas').getContext('2d');
 
         // roster lines of the champion (small font, wrapped)
         probe.font = F('700', 24);
-        const roster = (teams[0].players || []).join('  ·  ');
+        const roster = '';
         const lines = [];
         if (roster) {
             let cur = '';
@@ -3240,7 +3294,20 @@ function syncAllGoalRows(saved) {
             if (cur) lines.push(cur);
         }
         const champTop = 230, champH = 150 + (lines.length ? lines.length * 34 + 10 : 0);
-        const rowH = 84, tableTop = champTop + champH + 30, tableH = 70 + teams.length * rowH + 20;
+        probe.font = F('700', 19);
+        const wrapRoster = names => {
+            const out = []; let cur = '';
+            (names || []).forEach(n => {
+                const t = cur ? cur + ' · ' + n : n;
+                if (probe.measureText(t).width > 400 && cur) { out.push(cur); cur = n; } else cur = t;
+            });
+            if (cur) out.push(cur);
+            if (out.length > 3) { out.length = 3; out[2] = out[2].replace(/.{0,2}$/, '…'); }
+            return out;
+        };
+        const teamLines = teams.map(t => wrapRoster(t.players));
+        const rowHs = teamLines.map(l => Math.max(84, 62 + l.length * 24));
+        const tableTop = champTop + champH + 30, tableH = 70 + rowHs.reduce((a2, b2) => a2 + b2, 0) + 20;
         const statsTop = tableTop + tableH + 30, statsH = 130;
         const H = statsTop + statsH + 90;
 
@@ -3254,6 +3321,12 @@ function syncAllGoalRows(saved) {
             x.arcTo(X, Y, X + w, Y, r); x.closePath();
         };
         const fit = (t, max) => { while (x.measureText(t).width > max && t.length > 3) t = t.slice(0, -2); return t; };
+        const drawEmblem = (img, cx, cy, size) => {
+            if (!img) return;
+            const iw = img.width || size, ih = img.height || size;
+            const r = Math.min(size / iw, size / ih);
+            x.drawImage(img, cx - iw * r / 2, cy - ih * r / 2, iw * r, ih * r);
+        };
         const drawLogo = (img, cx, cy, R) => {
             if (!img) return;
             x.save(); x.beginPath(); x.arc(cx, cy, R, 0, Math.PI * 2); x.clip();
@@ -3278,8 +3351,7 @@ function syncAllGoalRows(saved) {
         // champion card
         x.fillStyle = '#fff'; rr(pad, champTop, W - pad * 2, champH, 28); x.fill();
         x.fillStyle = 'rgba(214,158,46,0.15)'; rr(pad, champTop, W - pad * 2, champH, 28); x.fill();
-        drawLogo(logos[0], pad + 90, champTop + 75, 52);
-        x.strokeStyle = '#d69e2e'; x.lineWidth = 5; x.beginPath(); x.arc(pad + 90, champTop + 75, 52, 0, Math.PI * 2); x.stroke();
+        drawEmblem(logos[0], pad + 90, champTop + 75, 110);
         x.fillStyle = '#d69e2e'; x.font = F('900', 24); x.textAlign = 'left';
         x.fillText('🏆 CHAMPION', pad + 170, champTop + 55);
         x.fillStyle = '#1a202c'; x.font = F('900', 48);
@@ -3293,7 +3365,7 @@ function syncAllGoalRows(saved) {
         x.fillStyle = '#fff'; rr(pad, tableTop, W - pad * 2, tableH, 28); x.fill();
         x.fillStyle = '#edf2f7'; rr(pad, tableTop, W - pad * 2, 60, 28); x.fill();
         x.fillRect(pad, tableTop + 30, W - pad * 2, 30);
-        const col = { rank: 80, team: 140, mp: 580, w: 650, d: 715, l: 780, gf: 885, pts: 990, form: 1040 };
+        const col = { rank: 80, team: 140, mp: 660, w: 720, d: 780, l: 840, gf: 940, pts: 1030, form: 1075 };
         x.fillStyle = '#718096'; x.font = F('800', 22); x.textAlign = 'center';
         [['#', col.rank], ['MP', col.mp], ['W', col.w], ['D', col.d], ['L', col.l], ['GF-GA', col.gf], ['PTS', col.pts]]
             .forEach(([t, px]) => x.fillText(t, px, tableTop + 40));
@@ -3301,7 +3373,7 @@ function syncAllGoalRows(saved) {
         x.textAlign = 'left'; x.fillText('TEAM', col.team, tableTop + 40);
         const medal = ['#d69e2e', '#a0aec0', '#dd6b20'], fc = { W: '#38a169', D: '#d69e2e', L: '#e53e3e' };
         teams.forEach((t, i) => {
-            const y = tableTop + 70 + i * rowH, cy = y + rowH / 2;
+            const rowH = rowHs[i], y = tableTop + 70 + rowHs.slice(0, i).reduce((a2, b2) => a2 + b2, 0), cy = y + rowH / 2;
             if (i % 2 === 1) { x.fillStyle = '#f7fafc'; x.fillRect(pad, y, W - pad * 2, rowH); }
             if (i === 0) { x.fillStyle = 'rgba(214,158,46,0.12)'; x.fillRect(pad, y, W - pad * 2, rowH); }
             x.fillStyle = medal[i] || '#e2e8f0'; x.beginPath(); x.arc(col.rank, cy, 21, 0, Math.PI * 2); x.fill();
@@ -3309,7 +3381,13 @@ function syncAllGoalRows(saved) {
             x.fillText(String(i + 1), col.rank, cy + 9);
             drawLogo(logos[i], col.team + 26, cy, 26);
             x.fillStyle = '#1a202c'; x.font = F('900', 30); x.textAlign = 'left';
-            x.fillText(fit(t.name, 320), col.team + 66, cy + 10);
+            const lns = teamLines[i];
+            const nameY = lns.length ? y + 38 : cy + 10;
+            x.fillText(fit(t.name, 400), col.team + 66, nameY);
+            if (lns.length) {
+                x.font = F('700', 19); x.fillStyle = '#718096'; x.textAlign = 'left';
+                lns.forEach((ln, k) => x.fillText(ln, col.team + 66, y + 64 + k * 24));
+            }
             x.font = F('800', 28); x.fillStyle = '#2d3748'; x.textAlign = 'center';
             x.fillText(String(t.mp ?? '-'), col.mp, cy + 10);
             x.fillText(String(t.w ?? '-'), col.w, cy + 10);
@@ -3325,17 +3403,20 @@ function syncAllGoalRows(saved) {
             });
         });
 
-        // 3 stat cards
+        // 3 stat cards (with the team emblem of each best player)
         const items = [['⚽ TOP SCORER', h.topScorer, 'goals', '#3182ce'], ['🅰️ TOP ASSIST', h.topAssist, 'assists', '#38a169'], ['🏆 MOST MVP', h.mvp, 'MVP', '#d69e2e']];
+        const chipLogos = await Promise.all(items.map(it => it[1] && it[1].logo ? loadLogo(it[1].logo) : Promise.resolve(null)));
         const cw = (W - pad * 2 - 48) / 3;
         items.forEach(([title, p, unit, color], k) => {
             const cx = pad + k * (cw + 24);
             x.fillStyle = '#fff'; rr(cx, statsTop, cw, statsH, 24); x.fill();
             x.fillStyle = color; rr(cx, statsTop, cw, 46, 24); x.fill(); x.fillRect(cx, statsTop + 24, cw, 22);
             x.fillStyle = '#fff'; x.font = F('900', 22); x.textAlign = 'left'; x.fillText(title, cx + 20, statsTop + 32);
-            x.fillStyle = '#1a202c'; x.font = F('900', 28);
-            x.fillText(p ? fit(p.name, cw - 40) : '—', cx + 20, statsTop + 88);
-            if (p) { x.fillStyle = color; x.font = F('800', 22); x.fillText(`${p.value} ${unit}`, cx + 20, statsTop + 118); }
+            const tx = chipLogos[k] ? 100 : 20;
+            if (chipLogos[k]) drawEmblem(chipLogos[k], cx + 55, statsTop + 88, 66);
+            x.fillStyle = '#1a202c'; x.font = F('900', 28); x.textAlign = 'left';
+            x.fillText(p ? fit(p.name, cw - tx - 20) : '—', cx + tx, statsTop + 88);
+            if (p) { x.fillStyle = color; x.font = F('800', 22); x.fillText(`${p.value} ${unit}`, cx + tx, statsTop + 118); }
         });
 
         x.textAlign = 'center'; x.fillStyle = 'rgba(255,255,255,0.7)'; x.font = F('700', 26);
@@ -3371,7 +3452,9 @@ function syncAllGoalRows(saved) {
         const sorted = getSortedTeams();
         const best = key => {
             const p = [...playersData].sort((x, y) => (y[key] || 0) - (x[key] || 0))[0];
-            return p && p[key] > 0 ? { name: p.name, value: p[key] } : null;
+            if (!(p && p[key] > 0)) return null;
+            const team = activeTeams.find(t => (t.players || []).some(tp => tp.id === p.id));
+            return { name: p.name, value: p[key], logo: team ? team.logo : null };
         };
         if (!Array.isArray(allTimeStats.__history)) allTimeStats.__history = [];
         allTimeStats.__history.push({
@@ -3397,14 +3480,14 @@ function syncAllGoalRows(saved) {
             const rows = h.teams.map((t, k) => `
                 <tr class="${k === 0 ? 'hist-first' : ''}">
                     <td><span class="hist-rank hist-rank-${k + 1}">${k + 1}</span></td>
-                    <td class="hist-team"><img src="${esc(t.logo || defaultLogo)}" alt="" onerror="this.onerror=null;this.src=defaultLogo;"><span>${esc(t.name)}</span></td>
+                    <td class="hist-team"><img src="${esc(t.logo || defaultLogo)}" alt="" onerror="logoFallback(this)"><div class="hist-team-info"><span>${esc(t.name)}</span>${(t.players && t.players.length) ? `<span class="hist-roster">${t.players.map(esc).join(' · ')}</span>` : ''}</div></td>
                     <td>${t.mp ?? '-'}</td><td>${t.w ?? '-'}</td><td>${t.d ?? '-'}</td><td>${t.l ?? '-'}</td>
                     <td class="hist-gf">${t.gf}-${t.ga}</td>
                     <td class="hist-pts">${t.pts}</td>
                     <td>${formBadgesHtml(t.form)}</td>
                 </tr>`).join('');
             const chip = (icon, label, p, unit) => p ? `
-                <div class="hist-chip"><div class="hist-chip-icon">${icon}</div>
+                <div class="hist-chip"><div class="hist-chip-icon">${p.logo ? `<img class="hist-chip-logo" src="${esc(p.logo)}" alt="" onerror="logoFallback(this)">` : icon}</div>
                 <div><small>${label}</small><b>${esc(p.name)}</b><span>${p.value} ${unit}</span></div></div>` : '';
             return `
                 <div class="hist-card">
@@ -3414,8 +3497,8 @@ function syncAllGoalRows(saved) {
                         <button class="hist-share" onclick="shareHistory(${list.length - 1 - i})">📤 Share</button>
                     </div>
                     <div class="hist-winner">
-                        <img src="${esc(w.logo || defaultLogo)}" alt="" onerror="this.onerror=null;this.src=defaultLogo;">
-                        <div><small>🏆 CHAMPION</small><b>${esc(w.name)}</b>${(w.players && w.players.length) ? `<span class="hist-roster">${w.players.map(esc).join(' · ')}</span>` : ''}</div>
+                        <img src="${esc(w.logo || defaultLogo)}" alt="" onerror="logoFallback(this)">
+                        <div><small>🏆 CHAMPION</small><b>${esc(w.name)}</b></div>
                         <div class="hist-winner-pts">${w.pts}<small>pts</small></div>
                     </div>
                     <div style="overflow-x:auto;">
