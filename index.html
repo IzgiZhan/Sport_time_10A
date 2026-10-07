@@ -706,7 +706,7 @@
     <div id="leadersTab" class="section">
         <div class="section-header">
             <span class="section-title">Leaderboard</span>
-            <button onclick="shareLeaderboard()" style="background:none;border:none;color:var(--primary-blue);font-size:13px;font-weight:900;cursor:pointer;">📤 Share</button>
+            <button id="shareLeaderboardBtn" onclick="shareLeaderboard()" style="background:none;border:none;color:var(--primary-blue);font-size:13px;font-weight:900;cursor:pointer;">📤 Share Current</button>
         </div>
 
         <div class="leaderboard-mode-bar">
@@ -3000,6 +3000,8 @@ function syncAllGoalRows(saved) {
 
     function setLeaderboardMode(mode, btn) {
         leaderboardMode = mode;
+        const shareBtn = document.getElementById('shareLeaderboardBtn');
+        if (shareBtn) shareBtn.textContent = '📤 Share ' + ({ current: 'Current', allTime: 'All Time', history: 'History' }[mode] || 'Current');
 
         document
             .querySelectorAll('.leaderboard-mode-btn')
@@ -3106,7 +3108,7 @@ function syncAllGoalRows(saved) {
                             (⭐${formatRating(p.rating)})
                         </span>
                     </td>
-                    <td style="text-align:right;font-weight:900;color:var(--primary-gold);">${val}${metric === 'points' ? ` <span style="font-size:11px;color:var(--text-sub);font-weight:700;">(${p.goals}+${p.assists})</span>` : ''}</td>
+                    <td style="text-align:right;font-weight:900;color:var(--primary-gold);">${val}</td>
                 </tr>
             `;
         });
@@ -3373,134 +3375,154 @@ function syncAllGoalRows(saved) {
         return list.sort(cmp);
     }
 
-    async function buildLeaderboardImage() {
+    async function buildLeaderboardImage(mode = leaderboardMode) {
+        if (mode === 'history') return buildHistoryOverviewImage();
         const metric = leaderboardMetric;
-        const mode = leaderboardMode === 'allTime' ? 'allTime' : 'current';
-        const valOf = p => metric === 'goals' ? p.goals : metric === 'assists' ? p.assists : metric === 'points' ? p.goals + p.assists : p.mvp;
-        const rows = getLeaderboardData(mode, metric).filter(p => valOf(p) > 0).slice(0, 15);
-        const titles = { goals: '⚽ TOP SCORERS', assists: '🅰️ TOP ASSISTS', points: '🔥 GOAL + ASSIST', mvp: '🏆 MVP' };
-
-        // team emblems (only for the current tournament, where teams are known)
-        const teamLogo = {};
-        await Promise.all((activeTeams || []).map(async t => { teamLogo[t.id] = await loadLogo(t.logo || defaultLogo); }));
-        // all-time: last 3 teams from history + number of tournaments played
-        const histInfo = {};
-        if (mode === 'allTime') {
-            const hist = Array.isArray(allTimeStats.__history) ? [...allTimeStats.__history].reverse() : [];
-            const logoCache = {};
-            const getL = async src => { const k = src || defaultLogo; if (!(k in logoCache)) logoCache[k] = await loadLogo(k); return logoCache[k]; };
-            for (const p of rows) {
-                const nm = String(p.name).trim().toLowerCase();
-                const teams = [];
-                hist.forEach(h => (h.teams || []).forEach(t => {
-                    if ((t.players || []).some(n => String(n).trim().toLowerCase() === nm)) teams.push(t);
-                }));
-                const logos = [];
-                for (const t of teams.slice(0, 3)) logos.push(await getL(t.logo));
-                histInfo[p.id] = { count: teams.length, logos };
-            }
-        }
-        const playerLogo = p => {
-            const t = activeTeams.find(tt => (tt.players || []).some(tp => String(tp.id) === String(p.id)));
-            return t ? teamLogo[t.id] : null;
+        const rows = getLeaderboardData(mode, metric)
+            .filter(p => p.goals > 0 || p.assists > 0 || p.mvp > 0).slice(0, 15);
+        const history = Array.isArray(allTimeStats.__history) ? [...allTimeStats.__history].reverse() : [];
+        const logoCache = new Map();
+        const getLogo = src => {
+            const key = src || defaultLogo;
+            if (!logoCache.has(key)) logoCache.set(key, loadLogo(key));
+            return logoCache.get(key);
         };
+        const headerIcons = {};
+        await Promise.all(Object.entries({"🛡️": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEgAAABICAMAAABiM0N1AAAAk1BMVEVHcEzM1t3M1t3M1t3M1t3M1t3M1t3M1t3M1t3M1t3M1t3M1t3M1t3M1t3M1t3M1t3M1t0tbZ1cr+2fxuOMrMRikLOCvOhNgqpVrO6iusyuzOFzt+oiZplrtOtCe6Z3nruRweaJvudsl7fF097Bz9mswdC2zuCYxORksew3dKK3yNW90d9Xia56uemCpb+Xs8inyeL68RH8AAAAEHRSTlMAgI+/YDDPQJ8Q368g71BwOmdwowAAAl5JREFUeF7t1tly6yAMBmDsgA12nOIl+750X9//6Q6MqwkwWIlpLnpm+l/m4hshCWLSFZZGUT5IJEQmgzy6Sxm5PiKNcgA8SfIoFZcRyg0D0ThFMBa7CI7FzK9kFnBc1LvJcjnTWelMp+NtMz9ZVuZagpq1PNT7FoCsjJTTQ3Nv1kVNKD0jOzD8EGjbM5Ya0F2rfE0qABAIsPFnC90ZEFfKAhQMcq25grgBDRQER0IhN1MFDQxIqlQhUClVzs5Qj3sWAq30OgytoS3CIN2k1BpaHQY11tgiBe3CoK2CIgLJFTQJg8YKypHpIxA2/+RnUGKt0SwMWkmV3wnBYr+GQi+w2rDYQRCs9n8M/UHip3skfu9dKxT0FAY9K6e42cN2s6f29o8/VdBXGPSpIEog7MIiXVgjduP/fhjbewj05nyNxAp6DIE+FBQb0AhvEt6iESjQpHV/aGO1SCdHz4aeLLcgip4NPRm1ICGx64ZcNHiMrLPVfaEGvmndT/anftAzfK5byZCSkIIy4oYiJSEFQaudkhZ9oDkU5Cvp/XrozVsQ3NxjdS1Unoz7aofJrvet60WTjHgTa2l/HXTQTkz8EUnHfnfsdCJIR1ih27S+DG10gwpGOkOlV/I6khIksVfyOjFBw32Sz+EAoJKcdENj6Ti4VFd+qGw8DtYn+bD2QZt7iffHnZ3OY+VC5YeUzrzwsEzqHCc2ND5JnYyRqyN4W9RrS7XMS/sbF6RPRtk3ta80VB6+mWxEekZERUsd6+W0ObVMEQnSP0MunfAhAOFUOAMHzFolg0OFZ8SLgl9u8T92AGF17KClGwAAAABJRU5ErkJggg==", "⚽": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEgAAABICAMAAABiM0N1AAAAvVBMVEVHcEyCiI43PUNITVMxNz0xNz31+PoxNz0xNz1KT1X1+Pr1+Po7QUf1+Pr1+PoxNz2TmJxDSU71+PoxNz05P0X1+Prz9vgxNz31+Pr1+Pr1+Pr1+Pp/hImvs7fn6u31+PoxNz3M1t08QkjZ4ebn7PDP2N9ITlTy9vhWXGHR2uHQ1NfDzdPp7O7v8/ZhZ22JkJfi6O2TmJyssLPEyMufpKfe5eq2vcPr8PPU3OJ6f4SlrrRtc3jd4OJOVVuVnKLdUfDLAAAAH3RSTlMA/uGWIFAgn++An4/P79+AQK+Av2BAr49Qv2DPUN/f67gDGQAAA/9JREFUeF6d12lz4ygQBmB8X7EnmVyTzOx2o/uW7zPJ//9Za4RSwAKKJs8nl+1qd7+ACpMG/YfefRdr3fveQ598w2DURU2394f8lWFvjBad2ZC09fh0RqsC4OmxXTfTpR+g3S4EmLbo6ufcpRQbUH8JMP/5VTu/DzGl9IRWBaX0eAD43djUr/mSVo7JZnUqUOEUne0+pRU3h/mvhrHyI60sgXvj5YJotd1kwLCGK8sQrONNPZ8y8QFk9AqEpU8rsQdTYjRC7FRth9BUCEKXcu5haqmDSKnvAZgLCQdWKi2CqOgRzQQZeszBXkjwYloiM9GOFjLBDqBVIQiXH1gZEEV/jMwFbIV0CVbGfSK7wcrKXkiH3I0aELcBg7LzYSxUIDdRBuMy0LxFiFhkoDuhNtwIuQA0awcZx9DrFmsjUrtFTs86E6e3ozW1wU+3hLtDNGedBChEiZ527a5OCNGc9QpVW1CJn+EpPSOass4K/Vn0BrILfnomzBhr7zvpfOwd1Dl7ELwSP43F4WAulMY7j7fTQbML7zr3XJ+exdsDvva1kjK+60ESoU2wgcPuWH1xjyjvgC7WnJTWSmzSoZ9ESF15zUqXcidsdqKc7zvSuj2gtK3Z5JTiV+jVcZlLmxsfSA9ra6h4u9jBZu/XGHOoRFjrkXvkCm1/WH0Yjsk96eq7eo3N3gyPgC5B7gTCGzaKQJI5yBH1V8TkdlvjgSSmc79qNxkXyIWcDGRJ68lE3kQsvcRpnEwVVkE4hIUVHEB1aj8ZHPaIziojSYDOfgeqdfvJYEfTfQxAwD2n9AiqrP1kwJ4ELgBZePQqBFXRerKQXnmwIC85f6Xatp6s6iOHFzKDmPemSFpPtmN3LoAZef18qQpsk1kieiXDurl2GyACc0QwJGRRvV6CItyjUXkwR7RgV1Bw9ZByH432fmiMaMru1sDu1j4oXPphee67xoiqO/e82gBKz6w0PYagCmMegh7RnDAz8CN0ykweTOQvy+n/3z+WnT3NYUaYIaR4FazFx3L8WqdxCLWErW0UszWrPG0ReSlpMBdMXOmjdYGVFJ4I91ggilJ8AD8Hk9Cvm822gbhVPSpXPy7aiEhNDpQ5nqRHXzCVL6NCcRbdm2M6Fygbs4RqP1BWpH4IVm6Jqol6YZddPLA7o+pG/wshnMAqEemIW7ZkgIoVWGQOqgaEs8SEa0udSAtIM2pT6YSqEREslZwEdCu9zrcqrW11mnNysi8WbEKsBmOUvKdUlqp1xgPSoH+jVKKyd5Td9EmzH3JTZypR2pmQL/VF5k5q6WjUJ23c3mElSMz/Au9uSVv95zFilJm2Ufe5T/7KoPcvaP7pDcg3DF9nLwuoLV5mr0Ni9x8M+A0WYx+bogAAAABJRU5ErkJggg==", "🅰️": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEgAAABICAMAAABiM0N1AAAARVBMVEVHcEzdLkTdLkTdLkTdLkTdLkT////fO1DdLkTul6LqfIr98vP75ejysbn52NzjVWfhSFvsiZbob370vsXwpK33y9DmYnMa5CznAAAABnRSTlMAYO8gz79WeQLOAAABkUlEQVR4Xu3YaY6DMAwF4NCCs29s9z/qqC2yIDNk/zXqO8CnPrCDGvLKMLGGTAP55DmyxozPt/NgzXm8pJF1yEjIwLpkIFMfaCKsU/4l9IUoNwBS21bISviEt0HoAPgmyAAGXAMk4BTdABk4h1ZDDi4R1RC/Qls1pOAaVwntEMRXQvoA5HJApg6i8oAWD0dsFYRDJPDtrVXQgvOD86RqIByihTHsNldAHpudUF0BKWx22hVZDllsdplxUQyt2CxgSyGJzYKihdCMzYIf6AuhBZsFj8yUQRTCKtjNFUH+1Czoxosgg81+nSmqBHLnZuFrtAXQ+sej1fE1IfH10DsGh1vmQzNEM2dDOg4tuRCVEA/NhAQkIjKhLQVteZCDZFwW5NOQz4JUGlI5kEVg40E0SjYD0veDRxFaMyAZWYXlvhu5Xw8dm7A9CfGg2U03XgBFDzyeX03Hv+NJiJnYQUiPIZM0DdH3qsmbb7N9S8pmLa3lXFB2l5nz+fvHL8gX6nXJ0u3ap9dFVLersX6Xdd2uD38A3uOeRbXBYxIAAAAASUVORK5CYII=", "🔥": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEgAAABICAMAAABiM0N1AAAAh1BMVEVHcEz0kAz0kAz0kAz0kAz0kAz0kAz0kAz0kAz0kAz0kAz0kAz0kAz0kAz0kAz0kAz/zE3/zE3/zE3/zE3/zE3/zE3/zE3/zE39wkL/zE3/zE3/zE3/zE30kAz/zE36ri33nxz+yEn+xUX5qij8vT32mxj9wUH3oyD1mBT6sjH1lBD7tjX8uTmQeifTAAAAHXRSTlMAMEBQv++PEM+A359gryBwzxDvv4CPUK9gIN9gMOUtXcUAAAKrSURBVHjarZfZkoIwEEWDLEkAcXfWDpu78//fN4OMqdAkJFCeJy3LI919OwJxJAtm5DUkENGXiGYAof8SUwwAERkPxV+K4I+AjvawoFdbAxtrYpAQBDiacB1c06SG+RiPBxpRAC2cuDMHgMQkgszZkz2a0W/bP4GzaAENuKsg8dwra0hJBx8kiXuIG2K8bJLQVaQbjwcKM3cRLo7KVlsTEGX9ti56Hnso/Vg3H5bSRsNDkFgCkIUJEklXwAATm0UBcPWNDaMn7UwimiyicUfkTxZxtIoxaLEnMkQ/YqstMHUIb6I/UcRw7Gegw7q1nkyxq2jR/b7X6UjiXBpeWj9SK4OQujcbzZz9h6i30jSEQRg+B2mnjtBzXZE5Pgd9mcbW1JbuMbDA8aw4/n3GOceao21oi2euLBdwqvLb4NDiZ9NgmFqIMscinDkX0VH8cToaSwtcRVA2pvJs2JCFDFYGFg7iQXtNOLteKEUULNxbUXlBlyQ9rqXlouWgFkcf18ABJohEAQoB5/MQpokOYEQfSJS/H/HkMrzFAW5uAR0qKaqHj14OHa7ijAIp+RneYh9UzkLkaPqSExjwSS9IlxI19SgUwMB/QBnu7E1p/Ela0Aeo1+iELkRDjj2aJBXK6+iZc+NeFYoHieqD5i6XqRfUUNa3pu93gcjV4Rb9/4JUM6GqFH2uarrumlvNUB49w1Sdc1Nza8JlZRZqNRRF/z+FxnI9nUy10rGYEoVUzsxGlefXSj0NUs0zVCVGUelulbKm32IkTaczgvCniXzSI5oiioiG+XjR3PCoP1ZkenSny3GeJSUGVm9jPG8rYmbn7tmRQfZrN816Tyx8bFw8mw9i5/3Tpvl8J06stuvBqraUOPO1NM78i4zje7fUWHbfZAKr/XazlI7Ndj8UnF+YwEpCshNBaAAAAABJRU5ErkJggg==", "🏆": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEgAAABICAMAAABiM0N1AAAAq1BMVEVHcEz/zE3/zE3/zE3/zE3/zE3/zE3/zE3/zE3/zE3/rDP/rDP/rDP/rjX/vkL/rDP/rDP/rDP/tDr/xEf/rDP/vED/rDP/rDP/wEP/sDb/rDP/rDP/zE3/zE3/rDP/rDP/rDP/zE3/zE3/zE3/zE3/zE3/rDP/rDP/wkX/ykv/xkj/tjv/sjj/uD3BaU/BaU/BaU/BaU/BaU/BaU/BaU/BaU/BaU/BaU/BaU/Lbtl5AAAAOXRSTlMAIHCAj79g/zCvgN/////vEM///6//v0D//2CfQO8gcI9Qz5/fEDBQ////////MK//72BQv99AzyD2svjjAAACS0lEQVR4AdXWB5azOgwF4JvqDCgPMyEwkz6997r/jU0RKRbnkMjw2v8t4B5LyDIoQqPZ+tXulGs1G9ipa1Ta2KFnWP2kPaPVAIqCkFb6Ru0vWokCCwA2po19ozagjdgCSMgxNHrkSIGMXAdG75AcI4zJNTB6++SIEdUPYqClJLMAOkZvAtgsKAYlYH5Bv4JCUAZmvINsIQi5qXcQKIeYmK1aGohFGBPLqgbNiKWYEwu87izr4deI2ALZKpG1jB7Ygth8UyM7MmrHYPG6NSGxGX41jNoJGOUskBAbgZ0arS5+ZcTCzWguwE48N2RALN1kxp5NOgZLiAXujLMzz+UfOY0JxUjueU3RjHLnAJASC7zetVOwC8q5/Uq87m1TjGPspobItY3GGVhKLBF1WrCGxzSCRFsi0W109CvkXK7FVIwkJmanDnIjys3gdju06iNNkIspV8gda4/UQW5OYgfhXD5JQEdzIJuNiWRTEJG0r/99YCMsBVRwqX30WYQVG5N0eKX6MVq6wNp5RNLQlLrqlxTGbErStSlzQ0I0gpQl5Lo1JS7JFQYWO7RK1scZfHXK95mfs9PyNeSnNy3dHp56pmAPFXWNcHyGqiZXsq7qbjeDOUQNM+oP80MNbgk1ZETUvzsYDG/5EaxuLi95dWNyBKguJkeKyiwJqGxErH6TEhIW1SuTojofXxihmpAK0jqtFjJ4uX943OrpWZnz9LjLCzReH3d6g8ajwh8YdP/6qPT0jm0+HtWeFGXp/G1B99ji6VHvE1s865NeIXwDBvTA37rZqRcAAAAASUVORK5CYII=", "👑": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEgAAABICAMAAABiM0N1AAAAwFBMVEVHcEz1kQ3/zE30kAz5rzz/zE3/zE3/zEz/zE3/zE3/zE3/zE30kAz/rDPnWy70kAz0kAz0kAz/zE30kAzdLkT/zE30kAz0kAz5oyT/zE3/zE3dLkT/zE3dLkTdLkTdLkT/zE3dLkT8vD6YHOv0kAz/xEdckTuur0T3nxz4piP6ri3YiojgO0XCtkb/rDP1yEzzk0q/XrC4U7pmlTyySMSFoED2mhaZp0LjwkrTvEioN9LloHXsc0jufUn3pUueJ+FYKgbxAAAAIHRSTlMA7+8gEEAwgJ+/r2BghDCfgECPz7ogv49Qz9/vcM+PIBitsd0AAAKvSURBVHhe7ZXXctswEEVBCuyyqi3JtpKAqsW1l9T//6sQWGC9AmUOZXIyycTnSXMJHCywIMX+O7wwHvN8zMdx6O3jCUTGcc7Ej2UelPccCUVo5yHkR3sUpHDt3IU8eKeo2el03ynyydZ4f5bRplvzy1lwhqvOojNTqJqOXPSXNuHCAxB1oNR9PSyCGUSE/qiEoNFtmEPCNg9BNHq9Fj4ZTAmiaKzbk01owspFhx1ag9k4igLGeiIjUYGTiRw12SU3r6VTvKcu3xrMEhn2mBC475nEPMK12zJtQkFAgoP1eUqoqG32cCIEltRVeoergoATHExE4AuYOY5h5vGEIaRdCzH2oAl9DocMpfAYGmH2PaIzhC8LgpJ8Qf0jmb22OObww1WmpprR4uKVaDDTdCIS85aDJ+e7WIjcNse71w8EYWVEDk2DvsoGssPyQBmgv2KNGTCnookRTWg612FDf+vI+yBic4fXKKElrbbTNaRDFmPTsX89B5emTIpSpyeoqEdXeRQWKyyI8kir7zEgoA83tmiCBVE2dNGAAQk9wrmwWVkF5ccmDPBwceuoMZ3k0zVJPVskNviQsoKCbP1G2CJG1hE7mNh2eyhDUUXIH18lXPKpr0RUvyisJgrJf30lgnKi54vl8uKqnCgp0DwsFE8FqgRF3puei7uF5u75TZG3U3R2P53efjP1gAdMV9aIvKj1KU3PryG8mSrOQPSwIDztGvHjPE0Pv2jPaSpRprOpRq34vNjiKj/ieyo55Up0mCrOpeirEd1I0XJb9LI14la+zinwWYlSzc9MNDXc7xAthT3iWosOaxPVtrXaDrvG9gPx1oX8td+FjMFR/Na+lHhFAioq89JWEdHPSDUR8qdFXhWR9zeLDi4rcYCiy4rUJqp/a2w0r8Don27/R/uL+eA3t4HcDMEeM50AAAAASUVORK5CYII="}).map(async ([icon, url]) => { headerIcons[icon] = await loadImg(url); }));
+        const lastTeams = new Map();
+        await Promise.all(rows.map(async p => {
+            const teams = [];
+            const seen = new Set();
+            const addTeam = t => {
+                const key = String(t.name || t.id || '').trim().toLowerCase();
+                if (!key || seen.has(key)) return;
+                seen.add(key); teams.push(t);
+            };
+            if (mode === 'current') {
+                (activeTeams || []).filter(t => (t.players || []).some(tp => String(tp.id) === String(p.id))).forEach(addTeam);
+            }
+            const player = playersData.find(pp => String(pp.id) === String(p.id));
+            const names = new Set([p.name, player?.name].filter(Boolean).map(n => String(n).trim().toLowerCase()));
+            history.forEach(h => (h.teams || []).forEach(t => {
+                if ((t.players || []).some(n => names.has(String(n).trim().toLowerCase()))) addTeam(t);
+            }));
+            lastTeams.set(p.id, await Promise.all(teams.slice(0, 3).map(t => getLogo(t.logo))));
+        }));
 
         const F = (w, sz) => `${w} ${sz}px system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif`;
-        const W = 1000, pad = 40, rowH = 80, top = 230;
-        const cardH = 20 + Math.max(rows.length, 1) * rowH + (rows.length ? 0 : 40);
+        const W = 1280, pad = 40, rowH = 84, top = 220, headerH = 86;
+        const cardH = headerH + Math.max(rows.length, 1) * rowH + 12;
         const H = top + cardH + 90;
-        const c = document.createElement('canvas');
-        c.width = W; c.height = H;
+        const c = document.createElement('canvas'); c.width = W; c.height = H;
         const x = c.getContext('2d');
+        if (!x) throw new Error('Canvas unavailable');
         const rr = (X, Y, w, h, r) => {
-            x.beginPath();
-            x.moveTo(X + r, Y); x.arcTo(X + w, Y, X + w, Y + h, r);
+            x.beginPath(); x.moveTo(X + r, Y); x.arcTo(X + w, Y, X + w, Y + h, r);
             x.arcTo(X + w, Y + h, X, Y + h, r); x.arcTo(X, Y + h, X, Y, r);
             x.arcTo(X, Y, X + w, Y, r); x.closePath();
         };
-        const fit = (t, max) => { while (x.measureText(t).width > max && t.length > 3) t = t.slice(0, -2); return t; };
+        const fit = (text, max) => {
+            const original = String(text); let t = original;
+            while (t.length && x.measureText(t + (t === original ? '' : '…')).width > max) t = t.slice(0, -1);
+            return t === original ? t : t + '…';
+        };
         const drawEmblem = (img, cx, cy, size) => {
             if (!img) return;
             const iw = img.width || size, ih = img.height || size;
             const r = Math.min(size / iw, size / ih);
             x.drawImage(img, cx - iw * r / 2, cy - ih * r / 2, iw * r, ih * r);
         };
-
         const g = x.createLinearGradient(0, 0, W, H);
         g.addColorStop(0, '#0f2742'); g.addColorStop(1, '#2b6cb0');
         x.fillStyle = g; x.fillRect(0, 0, W, H);
         x.fillStyle = 'rgba(255,255,255,0.05)';
         for (let i = -H; i < W; i += 60) { x.save(); x.translate(i, 0); x.rotate(Math.PI / 4); x.fillRect(0, 0, 18, H * 2); x.restore(); }
-
         x.textAlign = 'left'; x.fillStyle = '#fff'; x.font = F('900', 58);
         x.fillText('SPORT TIME 10A', pad, 100);
-        if (metric !== 'mvp') {
-            const label = '⚽+🅰️';
-            x.font = F('900', 36);
-            const tw = x.measureText(label).width, bw = tw + 44, bx = W - pad - bw;
-            x.fillStyle = '#f6e05e'; rr(bx, 56, bw, 60, 30); x.fill();
-            x.fillStyle = '#1a202c'; x.textAlign = 'left';
-            x.fillText(label, bx + 22, 98);
-        }
-        x.fillStyle = '#90cdf4'; x.font = F('800', 32); x.textAlign = 'left';
-        x.fillText(titles[metric] || 'LEADERBOARD', pad, 150);
-        x.font = F('700', 26); x.fillStyle = '#bee3f8';
-        x.fillText(`${mode === 'allTime' ? '👑 All time' : '🏆 Current tournament'}  ·  ${new Date().toLocaleDateString()}`, pad, 190);
-        x.fillStyle = '#f6e05e'; x.fillRect(pad, 205, 120, 6);
-
-        x.fillStyle = '#fff'; rr(pad, top, W - pad * 2, cardH, 28); x.fill();
+        x.fillStyle = '#90cdf4'; x.font = F('800', 32);
+        drawEmblem(headerIcons[mode === 'allTime' ? '👑' : '🏆'], pad + 16, 143, 32);
+        x.fillText(mode === 'allTime' ? 'ALL TIME LEADERBOARD' : 'CURRENT TOURNAMENT', pad + 45, 153);
+        x.font = F('700', 24); x.fillStyle = '#bee3f8';
+        x.fillText(new Date().toLocaleDateString(), pad, 190);
+        x.fillStyle = '#f6e05e'; x.fillRect(pad, 203, 120, 6);
+        x.fillStyle = '#fff'; rr(pad, top, W - pad * 2, cardH, 16); x.fill();
+        x.fillStyle = '#edf2f7'; rr(pad, top, W - pad * 2, headerH, 16); x.fill();
+        x.fillRect(pad, top + headerH / 2, W - pad * 2, headerH / 2);
+        const col = { rank: 80, player: 135, teams: 565, goals: 780, assists: 920, points: 1055, mvp: 1175 };
+        x.fillStyle = '#718096'; x.font = F('800', 22); x.textAlign = 'center';
+        x.fillText('#', col.rank, top + 53);
+        x.textAlign = 'left'; x.fillText('Player', col.player, top + 53);
+        x.textAlign = 'center';
+        [['🛡️', 'Last teams(last 3)', col.teams], ['⚽', 'Goals', col.goals], ['🅰️', 'Assists', col.assists], ['🔥', 'G+A', col.points], ['🏆', 'MVP', col.mvp]]
+            .forEach(([icon, label, px]) => {
+                x.font = F('800', 27);
+                if (headerIcons[icon]) { drawEmblem(headerIcons[icon], px, top + 25, 30); } else if (icon === '🅰️') {
+                    x.fillStyle = '#e53e3e'; rr(px - 15, top + 10, 30, 30, 5); x.fill();
+                    x.fillStyle = '#fff'; x.font = F('900', 24); x.fillText('A', px, top + 34);
+                } else { x.fillStyle = '#718096'; x.fillText(icon, px, top + 33); }
+                x.fillStyle = '#718096';
+                x.font = F('800', 22); x.fillText(label, px, top + 65);
+            });
+        const medal = ['#d69e2e', '#a0aec0', '#dd6b20'];
         if (!rows.length) {
             x.fillStyle = '#a0aec0'; x.font = F('800', 30); x.textAlign = 'center';
-            x.fillText('No data yet', W / 2, top + cardH / 2 + 10);
+            x.fillText('No data yet', W / 2, top + headerH + 52);
         }
-        const medal = ['#d69e2e', '#a0aec0', '#dd6b20'];
-        const right = W - pad - 30;
         rows.forEach((p, i) => {
-            const y = top + 10 + i * rowH, cy = y + rowH / 2;
-            if (i % 2 === 1) { x.fillStyle = '#f7fafc'; x.fillRect(pad + 6, y, W - pad * 2 - 12, rowH); }
-            x.fillStyle = medal[i] || '#e2e8f0';
-            x.beginPath(); x.arc(pad + 50, cy, 24, 0, Math.PI * 2); x.fill();
-            x.fillStyle = i < 3 ? '#fff' : '#4a5568'; x.font = F('900', 26); x.textAlign = 'center';
-            x.fillText(String(i + 1), pad + 50, cy + 9);
-            let nx;
-            let rightLimit = right - 130;
-            if (mode === 'allTime') {
-                nx = pad + 96;
-                const hi = histInfo[p.id] || { count: 0, logos: [] };
-                // emblems + tournaments count, placed left of the value
-                let ex = right - 90;
-                x.font = F('800', 20); x.textAlign = 'right'; x.fillStyle = '#718096';
-                const cnt = `${hi.count} 🏟️`;
-                x.fillText(cnt, ex, cy + 8);
-                ex -= x.measureText(cnt).width + 10;
-                for (let k = hi.logos.length - 1; k >= 0; k--) { drawEmblem(hi.logos[k], ex - 18, cy, 36); ex -= 42; }
-                rightLimit = ex - 10;
-            } else {
-                const lg = playerLogo(p);
-                if (lg) drawEmblem(lg, pad + 112, cy, 46);
-                nx = lg ? pad + 152 : pad + 96;
-            }
-            x.textAlign = 'left'; x.fillStyle = '#1a202c'; x.font = F('900', 30);
-            const hasDetail = metric !== 'mvp';
-            x.fillText(fit(p.name, rightLimit - nx), nx, hasDetail ? cy - 4 : cy + 10);
-            if (hasDetail) {
-                x.fillStyle = '#718096'; x.font = F('700', 21);
-                x.fillText(`(${p.goals}+${p.assists})`, nx, cy + 26);
-            }
-            x.fillStyle = '#d69e2e'; x.font = F('900', 40); x.textAlign = 'right';
-            x.fillText(String(valOf(p)), right, cy + 14);
+            const y = top + headerH + i * rowH, cy = y + rowH / 2;
+            if (i % 2 === 1) { x.fillStyle = '#f7fafc'; x.fillRect(pad + 2, y, W - pad * 2 - 4, rowH); }
+            x.fillStyle = medal[i] || '#e2e8f0'; x.beginPath(); x.arc(col.rank, cy, 23, 0, Math.PI * 2); x.fill();
+            x.fillStyle = i < 3 ? '#fff' : '#4a5568'; x.font = F('900', 25); x.textAlign = 'center';
+            x.fillText(String(i + 1), col.rank, cy + 9);
+            x.fillStyle = '#1a202c'; x.font = F('900', 28); x.textAlign = 'left';
+            x.fillText(fit(p.name, 310), col.player, cy + 10);
+            const logos = lastTeams.get(p.id) || [];
+            logos.forEach((lg, k) => drawEmblem(lg, col.teams + (k - (logos.length - 1) / 2) * 56, cy, 46));
+            if (!logos.length) { x.fillStyle = '#a0aec0'; x.font = F('700', 25); x.textAlign = 'center'; x.fillText('—', col.teams, cy + 9); }
+            x.textAlign = 'center'; x.font = F('900', 32);
+            [['goals', p.goals], ['assists', p.assists], ['points', p.goals + p.assists], ['mvp', p.mvp]].forEach(([key, value]) => {
+                x.fillStyle = key === metric ? '#d69e2e' : '#1a202c'; x.fillText(String(value), col[key], cy + 11);
+            });
         });
-
         x.textAlign = 'center'; x.fillStyle = 'rgba(255,255,255,0.7)'; x.font = F('700', 26);
         x.fillText('Sport Time 10A · Izgi_Zhan', W / 2, H - 36);
         return await new Promise(res => c.toBlob(res, 'image/png'));
     }
 
+    async function buildHistoryOverviewImage() {
+        const history = Array.isArray(allTimeStats.__history) ? allTimeStats.__history : [];
+        if (!history.length) return null;
+        const images = [];
+        for (let i = history.length - 1; i >= 0; i--) {
+            const blob = await buildHistoryImage(history[i], i + 1);
+            if (!blob) throw new Error('Could not create tournament image');
+            const url = URL.createObjectURL(blob);
+            try {
+                const img = await new Promise((resolve, reject) => {
+                    const image = new Image(); image.onload = () => resolve(image); image.onerror = reject; image.src = url;
+                });
+                images.push(img);
+            } finally { URL.revokeObjectURL(url); }
+        }
+        const fullHeight = images.reduce((sum, img) => sum + img.height, 0);
+        const scale = Math.min(1, 30000 / fullHeight);
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(1280 * scale); canvas.height = Math.ceil(fullHeight * scale);
+        const ctx = canvas.getContext('2d');
+        if (!ctx) throw new Error('Canvas unavailable');
+        let y = 0;
+        images.forEach(img => { ctx.drawImage(img, 0, y, canvas.width, img.height * scale); y += img.height * scale; });
+        return new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+    }
+
     async function shareLeaderboard() {
+        const mode = leaderboardMode;
+        if (mode === 'history' && !(allTimeStats.__history || []).length) { alert('No finished tournaments yet.'); return; }
         let blob;
-        try { blob = await buildLeaderboardImage(); } catch (e) { console.error(e); }
+        try { blob = await buildLeaderboardImage(mode); } catch (e) { console.error(e); }
         if (!blob) { alert("Could not create the image."); return; }
-        await shareBlob(blob, 'sport-time-leaderboard.png');
+        const section = { current: 'current', allTime: 'all-time', history: 'history' }[mode] || 'current';
+        await shareBlob(blob, `sport-time-${section}.png`);
     }
 
     async function shareResults() {
@@ -3665,7 +3687,7 @@ function syncAllGoalRows(saved) {
         });
 
         // 3 cards: top 3 scorers, top assist, most MVP (with team emblems)
-        const scList = (h.topScorers && h.topScorers.length) ? h.topScorers : (h.topScorer ? [h.topScorer] : []);
+        const scList = (h.topScorers && h.topScorers.length) ? h.topScorers.slice(0, 3) : (h.topScorer ? [h.topScorer] : []);
         const items = [
             ['⚽ TOP SCORERS', scList, 'goals', '#3182ce'],
             ['🅰️ TOP ASSIST', h.topAssist ? [h.topAssist] : [], 'assists', '#38a169'],
@@ -3685,7 +3707,7 @@ function syncAllGoalRows(saved) {
                 const tx = lg ? 86 : 20;
                 if (lg) drawEmblem(lg, cx + 46, cy, 50);
                 x.fillStyle = '#1a202c'; x.font = F('900', 26); x.textAlign = 'left';
-                x.fillText(fit(p.name, cw - tx - 20), cx + tx, cy - 2);
+                x.fillText(fit(k === 0 ? `${i + 1}. ${p.name}` : p.name, cw - tx - 20), cx + tx, cy - 2);
                 x.fillStyle = color; x.font = F('800', 20);
                 x.fillText(`${p.value} ${unit}`, cx + tx, cy + 24);
             });
@@ -3769,7 +3791,7 @@ function syncAllGoalRows(saved) {
             const chip = (icon, label, p, unit) => p ? `
                 <div class="hist-chip"><div class="hist-chip-icon">${p.logo ? `<img class="hist-chip-logo" src="${esc(p.logo)}" alt="" onerror="logoFallback(this)">` : icon}</div>
                 <div><small>${label}</small><b>${esc(p.name)}</b><span>${p.value} ${unit}</span></div></div>` : '';
-            const sc = (h.topScorers && h.topScorers.length) ? h.topScorers : (h.topScorer ? [h.topScorer] : []);
+            const sc = (h.topScorers && h.topScorers.length) ? h.topScorers.slice(0, 3) : (h.topScorer ? [h.topScorer] : []);
             const scorersHtml = sc.length ? `
                 <div class="hist-scorers"><small>⚽ TOP SCORERS</small>${sc.map((p, k) => `
                     <div class="hist-sc-row"><span class="hist-sc-rank">${k + 1}</span>${p.logo ? `<img class="hist-chip-logo" src="${esc(p.logo)}" alt="" onerror="logoFallback(this)">` : ''}<b>${esc(p.name)}</b><span>${p.value} goals</span></div>`).join('')}
