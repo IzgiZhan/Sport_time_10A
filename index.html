@@ -3137,7 +3137,7 @@ function syncAllGoalRows(saved) {
         const logoByTeam = {};
         teams.forEach((t, i) => { logoByTeam[t.id] = logos[i]; });
         const playerLogo = p => {
-            const t = activeTeams.find(tt => (tt.players || []).some(tp => tp.id === p.id));
+            const t = activeTeams.find(tt => (tt.players || []).some(tp => String(tp.id) === String(p.id)));
             return t ? logoByTeam[t.id] : null;
         };
         const topN = (key) => [...playersData].filter(p => (p[key] || 0) > 0)
@@ -3382,11 +3382,9 @@ function syncAllGoalRows(saved) {
 
         // team emblems (only for the current tournament, where teams are known)
         const teamLogo = {};
-        if (mode === 'current') {
-            await Promise.all(activeTeams.map(async t => { teamLogo[t.id] = await loadLogo(t.logo || defaultLogo); }));
-        }
+        await Promise.all((activeTeams || []).map(async t => { teamLogo[t.id] = await loadLogo(t.logo || defaultLogo); }));
         const playerLogo = p => {
-            const t = activeTeams.find(tt => (tt.players || []).some(tp => tp.id === p.id));
+            const t = activeTeams.find(tt => (tt.players || []).some(tp => String(tp.id) === String(p.id)));
             return t ? teamLogo[t.id] : null;
         };
 
@@ -3695,14 +3693,14 @@ function syncAllGoalRows(saved) {
         const best = key => {
             const p = [...playersData].sort((x, y) => (y[key] || 0) - (x[key] || 0))[0];
             if (!(p && p[key] > 0)) return null;
-            const team = activeTeams.find(t => (t.players || []).some(tp => tp.id === p.id));
+            const team = activeTeams.find(t => (t.players || []).some(tp => String(tp.id) === String(p.id)));
             return { name: p.name, value: p[key], logo: team ? team.logo : null };
         };
         const top3 = key => [...playersData].filter(p => (p[key] || 0) > 0)
             .sort((x, y) => (y[key] || 0) - (x[key] || 0) || (y.goals + y.assists) - (x.goals + x.assists))
             .slice(0, 3)
             .map(p => {
-                const team = activeTeams.find(t => (t.players || []).some(tp => tp.id === p.id));
+                const team = activeTeams.find(t => (t.players || []).some(tp => String(tp.id) === String(p.id)));
                 return { name: p.name, value: p[key], logo: team ? team.logo : null };
             });
         if (!Array.isArray(allTimeStats.__history)) allTimeStats.__history = [];
