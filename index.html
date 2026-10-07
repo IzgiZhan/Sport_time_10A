@@ -3383,6 +3383,23 @@ function syncAllGoalRows(saved) {
         // team emblems (only for the current tournament, where teams are known)
         const teamLogo = {};
         await Promise.all((activeTeams || []).map(async t => { teamLogo[t.id] = await loadLogo(t.logo || defaultLogo); }));
+        // all-time: last 3 teams from history + number of tournaments played
+        const histInfo = {};
+        if (mode === 'allTime') {
+            const hist = Array.isArray(allTimeStats.__history) ? [...allTimeStats.__history].reverse() : [];
+            const logoCache = {};
+            const getL = async src => { const k = src || defaultLogo; if (!(k in logoCache)) logoCache[k] = await loadLogo(k); return logoCache[k]; };
+            for (const p of rows) {
+                const nm = String(p.name).trim().toLowerCase();
+                const teams = [];
+                hist.forEach(h => (h.teams || []).forEach(t => {
+                    if ((t.players || []).some(n => String(n).trim().toLowerCase() === nm)) teams.push(t);
+                }));
+                const logos = [];
+                for (const t of teams.slice(0, 3)) logos.push(await getL(t.logo));
+                histInfo[p.id] = { count: teams.length, logos };
+            }
+        }
         const playerLogo = p => {
             const t = activeTeams.find(tt => (tt.players || []).some(tp => String(tp.id) === String(p.id)));
             return t ? teamLogo[t.id] : null;
@@ -3445,12 +3462,27 @@ function syncAllGoalRows(saved) {
             x.beginPath(); x.arc(pad + 50, cy, 24, 0, Math.PI * 2); x.fill();
             x.fillStyle = i < 3 ? '#fff' : '#4a5568'; x.font = F('900', 26); x.textAlign = 'center';
             x.fillText(String(i + 1), pad + 50, cy + 9);
-            const lg = playerLogo(p);
-            if (lg) drawEmblem(lg, pad + 112, cy, 46);
-            const nx = lg ? pad + 152 : pad + 96;
+            let nx;
+            let rightLimit = right - 130;
+            if (mode === 'allTime') {
+                nx = pad + 96;
+                const hi = histInfo[p.id] || { count: 0, logos: [] };
+                // emblems + tournaments count, placed left of the value
+                let ex = right - 90;
+                x.font = F('800', 20); x.textAlign = 'right'; x.fillStyle = '#718096';
+                const cnt = `${hi.count} 🏟️`;
+                x.fillText(cnt, ex, cy + 8);
+                ex -= x.measureText(cnt).width + 10;
+                for (let k = hi.logos.length - 1; k >= 0; k--) { drawEmblem(hi.logos[k], ex - 18, cy, 36); ex -= 42; }
+                rightLimit = ex - 10;
+            } else {
+                const lg = playerLogo(p);
+                if (lg) drawEmblem(lg, pad + 112, cy, 46);
+                nx = lg ? pad + 152 : pad + 96;
+            }
             x.textAlign = 'left'; x.fillStyle = '#1a202c'; x.font = F('900', 30);
             const hasDetail = metric !== 'mvp';
-            x.fillText(fit(p.name, right - nx - 130), nx, hasDetail ? cy - 4 : cy + 10);
+            x.fillText(fit(p.name, rightLimit - nx), nx, hasDetail ? cy - 4 : cy + 10);
             if (hasDetail) {
                 x.fillStyle = '#718096'; x.font = F('700', 21);
                 x.fillText(`(${p.goals}+${p.assists})`, nx, cy + 26);
