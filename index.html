@@ -3133,7 +3133,7 @@ function syncAllGoalRows(saved) {
         return img;
     }
 
-    async function buildResultsImage() {
+   async function buildResultsImage() {
         const teams = getSortedTeams();
         const logos = await Promise.all(teams.map(t => loadLogo(t.logo || defaultLogo)));
         const logoByTeam = {};
@@ -3198,15 +3198,17 @@ function syncAllGoalRows(saved) {
         x.fillText(`Round ${currentDisplayedRound} of ${totalRounds}  ·  ${new Date().toLocaleDateString()}`, pad, 155);
         x.fillStyle = '#f6e05e'; x.fillRect(pad, 180, 120, 6);
 
-        // table card + header
+        // Таблица
         x.fillStyle = '#fff'; rr(pad, tableTop, W - pad * 2, tableH, 28); x.fill();
         x.fillStyle = '#edf2f7'; rr(pad, tableTop, W - pad * 2, 60, 28); x.fill();
         x.fillRect(pad, tableTop + 30, W - pad * 2, 30);
-        const col = { rank: 80, team: 150, mp: 650, w: 725, d: 795, l: 865, gf: 985, gd: 1095, pts: 1170, form: 1235 };
+        
+        // Смещаем колонки формы правее, чтобы буквы W D L гарантированно вмещались без наложений
+        const col = { rank: 80, team: 150, mp: 630, w: 700, d: 770, l: 840, gf: 955, gd: 1060, pts: 1135, form: 1210 };
         x.fillStyle = '#718096'; x.font = F('800', 22); x.textAlign = 'center';
         [['#', col.rank], ['MP', col.mp], ['W', col.w], ['D', col.d], ['L', col.l], ['GF-GA', col.gf], ['GD', col.gd], ['PTS', col.pts]]
             .forEach(([t, px]) => x.fillText(t, px, tableTop + 40));
-        x.fillText('FORM', col.form + 82, tableTop + 40);
+        x.fillText('FORM', col.form + 60, tableTop + 40);
         x.textAlign = 'left'; x.fillText('TEAM', col.team, tableTop + 40);
 
         const medal = ['#d69e2e', '#a0aec0', '#dd6b20'];
@@ -3230,10 +3232,9 @@ function syncAllGoalRows(saved) {
                 x.strokeStyle = '#e2e8f0'; x.lineWidth = 2;
                 x.beginPath(); x.arc(col.team + 28, cy, 28, 0, Math.PI * 2); x.stroke();
             }
-            // team name + small roster under it
             const lns = teamLines[i];
             x.fillStyle = '#1a202c'; x.font = F('900', 32); x.textAlign = 'left';
-            x.fillText(fit(t.name, 380), col.team + 72, lns.length ? y + 42 : cy + 11);
+            x.fillText(fit(t.name, 360), col.team + 72, lns.length ? y + 42 : cy + 11);
             if (lns.length) {
                 x.font = F('700', 19); x.fillStyle = '#718096';
                 lns.forEach((ln, k) => x.fillText(ln, col.team + 72, y + 70 + k * 24));
@@ -3248,40 +3249,48 @@ function syncAllGoalRows(saved) {
             x.fillStyle = '#38a169'; rr(col.pts - 39, cy - 26, 78, 52, 14); x.fill();
             x.fillStyle = '#fff'; x.font = F('900', 32);
             x.fillText(String(t.pts), col.pts, cy + 11);
+            
+            // Отрисовка формы W D L в ряд рядом с игроками
             const f = getFormLetters(t.id);
-            if (!f.length) { x.fillStyle = '#a0aec0'; x.font = F('800', 30); x.fillText('-', col.form + 82, cy + 10); }
+            if (!f.length) { x.fillStyle = '#a0aec0'; x.font = F('800', 30); x.fillText('-', col.form + 60, cy + 10); }
             f.forEach((L, k) => {
-                const bx = col.form + 14 + k * 33;
+                const bx = col.form + k * 30;
                 x.fillStyle = formColor[L];
-                x.beginPath(); x.arc(bx + 14, cy, 14, 0, Math.PI * 2); x.fill();
-                x.fillStyle = '#fff'; x.font = F('900', 17); x.textAlign = 'center';
-                x.fillText(L, bx + 14, cy + 6);
+                x.beginPath(); x.arc(bx + 12, cy, 13, 0, Math.PI * 2); x.fill();
+                x.fillStyle = '#fff'; x.font = F('900', 16); x.textAlign = 'center';
+                x.fillText(L, bx + 12, cy + 5);
             });
         });
 
-        // 3 cards: top 3 scorers, top 3 assists, top 3 MVP, each with the team emblem
+        // Карточки статистики: заголовки НАВЕРХУ, цифры и метрики РЯДОМ с игроком
         const cw = (W - pad * 2 - 48) / 3;
         const card = (cx, title, list, key, unit, color) => {
             x.fillStyle = '#fff'; rr(cx, statsTop, cw, statsH, 28); x.fill();
             x.fillStyle = color; rr(cx, statsTop, cw, 56, 28); x.fill();
             x.fillRect(cx, statsTop + 28, cw, 28);
             x.fillStyle = '#fff'; x.font = F('900', 26); x.textAlign = 'left';
-            x.fillText(title, cx + 24, statsTop + 38);
+            x.fillText(title, cx + 24, statsTop + 38); // Заголовок сверху
+            
             if (!list.length) { x.fillStyle = '#a0aec0'; x.font = F('700', 26); x.fillText('—', cx + 24, statsTop + 116); return; }
+            
             list.forEach((p, i) => {
                 const y = statsTop + 76 + i * 64, cy = y + 30;
                 x.fillStyle = '#a0aec0'; x.font = F('900', 26); x.textAlign = 'left';
                 x.fillText(String(i + 1), cx + 24, cy + 9);
                 drawEmblem(playerLogo(p), cx + 78, cy, 42);
+                
+                // Имя игрока
                 x.fillStyle = '#1a202c'; x.font = F('800', 26); x.textAlign = 'left';
-                x.fillText(fit(p.name, cw - 112 - 130), cx + 108, cy + 9);
+                x.fillText(fit(p.name, cw - 160), cx + 112, cy + 9);
+                
+                // Значение (голы / ассисты / mvp) РЯДОМ с именем справа
                 x.fillStyle = color; x.font = F('900', 25); x.textAlign = 'right';
                 x.fillText(`${p[key]} ${unit}`, cx + cw - 20, cy + 9);
             });
         };
-        card(pad, '⚽ TOP SCORERS', scorers, 'goals', 'goals', '#3182ce');
-        card(pad + cw + 24, '🅰️ TOP ASSISTS', assists, 'assists', 'assists', '#38a169');
-        card(pad + 2 * (cw + 24), '🏆 MVP', mvps, 'mvp', 'MVP', '#d69e2e');
+        card(pad, 'TOP SCORERS', scorers, 'goals', 'goals', '#3182ce');
+        card(pad + cw + 24, 'TOP ASSISTS', assists, 'assists', 'assists', '#38a169');
+        card(pad + 2 * (cw + 24), 'MVP', mvps, 'mvp', 'MVP', '#d69e2e');
 
         x.textAlign = 'center'; x.fillStyle = 'rgba(255,255,255,0.7)'; x.font = F('700', 26);
         x.fillText('Sport Time 10A · Izgi_Zhan', W / 2, H - 36);
