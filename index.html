@@ -3400,13 +3400,14 @@ function syncAllGoalRows(saved) {
             };
             if (mode === 'current') {
                 (activeTeams || []).filter(t => (t.players || []).some(tp => String(tp.id) === String(p.id))).forEach(addTeam);
+            } else {
+                const player = playersData.find(pp => String(pp.id) === String(p.id));
+                const names = new Set([p.name, player?.name].filter(Boolean).map(n => String(n).trim().toLowerCase()));
+                history.forEach(h => (h.teams || []).forEach(t => {
+                    if ((t.players || []).some(n => names.has(String(n).trim().toLowerCase()))) addTeam(t);
+                }));
             }
-            const player = playersData.find(pp => String(pp.id) === String(p.id));
-            const names = new Set([p.name, player?.name].filter(Boolean).map(n => String(n).trim().toLowerCase()));
-            history.forEach(h => (h.teams || []).forEach(t => {
-                if ((t.players || []).some(n => names.has(String(n).trim().toLowerCase()))) addTeam(t);
-            }));
-            lastTeams.set(p.id, await Promise.all(teams.slice(0, 3).map(t => getLogo(t.logo))));
+            lastTeams.set(p.id, await Promise.all(teams.slice(0, mode === 'current' ? 1 : 3).map(t => getLogo(t.logo))));
         }));
 
         const F = (w, sz) => `${w} ${sz}px system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif`;
@@ -3453,7 +3454,7 @@ function syncAllGoalRows(saved) {
         x.fillText('#', col.rank, top + 53);
         x.textAlign = 'left'; x.fillText('Player', col.player, top + 53);
         x.textAlign = 'center';
-        [['🛡️', 'Last teams(last 3)', col.teams], ['⚽', 'Goals', col.goals], ['🅰️', 'Assists', col.assists], ['🔥', 'G+A', col.points], ['🏆', 'MVP', col.mvp]]
+        [['🛡️', mode === 'current' ? 'Team' : 'Last teams', col.teams], ['⚽', 'Goals', col.goals], ['🅰️', 'Assists', col.assists], ['🔥', 'G+A', col.points], ['🏆', 'MVP', col.mvp]]
             .forEach(([icon, label, px]) => {
                 x.font = F('800', 27);
                 if (headerIcons[icon]) { drawEmblem(headerIcons[icon], px, top + 25, 30); } else if (icon === '🅰️') {
