@@ -763,7 +763,7 @@
         <div id="historyList" style="display:none;"></div>
     </div>
 
-    <button id="resetAllBtn" class="btn btn-dark" onclick="resetChanges()">🔒 Admin: Reset All Data</button>
+    <button id="resetAllBtn" class="btn btn-dark" onclick="resetChanges()">🔄 Reset All Data</button>
 
     <div id="adminTab" class="section">
       <div class="section-header" style="margin-top:0;">
@@ -971,7 +971,7 @@
         }
         if (resetBtn) {
             resetBtn.disabled = !isAdminAuthenticated;
-            resetBtn.innerText = isAdminAuthenticated ? "🔄 Reset All Data" : "🔒 Admin: Reset All Data";
+            resetBtn.innerText = isAdminAuthenticated ? "🔄 Reset All Data" : "🔄 Reset All Data";
         }
         if (typeSelect) typeSelect.disabled = !isAdminAuthenticated;
         if (selectAllBtn) selectAllBtn.disabled = !isAdminAuthenticated;
