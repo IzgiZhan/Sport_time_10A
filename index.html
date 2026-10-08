@@ -532,6 +532,29 @@
         .match-edit-btn { background: rgba(49,130,206,.08); color: var(--primary-blue); border-color: rgba(49,130,206,.25); }
         .match-edit-btn:hover { background: var(--primary-blue); color: #fff; border-color: var(--primary-blue); }
         .match-cancel-btn:hover { background: var(--primary-red); color: #fff; border-color: var(--primary-red); }
+        .finish-tournament-btn {
+            background: var(--primary-gold);
+            color: #fff;
+            border: none;
+            width: 100%;
+            padding: 14px 16px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 900;
+            cursor: pointer;
+            margin-top: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,.05);
+            transition: all .2s ease;
+        }
+        .finish-tournament-btn:hover:not(:disabled) {
+            transform: translateY(-1px);
+            filter: brightness(.95);
+        }
+        .finish-tournament-btn:disabled {
+            opacity: .5;
+            cursor: not-allowed !important;
+            transform: none !important;
+        }
 
         .rating-rules { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px; padding: 14px 16px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
         .rating-rules-title { font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: .5px; color: var(--text-sub); margin-bottom: 10px; }
@@ -547,6 +570,7 @@
         body:not(.is-admin) #resetAllBtn,
         body:not(.is-admin) #selectAllBtn,
         body:not(.is-admin) #addNextRoundBtn,
+        body:not(.is-admin) #finishTournamentBtn,
         body:not(.is-admin) #adminTabBtn,
         body:not(.is-admin) .tournament-type-selector,
         body:not(.is-admin) .player-info input[type="checkbox"],
@@ -703,6 +727,7 @@
         </div>
 
         <button class="btn btn-green" id="addNextRoundBtn" style="display:none; margin-top: 10px;" onclick="generateNextRoundManual()">Next round</button>
+        <button class="finish-tournament-btn" id="finishTournamentBtn" style="display:none;" onclick="finishTournament()">🏁 Finish Tournament</button>
     </div>
 
     <div id="leadersTab" class="section">
@@ -925,6 +950,7 @@
         const nextBtn = document.getElementById("nextRoundBtn");
         const roundSelect = document.getElementById("roundSelect");
         const addRoundBtn = document.getElementById("addNextRoundBtn");
+        const finishBtn = document.getElementById("finishTournamentBtn");
 
         if (accessStatus) {
             accessStatus.innerText = isAdminAuthenticated ? "🔓 Admin mode" : "👁 View only";
@@ -950,8 +976,16 @@
         if (typeSelect) typeSelect.disabled = !isAdminAuthenticated;
         if (selectAllBtn) selectAllBtn.disabled = !isAdminAuthenticated;
 
-        // Round navigation is safe for viewers, but adding a new round is not.
+        // Round navigation is safe for viewers, but adding/finishing a tournament is not.
         if (addRoundBtn) addRoundBtn.disabled = !isAdminAuthenticated;
+        if (finishBtn) {
+            const hasMatches = activeMatches.length > 0;
+            const allMatchesPlayed = hasMatches && activeMatches.every(m => m.played);
+            finishBtn.disabled = !isAdminAuthenticated || !allMatchesPlayed;
+            finishBtn.title = allMatchesPlayed
+                ? "Finish the current tournament and save it to History"
+                : "Finish all generated matches first";
+        }
         if (roundSelect) roundSelect.disabled = false;
         if (prevBtn) prevBtn.disabled = false;
         if (nextBtn) nextBtn.disabled = false;
@@ -1173,6 +1207,8 @@
                         renderCurrentRoundMatches();
                         renderTeamsCards();
                         document.getElementById('addNextRoundBtn').style.display = 'block';
+                        document.getElementById('finishTournamentBtn').style.display = 'block';
+                        updateAccessUI();
                     } else {
                         document.getElementById('leagueTableBody').innerHTML =
                             `<tr><td colspan="10" style="padding:20px; color:var(--text-sub);">Start the tournament first</td></tr>`;
@@ -1181,6 +1217,7 @@
                         document.getElementById('teamsResult').innerHTML = ``;
                         document.getElementById('roundNavControls').style.display = 'none';
                         document.getElementById('addNextRoundBtn').style.display = 'none';
+                        document.getElementById('finishTournamentBtn').style.display = 'none';
                     }
 
                     isApplyingRemoteState = false;
@@ -1668,8 +1705,10 @@
         currentDisplayedRound = 1;
 
         document.getElementById('addNextRoundBtn').style.display = 'block';
+        document.getElementById('finishTournamentBtn').style.display = 'block';
 
         saveData();
+        updateAccessUI();
         setupRoundSelectOptions();
         renderLeagueTable();
         renderCurrentRoundMatches();
@@ -3920,6 +3959,58 @@ function syncAllGoalRows(saved) {
         });
     }
 
+    async function finishTournament() {
+        if (!requireAdmin("finish the tournament")) return;
+
+        if (!activeTeams.length || !activeMatches.length) {
+            alert("There is no active tournament to finish.");
+            return;
+        }
+
+        const unfinished = activeMatches.filter(m => !m.played).length;
+        if (unfinished > 0) {
+            alert(`There are still ${unfinished} unfinished match${unfinished === 1 ? '' : 'es'}. Finish all matches before ending the tournament.`);
+            return;
+        }
+
+        const champion = getSortedTeams()[0];
+        const championName = champion ? champion.name : "the tournament";
+
+        if (!confirm(`Finish this tournament?\n\n🏆 Champion: ${championName}\n\nThe results will be saved to History and All Time, and the current tournament will be cleared.`)) {
+            return;
+        }
+
+        // Archive the finished tournament exactly once.
+        archiveCurrentTournament();
+        resetCurrentTournamentStats();
+
+        // Clear only the current tournament. Players and All Time/History stay.
+        activeTeams = [];
+        activeMatches = [];
+        totalRounds = 0;
+        currentDisplayedRound = 1;
+        lastRemoteRound = 1;
+        baseCycleRounds = [];
+
+        await saveData();
+
+        renderPlayers();
+        renderLeaderboard(leaderboardMetric);
+
+        document.getElementById('leagueTableBody').innerHTML =
+            `<tr><td colspan="10" style="padding:20px; color:var(--text-sub);">Start the next tournament</td></tr>`;
+        document.getElementById('matchesList').innerHTML =
+            `<p style="text-align:center; color:var(--text-sub); padding:10px; font-weight:700;">Tournament finished. Start a new tournament from Players.</p>`;
+        document.getElementById('teamsResult').innerHTML = '';
+        document.getElementById('roundNavControls').style.display = 'none';
+        document.getElementById('addNextRoundBtn').style.display = 'none';
+        document.getElementById('finishTournamentBtn').style.display = 'none';
+
+        updateAccessUI();
+        switchTab('playersTab', document.getElementById('playersTabBtn'));
+        alert(`🏁 Tournament finished!\n\n🏆 ${championName} won.\nThe tournament has been saved to History and All Time.`);
+    }
+
     function resetChanges() {
         if (!requireAdmin("reset all tournament data")) return;
         if (
@@ -3967,6 +4058,10 @@ function syncAllGoalRows(saved) {
                 'addNextRoundBtn'
             ).style.display = 'none';
 
+            document.getElementById(
+                'finishTournamentBtn'
+            ).style.display = 'none';
+
             switchTab(
                 'playersTab',
                 document.querySelectorAll('.tab-btn')[0]
@@ -4000,6 +4095,14 @@ function syncAllGoalRows(saved) {
             document.getElementById(
                 'addNextRoundBtn'
             ).style.display = 'block';
+            document.getElementById(
+                'finishTournamentBtn'
+            ).style.display = 'block';
+            updateAccessUI();
+        } else {
+            document.getElementById(
+                'finishTournamentBtn'
+            ).style.display = 'none';
         }
 
         subscribeToOnlineChanges();
