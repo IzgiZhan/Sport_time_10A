@@ -3831,11 +3831,14 @@ function syncAllGoalRows(saved) {
             const chip = (icon, label, p, unit) => p ? `
                 <div class="hist-chip"><div class="hist-chip-icon">${p.logo ? `<img class="hist-chip-logo" src="${esc(p.logo)}" alt="" onerror="logoFallback(this)">` : icon}</div>
                 <div><small>${label}</small><b>${esc(p.name)}</b><span>${p.value} ${unit}</span></div></div>` : '';
-            const sc = getHistoryTopPlayers(h, 'goals');
-            const scorersHtml = sc.length ? `
-                <div class="hist-scorers"><small>⚽ TOP SCORERS</small>${sc.map((p, k) => `
-                    <div class="hist-sc-row"><span class="hist-sc-rank">${k + 1}</span>${p.logo ? `<img class="hist-chip-logo" src="${esc(p.logo)}" alt="" onerror="logoFallback(this)">` : ''}<b>${esc(p.name)}</b><span>${p.value} goals</span></div>`).join('')}
+            const topBlock = (title, key, unit) => {
+                const list = getHistoryTopPlayers(h, key).filter(p => (Number(p.value) || 0) > 0);
+                return list.length ? `
+                <div class="hist-scorers"><small>${title}</small>${list.map((p, k) => `
+                    <div class="hist-sc-row"><span class="hist-sc-rank">${k + 1}</span>${p.logo ? `<img class="hist-chip-logo" src="${esc(p.logo)}" alt="" onerror="logoFallback(this)">` : ''}<b>${esc(p.name)}</b><span>${p.value} ${unit}</span></div>`).join('')}
                 </div>` : '';
+            };
+            const scorersHtml = topBlock('⚽ TOP SCORERS', 'goals', 'goals') + topBlock('🅰️ TOP ASSISTS', 'assists', 'assists') + topBlock('🏆 MOST MVP', 'mvp', 'MVP');
             return `
                 <div class="hist-card">
                     <div class="hist-head">
@@ -3856,8 +3859,6 @@ function syncAllGoalRows(saved) {
                     </div>
                     <div class="hist-stats">
                         ${scorersHtml}
-                        ${chip('🅰️', 'Top assist', h.topAssist, 'assists')}
-                        ${chip('🏆', 'Most MVP', h.mvp, 'MVP')}
                     </div>
                 </div>`;
         }).join('');
