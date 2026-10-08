@@ -605,6 +605,8 @@
         .hist-sc-row span:last-child { font-size: 12px; font-weight: 800; color: var(--primary-blue); }
         .hist-sc-rank { width: 22px; height: 22px; border-radius: 50%; background: var(--card-border); color: var(--text-main); font-size: 11px; font-weight: 900; display: inline-flex; align-items: center; justify-content: center; }
         .hist-roster { display: block; margin-top: 3px; font-size: 11px; font-weight: 700; line-height: 1.35; color: var(--text-sub); }
+        .hist-delete { background: rgba(229,62,62,.85); border: 1px solid rgba(255,255,255,.5); color: #fff; border-radius: 8px; padding: 3px 10px; font-size: 11px; font-weight: 900; cursor: pointer; }
+        body:not(.is-admin) .hist-delete { display: none !important; }
         .hist-share { background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.4); color: #fff; border-radius: 8px; padding: 3px 10px; font-size: 11px; font-weight: 900; cursor: pointer; }
     </style>
 </head>
@@ -3845,6 +3847,7 @@ function syncAllGoalRows(saved) {
                         <span>Tournament #${list.length - i}</span>
                         <span>${esc(d)} · ${h.rounds} rounds</span>
                         <button class="hist-share" onclick="shareHistory(${list.length - 1 - i})">📤 Share</button>
+                        <button class="hist-delete" onclick="deleteHistoryTournament(${list.length - 1 - i})">🗑 Delete</button>
                     </div>
                     <div class="hist-winner">
                         <img src="${esc(w.logo || defaultLogo)}" alt="" onerror="logoFallback(this)">
@@ -3862,6 +3865,30 @@ function syncAllGoalRows(saved) {
                     </div>
                 </div>`;
         }).join('');
+    }
+
+    async function deleteHistoryTournament(idx) {
+        if (!requireAdmin("delete a tournament from history")) return;
+        const hist = Array.isArray(allTimeStats.__history) ? allTimeStats.__history : [];
+        const h = hist[idx];
+        if (!h) return;
+        const d = new Date(h.date).toLocaleDateString();
+        if (!confirm(`Delete Tournament #${idx + 1} (${d}) from history?`)) return;
+
+        if (Array.isArray(h.playerStats) && h.playerStats.length &&
+            confirm("Also subtract this tournament's goals, assists and MVP from All Time stats?\n\nOK = subtract\nCancel = keep All Time stats as they are")) {
+            h.playerStats.forEach(ps => {
+                const rec = allTimeStats[String(ps.id)];
+                if (!rec) return;
+                rec.goals = Math.max(0, (Number(rec.goals) || 0) - (Number(ps.goals) || 0));
+                rec.assists = Math.max(0, (Number(rec.assists) || 0) - (Number(ps.assists) || 0));
+                rec.mvp = Math.max(0, (Number(rec.mvp) || 0) - (Number(ps.mvp) || 0));
+            });
+        }
+
+        hist.splice(idx, 1);
+        renderHistory();
+        await saveData();
     }
 
     function archiveCurrentTournament() {
