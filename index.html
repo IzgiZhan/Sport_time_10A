@@ -1366,14 +1366,29 @@
         document.getElementById('themeToggleBtn').innerText = currentTheme === 'dark' ? '☀️' : '🌙';
     }
 
+    let currentOpenTab = 'playersTab';
+
     function switchTab(tabId, btn) {
+        currentOpenTab = tabId;
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.getElementById(tabId).classList.add('active');
         if(btn) btn.classList.add('active');
+        updateResetButtonLabel();
         if(tabId === 'leadersTab') renderLeaderboard(leaderboardMetric);
         if(tabId === 'playersTab') renderPlayers();
         if(tabId === 'adminTab') renderAdminPlayers();
+    }
+
+    function updateResetButtonLabel() {
+        const btn = document.getElementById('resetAllBtn');
+        if (!btn) return;
+        if (currentOpenTab === 'playersTab') btn.innerText = '🔒 Admin: Reset Players';
+        else if (currentOpenTab === 'teamsTab') btn.innerText = '🔒 Admin: Reset Matches & Table';
+        else if (currentOpenTab === 'leadersTab') {
+            const modeName = leaderboardMode === 'history' ? 'History' : (leaderboardMode === 'allTime' ? 'All Time' : 'Current Tournament');
+            btn.innerText = `🔒 Admin: Reset ${modeName}`;
+        } else btn.innerText = '🔒 Admin: Reset This Page';
     }
 
     function esc(v) {
@@ -4011,62 +4026,72 @@ function syncAllGoalRows(saved) {
         alert(`🏁 Tournament finished!\n\n🏆 ${championName} won.\nThe tournament has been saved to History and All Time.`);
     }
 
-    function resetChanges() {
-        if (!requireAdmin("reset all tournament data")) return;
-        if (
-            confirm(
-                "Are you sure you want to reset all tournament data and player stats?"
-            )
-        ) {
+    async function resetChanges() {
+        if (!requireAdmin("reset data on this page")) return;
 
-            playersData =
-                JSON.parse(
-                    JSON.stringify(initialPlayers)
-                );
+        if (currentOpenTab === 'playersTab') {
+            if (!confirm("Reset the Players page?\n\nPlayer names, ratings, speeds and positions will return to their default values. Tournament history will stay.")) return;
+            playersData = JSON.parse(JSON.stringify(initialPlayers));
+            playersData.forEach(p => { if (!p.speed) p.speed = fixedSpeeds[p.name] || 3; });
+            renderPlayers();
+            await saveData();
+            updateResetButtonLabel();
+            alert("✅ Players page has been reset. History was not deleted.");
+            return;
+        }
 
-            allTimeStats = {};
-
+        if (currentOpenTab === 'teamsTab') {
+            if (!confirm("Reset Matches & Table?\n\nThe active teams, matches, scores and standings will be cleared. Players and tournament history will stay.")) return;
             activeTeams = [];
             activeMatches = [];
             totalRounds = 0;
             currentDisplayedRound = 1;
+            lastRemoteRound = 1;
             baseCycleRounds = [];
-
-            saveData();
-
-            renderPlayers();
-
-            document.getElementById(
-                'leagueTableBody'
-            ).innerHTML =
-                `<tr><td colspan="10" style="padding:20px; color:var(--text-sub);">Start the tournament first</td></tr>`;
-
-            document.getElementById(
-                'matchesList'
-            ).innerHTML =
-                `<p style="text-align:center; color:var(--text-sub); padding:10px; font-weight:700;">Start the tournament to create matches.</p>`;
-
-            document.getElementById(
-                'teamsResult'
-            ).innerHTML = ``;
-
-            document.getElementById(
-                'roundNavControls'
-            ).style.display = 'none';
-
-            document.getElementById(
-                'addNextRoundBtn'
-            ).style.display = 'none';
-
-            document.getElementById(
-                'finishTournamentBtn'
-            ).style.display = 'none';
-
-            switchTab(
-                'playersTab',
-                document.querySelectorAll('.tab-btn')[0]
-            );
+            document.getElementById('leagueTableBody').innerHTML = `<tr><td colspan="10" style="padding:20px; color:var(--text-sub);">Start the tournament first</td></tr>`;
+            document.getElementById('matchesList').innerHTML = `<p style="text-align:center; color:var(--text-sub); padding:10px; font-weight:700;">Start the tournament to create matches.</p>`;
+            document.getElementById('teamsResult').innerHTML = '';
+            document.getElementById('roundNavControls').style.display = 'none';
+            document.getElementById('addNextRoundBtn').style.display = 'none';
+            const finishBtn = document.getElementById('finishTournamentBtn');
+            if (finishBtn) finishBtn.style.display = 'none';
+            await saveData();
+            updateAccessUI();
+            alert("✅ Matches & Table have been reset. Players and History were not deleted.");
+            return;
         }
+
+        if (currentOpenTab === 'leadersTab') {
+            if (leaderboardMode === 'current') {
+                if (!confirm("Reset the Current Tournament leaderboard?\n\nCurrent goals, assists and MVP stats will be cleared. All Time and History will stay.")) return;
+                resetCurrentTournamentStats();
+                renderLeaderboard(leaderboardMetric);
+                await saveData();
+                alert("✅ Current Tournament leaderboard has been reset. All Time and History were not deleted.");
+                return;
+            }
+            if (leaderboardMode === 'allTime') {
+                if (!confirm("Reset All Time leaderboard?\n\nAll Time goals, assists and MVP totals will be cleared. Tournament History will stay.")) return;
+                Object.keys(allTimeStats).forEach(key => {
+                    if (key === '__history') return;
+                    allTimeStats[key] = { name: allTimeStats[key].name, goals: 0, assists: 0, mvp: 0 };
+                });
+                renderLeaderboard(leaderboardMetric);
+                await saveData();
+                alert("✅ All Time leaderboard has been reset. History was not deleted.");
+                return;
+            }
+            if (leaderboardMode === 'history') {
+                if (!confirm("Delete all Tournament History?\n\nThis will delete only the History page. Current Tournament and All Time stats will stay.")) return;
+                allTimeStats.__history = [];
+                renderHistory();
+                await saveData();
+                alert("✅ Tournament History has been cleared. Current Tournament and All Time stats were not deleted.");
+                return;
+            }
+        }
+
+        alert("This page does not have resettable data.");
     }
 
     window.onload = async function() {
