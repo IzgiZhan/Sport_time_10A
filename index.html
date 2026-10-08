@@ -3133,7 +3133,46 @@ function syncAllGoalRows(saved) {
         return img;
     }
 
-   async function buildResultsImage() {
+    // Read rankings only from this tournament, never from live/all-time totals.
+    function getHistoryTopPlayers(h, key) {
+        const num = v => Number(v) || 0;
+        if (Array.isArray(h.playerStats) && h.playerStats.length) {
+            return [...h.playerStats].sort((a, b) => num(b[key]) - num(a[key]) ||
+                (num(b.goals) + num(b.assists)) - (num(a.goals) + num(a.assists)) ||
+                String(a.name).localeCompare(String(b.name)))
+                .slice(0, 3).map(p => ({ ...p, value: num(p[key]) }));
+        }
+        const fields = { goals: ['topScorers', 'topScorer'], assists: ['topAssists', 'topAssist'], mvp: ['topMvps', 'mvp'] }[key];
+        const candidates = [...(Array.isArray(h[fields[0]]) ? h[fields[0]] : []), ...(h[fields[1]] ? [h[fields[1]]] : [])];
+        const byName = new Map();
+        candidates.forEach(p => {
+            if (!p || !p.name) return;
+            const saved = byName.get(p.name);
+            if (!saved || num(p.value) > num(saved.value)) byName.set(p.name, p);
+        });
+        return [...byName.values()].sort((a, b) => num(b.value) - num(a.value) || String(a.name).localeCompare(String(b.name))).slice(0, 3);
+    }
+
+    function drawShareForm(x, letters, left, cy, width, font) {
+        const colors = { W: '#38a169', D: '#d69e2e', L: '#e53e3e' };
+        const list = (letters || []).filter(l => colors[l]);
+        x.textAlign = 'center';
+        if (!list.length) {
+            x.fillStyle = '#a0aec0'; x.font = font('800', 26);
+            x.fillText('—', left + width / 2, cy + 9); return;
+        }
+        const gap = 5, perRow = 5, size = Math.min(28, (width - gap * (perRow - 1)) / perRow);
+        const rows = Math.ceil(list.length / perRow);
+        list.forEach((letter, k) => {
+            const row = Math.floor(k / perRow), count = Math.min(perRow, list.length - row * perRow);
+            const cx = left + (width - (count * size + (count - 1) * gap)) / 2 + (k % perRow) * (size + gap) + size / 2;
+            const yy = cy + (row - (rows - 1) / 2) * (size + gap);
+            x.fillStyle = colors[letter]; x.beginPath(); x.arc(cx, yy, size / 2, 0, Math.PI * 2); x.fill();
+            x.fillStyle = '#fff'; x.font = font('900', 17); x.fillText(letter, cx, yy + 6);
+        });
+    }
+
+    async function buildResultsImage() {
         const teams = getSortedTeams();
         const logos = await Promise.all(teams.map(t => loadLogo(t.logo || defaultLogo)));
         const logoByTeam = {};
@@ -3162,10 +3201,10 @@ function syncAllGoalRows(saved) {
         const teamLines = teams.map(t => wrapRoster((t.players || []).map(p => (playersData.find(x => x.id === p.id) || p).name)));
         const rowHs = teamLines.map(l => l.length ? 62 + l.length * 24 + 14 : 92);
 
-        const W = 1440, pad = 40;
+        const W = 1600, pad = 40;
         const tableTop = 230, tableH = 70 + rowHs.reduce((a2, b2) => a2 + b2, 0) + 20;
         const statsTop = tableTop + tableH + 30;
-        const statsH = 76 + 3 * 64 + 16;
+        const statsH = 100 + 3 * 64 + 16;
         const H = statsTop + statsH + 90;
 
         const c = document.createElement('canvas');
@@ -3198,17 +3237,15 @@ function syncAllGoalRows(saved) {
         x.fillText(`Round ${currentDisplayedRound} of ${totalRounds}  ·  ${new Date().toLocaleDateString()}`, pad, 155);
         x.fillStyle = '#f6e05e'; x.fillRect(pad, 180, 120, 6);
 
-        // Таблица
+        // table card + header
         x.fillStyle = '#fff'; rr(pad, tableTop, W - pad * 2, tableH, 28); x.fill();
         x.fillStyle = '#edf2f7'; rr(pad, tableTop, W - pad * 2, 60, 28); x.fill();
         x.fillRect(pad, tableTop + 30, W - pad * 2, 30);
-        
-        // Смещаем колонки формы правее, чтобы буквы W D L гарантированно вмещались без наложений
-        const col = { rank: 80, team: 150, mp: 630, w: 700, d: 770, l: 840, gf: 955, gd: 1060, pts: 1135, form: 1210 };
+        const col = { rank: 80, team: 150, mp: 650, w: 725, d: 795, l: 865, gf: 985, gd: 1095, pts: 1260, form: 1360 };
         x.fillStyle = '#718096'; x.font = F('800', 22); x.textAlign = 'center';
         [['#', col.rank], ['MP', col.mp], ['W', col.w], ['D', col.d], ['L', col.l], ['GF-GA', col.gf], ['GD', col.gd], ['PTS', col.pts]]
             .forEach(([t, px]) => x.fillText(t, px, tableTop + 40));
-        x.fillText('FORM', col.form + 60, tableTop + 40);
+        x.fillText('FORM', col.form + 80, tableTop + 40);
         x.textAlign = 'left'; x.fillText('TEAM', col.team, tableTop + 40);
 
         const medal = ['#d69e2e', '#a0aec0', '#dd6b20'];
@@ -3232,9 +3269,10 @@ function syncAllGoalRows(saved) {
                 x.strokeStyle = '#e2e8f0'; x.lineWidth = 2;
                 x.beginPath(); x.arc(col.team + 28, cy, 28, 0, Math.PI * 2); x.stroke();
             }
+            // team name + small roster under it
             const lns = teamLines[i];
             x.fillStyle = '#1a202c'; x.font = F('900', 32); x.textAlign = 'left';
-            x.fillText(fit(t.name, 360), col.team + 72, lns.length ? y + 42 : cy + 11);
+            x.fillText(fit(t.name, 380), col.team + 72, lns.length ? y + 42 : cy + 11);
             if (lns.length) {
                 x.font = F('700', 19); x.fillStyle = '#718096';
                 lns.forEach((ln, k) => x.fillText(ln, col.team + 72, y + 70 + k * 24));
@@ -3249,48 +3287,35 @@ function syncAllGoalRows(saved) {
             x.fillStyle = '#38a169'; rr(col.pts - 39, cy - 26, 78, 52, 14); x.fill();
             x.fillStyle = '#fff'; x.font = F('900', 32);
             x.fillText(String(t.pts), col.pts, cy + 11);
-            
-            // Отрисовка формы W D L в ряд рядом с игроками
-            const f = getFormLetters(t.id);
-            if (!f.length) { x.fillStyle = '#a0aec0'; x.font = F('800', 30); x.fillText('-', col.form + 60, cy + 10); }
-            f.forEach((L, k) => {
-                const bx = col.form + k * 30;
-                x.fillStyle = formColor[L];
-                x.beginPath(); x.arc(bx + 12, cy, 13, 0, Math.PI * 2); x.fill();
-                x.fillStyle = '#fff'; x.font = F('900', 16); x.textAlign = 'center';
-                x.fillText(L, bx + 12, cy + 5);
-            });
+            drawShareForm(x, getFormLetters(t.id), col.form, cy, 160, F);
         });
 
-        // Карточки статистики: заголовки НАВЕРХУ, цифры и метрики РЯДОМ с игроком
+        // 3 cards: top 3 scorers, top 3 assists, top 3 MVP, each with the team emblem
         const cw = (W - pad * 2 - 48) / 3;
         const card = (cx, title, list, key, unit, color) => {
             x.fillStyle = '#fff'; rr(cx, statsTop, cw, statsH, 28); x.fill();
             x.fillStyle = color; rr(cx, statsTop, cw, 56, 28); x.fill();
             x.fillRect(cx, statsTop + 28, cw, 28);
             x.fillStyle = '#fff'; x.font = F('900', 26); x.textAlign = 'left';
-            x.fillText(title, cx + 24, statsTop + 38); // Заголовок сверху
-            
+            x.fillText(title, cx + 24, statsTop + 38);
+            x.fillStyle = '#718096'; x.font = F('800', 20);
+            x.fillText('PLAYER', cx + 24, statsTop + 82);
+            x.textAlign = 'right'; x.fillText(unit, cx + cw - 20, statsTop + 82);
             if (!list.length) { x.fillStyle = '#a0aec0'; x.font = F('700', 26); x.fillText('—', cx + 24, statsTop + 116); return; }
-            
             list.forEach((p, i) => {
-                const y = statsTop + 76 + i * 64, cy = y + 30;
+                const y = statsTop + 100 + i * 64, cy = y + 30;
                 x.fillStyle = '#a0aec0'; x.font = F('900', 26); x.textAlign = 'left';
                 x.fillText(String(i + 1), cx + 24, cy + 9);
                 drawEmblem(playerLogo(p), cx + 78, cy, 42);
-                
-                // Имя игрока
                 x.fillStyle = '#1a202c'; x.font = F('800', 26); x.textAlign = 'left';
-                x.fillText(fit(p.name, cw - 160), cx + 112, cy + 9);
-                
-                // Значение (голы / ассисты / mvp) РЯДОМ с именем справа
+                x.fillText(fit(p.name, cw - 112 - 88), cx + 108, cy + 9);
                 x.fillStyle = color; x.font = F('900', 25); x.textAlign = 'right';
-                x.fillText(`${p[key]} ${unit}`, cx + cw - 20, cy + 9);
+                x.fillText(String(Number(p[key]) || 0), cx + cw - 20, cy + 9);
             });
         };
-        card(pad, 'TOP SCORERS', scorers, 'goals', 'goals', '#3182ce');
-        card(pad + cw + 24, 'TOP ASSISTS', assists, 'assists', 'assists', '#38a169');
-        card(pad + 2 * (cw + 24), 'MVP', mvps, 'mvp', 'MVP', '#d69e2e');
+        card(pad, '⚽ TOP SCORERS', scorers, 'goals', 'Goals', '#3182ce');
+        card(pad + cw + 24, '🅰️ TOP ASSISTS', assists, 'assists', 'Assists', '#38a169');
+        card(pad + 2 * (cw + 24), '🏆 MVP', mvps, 'mvp', 'MVP', '#d69e2e');
 
         x.textAlign = 'center'; x.fillStyle = 'rgba(255,255,255,0.7)'; x.font = F('700', 26);
         x.fillText('Sport Time 10A · Izgi_Zhan', W / 2, H - 36);
@@ -3570,7 +3595,7 @@ function syncAllGoalRows(saved) {
     async function buildHistoryImage(h, num) {
         const teams = h.teams;
         const logos = await Promise.all(teams.map(t => loadLogo(t.logo || defaultLogo)));
-        const W = 1280, pad = 40;
+        const W = 1440, pad = 40;
         const F = (w, sz) => `${w} ${sz}px system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif`;
         const probe = document.createElement('canvas').getContext('2d');
 
@@ -3601,7 +3626,7 @@ function syncAllGoalRows(saved) {
         const teamLines = teams.map(t => wrapRoster(t.players));
         const rowHs = teamLines.map(l => Math.max(84, 62 + l.length * 24));
         const tableTop = champTop + champH + 30, tableH = 70 + rowHs.reduce((a2, b2) => a2 + b2, 0) + 20;
-        const statsTop = tableTop + tableH + 30, statsH = 46 + 3 * 62 + 30;
+        const statsTop = tableTop + tableH + 30, statsH = 96 + 3 * 62 + 24;
         const H = statsTop + statsH + 90;
 
         const c = document.createElement('canvas');
@@ -3658,11 +3683,11 @@ function syncAllGoalRows(saved) {
         x.fillStyle = '#fff'; rr(pad, tableTop, W - pad * 2, tableH, 28); x.fill();
         x.fillStyle = '#edf2f7'; rr(pad, tableTop, W - pad * 2, 60, 28); x.fill();
         x.fillRect(pad, tableTop + 30, W - pad * 2, 30);
-        const col = { rank: 80, team: 140, mp: 660, w: 720, d: 780, l: 840, gf: 940, pts: 1030, form: 1075 };
+        const col = { rank: 80, team: 140, mp: 700, w: 770, d: 840, l: 910, gf: 1030, pts: 1140, form: 1210 };
         x.fillStyle = '#718096'; x.font = F('800', 22); x.textAlign = 'center';
         [['#', col.rank], ['MP', col.mp], ['W', col.w], ['D', col.d], ['L', col.l], ['GF-GA', col.gf], ['PTS', col.pts]]
             .forEach(([t, px]) => x.fillText(t, px, tableTop + 40));
-        x.fillText('FORM', col.form + 82, tableTop + 40);
+        x.fillText('FORM', col.form + 80, tableTop + 40);
         x.textAlign = 'left'; x.fillText('TEAM', col.team, tableTop + 40);
         const medal = ['#d69e2e', '#a0aec0', '#dd6b20'], fc = { W: '#38a169', D: '#d69e2e', L: '#e53e3e' };
         teams.forEach((t, i) => {
@@ -3689,19 +3714,15 @@ function syncAllGoalRows(saved) {
             x.fillText(`${t.gf}-${t.ga}`, col.gf, cy + 10);
             x.fillStyle = '#38a169'; rr(col.pts - 38, cy - 24, 76, 48, 13); x.fill();
             x.fillStyle = '#fff'; x.font = F('900', 30); x.fillText(String(t.pts), col.pts, cy + 10);
-            (t.form || []).forEach((L, k) => {
-                const bx = col.form + 14 + k * 33;
-                x.fillStyle = fc[L]; x.beginPath(); x.arc(bx + 14, cy, 14, 0, Math.PI * 2); x.fill();
-                x.fillStyle = '#fff'; x.font = F('900', 17); x.fillText(L, bx + 14, cy + 6);
-            });
+            drawShareForm(x, t.form, col.form, cy, 160, F);
         });
 
         // 3 cards: top 3 scorers, top assist, most MVP (with team emblems)
-        const scList = (h.topScorers && h.topScorers.length) ? h.topScorers.slice(0, 3) : (h.topScorer ? [h.topScorer] : []);
+        const scList = getHistoryTopPlayers(h, 'goals');
         const items = [
-            ['⚽ TOP SCORERS', scList, 'goals', '#3182ce'],
-            ['🅰️ TOP ASSIST', h.topAssist ? [h.topAssist] : [], 'assists', '#38a169'],
-            ['🏆 MOST MVP', h.mvp ? [h.mvp] : [], 'MVP', '#d69e2e']
+            ['⚽ TOP SCORERS', scList, 'Goals', '#3182ce'],
+            ['🅰️ TOP ASSISTS', getHistoryTopPlayers(h, 'assists'), 'Assists', '#38a169'],
+            ['🏆 MOST MVP', getHistoryTopPlayers(h, 'mvp'), 'MVP', '#d69e2e']
         ];
         const itemLogos = await Promise.all(items.map(it => Promise.all(it[1].map(p => p.logo ? loadLogo(p.logo) : Promise.resolve(null)))));
         const cw = (W - pad * 2 - 48) / 3;
@@ -3710,16 +3731,19 @@ function syncAllGoalRows(saved) {
             x.fillStyle = '#fff'; rr(cx, statsTop, cw, statsH, 24); x.fill();
             x.fillStyle = color; rr(cx, statsTop, cw, 46, 24); x.fill(); x.fillRect(cx, statsTop + 24, cw, 22);
             x.fillStyle = '#fff'; x.font = F('900', 22); x.textAlign = 'left'; x.fillText(title, cx + 20, statsTop + 32);
-            if (!list.length) { x.fillStyle = '#a0aec0'; x.font = F('800', 26); x.fillText('—', cx + 20, statsTop + 100); return; }
+            x.fillStyle = '#718096'; x.font = F('800', 20);
+            x.fillText('PLAYER', cx + 20, statsTop + 80);
+            x.textAlign = 'right'; x.fillText(unit, cx + cw - 20, statsTop + 80);
+            if (!list.length) { x.textAlign = 'left'; x.fillStyle = '#a0aec0'; x.font = F('800', 26); x.fillText('—', cx + 20, statsTop + 135); return; }
             list.forEach((p, i) => {
-                const cy = statsTop + 46 + 38 + i * 62;
+                const cy = statsTop + 96 + 31 + i * 62;
                 const lg = itemLogos[k][i];
                 const tx = lg ? 86 : 20;
                 if (lg) drawEmblem(lg, cx + 46, cy, 50);
                 x.fillStyle = '#1a202c'; x.font = F('900', 26); x.textAlign = 'left';
-                x.fillText(fit(k === 0 ? `${i + 1}. ${p.name}` : p.name, cw - tx - 20), cx + tx, cy - 2);
-                x.fillStyle = color; x.font = F('800', 20);
-                x.fillText(`${p.value} ${unit}`, cx + tx, cy + 24);
+                x.fillText(fit(`${i + 1}. ${p.name}`, cw - tx - 90), cx + tx, cy + 9);
+                x.fillStyle = color; x.font = F('900', 26); x.textAlign = 'right';
+                x.fillText(String(Number(p.value) || 0), cx + cw - 20, cy + 9);
             });
         });
 
@@ -3760,7 +3784,7 @@ function syncAllGoalRows(saved) {
             const team = activeTeams.find(t => (t.players || []).some(tp => String(tp.id) === String(p.id)));
             return { name: p.name, value: p[key], logo: team ? team.logo : null };
         };
-        const top3 = key => [...playersData].filter(p => (p[key] || 0) > 0)
+        const top3 = key => [...playersData]
             .sort((x, y) => (y[key] || 0) - (x[key] || 0) || (y.goals + y.assists) - (x.goals + x.assists))
             .slice(0, 3)
             .map(p => {
@@ -3773,7 +3797,13 @@ function syncAllGoalRows(saved) {
             rounds: totalRounds,
             teams: sorted.map(t => ({ name: t.name, logo: t.logo, pts: t.pts, gf: t.gf, ga: t.ga, mp: t.played, w: t.win, d: t.draw, l: t.loss, form: getFormLetters(t.id), players: (t.players || []).map(p => (playersData.find(x => x.id === p.id) || p).name) })),
             topScorer: best('goals'),
+            playerStats: playersData.map(p => {
+                const team = activeTeams.find(t => (t.players || []).some(tp => String(tp.id) === String(p.id)));
+                return { id: p.id, name: p.name, goals: Number(p.goals) || 0, assists: Number(p.assists) || 0, mvp: Number(p.mvp) || 0, logo: team ? team.logo : null };
+            }),
             topScorers: top3('goals'),
+            topAssists: top3('assists'),
+            topMvps: top3('mvp'),
             topAssist: best('assists'),
             mvp: best('mvp')
         });
@@ -3801,7 +3831,7 @@ function syncAllGoalRows(saved) {
             const chip = (icon, label, p, unit) => p ? `
                 <div class="hist-chip"><div class="hist-chip-icon">${p.logo ? `<img class="hist-chip-logo" src="${esc(p.logo)}" alt="" onerror="logoFallback(this)">` : icon}</div>
                 <div><small>${label}</small><b>${esc(p.name)}</b><span>${p.value} ${unit}</span></div></div>` : '';
-            const sc = (h.topScorers && h.topScorers.length) ? h.topScorers.slice(0, 3) : (h.topScorer ? [h.topScorer] : []);
+            const sc = getHistoryTopPlayers(h, 'goals');
             const scorersHtml = sc.length ? `
                 <div class="hist-scorers"><small>⚽ TOP SCORERS</small>${sc.map((p, k) => `
                     <div class="hist-sc-row"><span class="hist-sc-rank">${k + 1}</span>${p.logo ? `<img class="hist-chip-logo" src="${esc(p.logo)}" alt="" onerror="logoFallback(this)">` : ''}<b>${esc(p.name)}</b><span>${p.value} goals</span></div>`).join('')}
