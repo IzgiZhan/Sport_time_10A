@@ -675,14 +675,14 @@
         </div>
         <div id="viewOnlyNote" class="view-only-note">👁 View-only mode. Enter the Admin password to change tournament data.</div>
         <div class="player-grid" id="playersList"></div>
-        <button id="startTournamentBtn" class="btn btn-green" onclick="startTournament()">🔒 Start Tournament</button>
+        <button id="startTournamentBtn" class="btn btn-green" onclick="startTournament()">Start Tournament</button>
     </div>
 
     <div id="teamsTab" class="section">
         <div class="section-header" style="margin-top:0;">
             <span class="section-title">⚙️ Squads & Clubs</span>
         </div>
-        <button id="balanceTeamsBtn" class="btn btn-blue" style="margin-top:0; margin-bottom: 20px;" onclick="balanceExistingTeams()">🔒 Balance teams</button>
+        <button id="balanceTeamsBtn" class="btn btn-blue" style="margin-top:0; margin-bottom: 20px;" onclick="balanceExistingTeams()">Balance teams</button>
         
         <div id="teamsResult" class="teams-container"></div>
 
@@ -963,11 +963,11 @@
 
         if (startBtn) {
             startBtn.disabled = !isAdminAuthenticated;
-            startBtn.innerText = isAdminAuthenticated ? "🚀 Start Tournament" : "🔒 Start Tournament";
+            startBtn.innerText = isAdminAuthenticated ? "🚀 Start Tournament" : "Start Tournament";
         }
         if (balanceBtn) {
             balanceBtn.disabled = !isAdminAuthenticated;
-            balanceBtn.innerText = isAdminAuthenticated ? "Balance teams" : "🔒 Balance teams";
+            balanceBtn.innerText = isAdminAuthenticated ? "Balance teams" : "Balance teams";
         }
         if (resetBtn) {
             resetBtn.disabled = !isAdminAuthenticated;
