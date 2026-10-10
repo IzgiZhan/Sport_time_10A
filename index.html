@@ -823,6 +823,10 @@
         </div>
       </div>
 
+<div class="admin-add-card" style="padding:18px;">
+  <button class="btn btn-dark" style="margin:0;" onclick="restoreStartingRatings()">⭐ Restore Starting Ratings</button>
+</div>
+
 <div class="admin-save-bar">
   <button class="admin-save-btn" onclick="saveAdminChanges()">💾 Save</button>
 </div>
@@ -4293,6 +4297,31 @@ function syncAllGoalRows(saved) {
         updateAccessUI();
         switchTab('playersTab', document.getElementById('playersTabBtn'));
         alert(`🏁 Tournament finished!\n\n🏆 ${championName} won.\nThe tournament has been saved to History and All Time.`);
+    }
+
+    // Puts every player's rating back to the starting value (names, speeds, positions and stats stay)
+    async function restoreStartingRatings() {
+        if (!requireAdmin("restore starting ratings")) return;
+        if (!await askConfirm(
+            "Restore starting ratings?\n\nEvery player's rating returns to the value they started with. Names, speeds, positions, goals, assists and History are not changed.",
+            { confirmText: "Restore", danger: true })) return;
+
+        const snap = takeResetSnapshot();
+        playersData.forEach(p => {
+            const base = initialPlayers.find(x => x.id === p.id) || initialPlayers.find(x => x.name === p.name);
+            if (base) p.rating = roundRating(base.rating);
+        });
+        activeTeams.forEach(t => (t.players || []).forEach(tp => {
+            const pl = playersData.find(x => x.id === tp.id);
+            if (pl) tp.rating = pl.rating;
+        }));
+        // starting ratings already exclude finished tournaments, so they must not be taken back again
+        (allTimeStats.__history || []).forEach(h => { h.ratingTakenBack = true; });
+
+        renderPlayers();
+        renderAdminPlayers();
+        await saveData();
+        showUndoToast("Starting ratings restored", snap);
     }
 
     // ---------- Undo for resets (10 seconds) ----------
