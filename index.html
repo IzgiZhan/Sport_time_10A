@@ -675,14 +675,14 @@
         </div>
         <div id="viewOnlyNote" class="view-only-note">👁 View-only mode. Enter the Admin password to change tournament data.</div>
         <div class="player-grid" id="playersList"></div>
-        <button id="startTournamentBtn" class="btn btn-green" onclick="startTournament()">🔒 Admin: Start Tournament</button>
+        <button id="startTournamentBtn" class="btn btn-green" onclick="startTournament()">🔒 Start Tournament</button>
     </div>
 
     <div id="teamsTab" class="section">
         <div class="section-header" style="margin-top:0;">
             <span class="section-title">⚙️ Squads & Clubs</span>
         </div>
-        <button id="balanceTeamsBtn" class="btn btn-blue" style="margin-top:0; margin-bottom: 20px;" onclick="balanceExistingTeams()">🔒 Admin: Balance teams</button>
+        <button id="balanceTeamsBtn" class="btn btn-blue" style="margin-top:0; margin-bottom: 20px;" onclick="balanceExistingTeams()">🔒 Balance teams</button>
         
         <div id="teamsResult" class="teams-container"></div>
 
@@ -763,7 +763,7 @@
         <div id="historyList" style="display:none;"></div>
     </div>
 
-    <button id="resetAllBtn" class="btn btn-dark" onclick="resetChanges()">🔄 Reset All Data</button>
+    <button id="resetAllBtn" class="btn btn-dark" onclick="resetChanges()">🔄 Reset Players</button>
 
     <div id="adminTab" class="section">
       <div class="section-header" style="margin-top:0;">
@@ -909,7 +909,7 @@
     // can change tournament data. The hash avoids keeping the password as
     // plain text in the page, but real database security should still use
     // Supabase Auth + RLS.
-    const ADMIN_PASSWORD_HASH = "b04f7a8653c1385ebccef06c403171eae399486bb14f9148cdef5b008a316881";
+    const ADMIN_PASSWORD_HASH = "b510169d8b016857a90bc8568d2a744a657ded12ebb7ee770998231402cbbe5c";
     let isAdminAuthenticated = false;
 
     async function sha256(value) {
@@ -963,15 +963,15 @@
 
         if (startBtn) {
             startBtn.disabled = !isAdminAuthenticated;
-            startBtn.innerText = isAdminAuthenticated ? "🚀 Start Tournament" : "🔒 Admin: Start Tournament";
+            startBtn.innerText = isAdminAuthenticated ? "🚀 Start Tournament" : "🔒 Start Tournament";
         }
         if (balanceBtn) {
             balanceBtn.disabled = !isAdminAuthenticated;
-            balanceBtn.innerText = isAdminAuthenticated ? "Balance teams" : "🔒 Admin: Balance teams";
+            balanceBtn.innerText = isAdminAuthenticated ? "Balance teams" : "🔒 Balance teams";
         }
         if (resetBtn) {
             resetBtn.disabled = !isAdminAuthenticated;
-            resetBtn.innerText = isAdminAuthenticated ? "🔄 Reset All Data" : "🔄 Reset All Data";
+            updateResetButtonLabel();
         }
         if (typeSelect) typeSelect.disabled = !isAdminAuthenticated;
         if (selectAllBtn) selectAllBtn.disabled = !isAdminAuthenticated;
@@ -1383,12 +1383,12 @@
     function updateResetButtonLabel() {
         const btn = document.getElementById('resetAllBtn');
         if (!btn) return;
-        if (currentOpenTab === 'playersTab') btn.innerText = '🔒 Admin: Reset Players';
-        else if (currentOpenTab === 'teamsTab') btn.innerText = '🔒 Admin: Reset Matches & Table';
+        if (currentOpenTab === 'playersTab') btn.innerText = '🔄 Reset Players';
+        else if (currentOpenTab === 'teamsTab') btn.innerText = '🔄 Reset Matches & Table';
         else if (currentOpenTab === 'leadersTab') {
             const modeName = leaderboardMode === 'history' ? 'History' : (leaderboardMode === 'allTime' ? 'All Time' : 'Current Tournament');
-            btn.innerText = `🔒 Admin: Reset ${modeName}`;
-        } else btn.innerText = '🔒 Admin: Reset This Page';
+            btn.innerText = `🔄 Reset ${modeName}`;
+        } else btn.innerText = '🔄 Reset This Page';
     }
 
     function esc(v) {
@@ -3065,6 +3065,7 @@ function syncAllGoalRows(saved) {
 
         if (btn) btn.classList.add('active');
 
+        updateResetButtonLabel();
         renderLeaderboard(leaderboardMetric);
     }
 
@@ -3966,6 +3967,37 @@ function syncAllGoalRows(saved) {
         });
     }
 
+    // Takes back every rating change made by the matches of the active tournament
+    function revertActiveTournamentRatings() {
+        const R = RATING_RULES;
+        const total = {};
+        const add = (id, v) => { total[id] = (total[id] || 0) + v; };
+        activeMatches.forEach(m => {
+            if (!m.played) return;
+            if (m.ratingDeltas) {
+                Object.keys(m.ratingDeltas).forEach(id => add(id, m.ratingDeltas[id]));
+                return;
+            }
+            // older matches without saved deltas: rebuild from the rules
+            (m.goalsDetails || []).forEach(e => {
+                if (e.isOg) add(e.scorerId, -R.ownGoal);
+                else {
+                    add(e.scorerId, R.goal);
+                    if (e.assistantId) add(e.assistantId, R.assist);
+                }
+            });
+            if (m.mvpId) add(m.mvpId, R.mvp);
+            if (m.s1 !== m.s2) {
+                const wt = activeTeams.find(t => t.id === (m.s1 > m.s2 ? m.t1 : m.t2));
+                if (wt) wt.players.forEach(tp => add(tp.id, R.win));
+            }
+        });
+        Object.keys(total).forEach(id => {
+            const pl = playersData.find(p => p.id === Number(id));
+            if (pl) pl.rating = Math.max(0, Math.min(10, pl.rating - total[id]));
+        });
+    }
+
     function resetCurrentTournamentStats() {
         playersData.forEach(player => {
             player.goals = 0;
@@ -4030,18 +4062,25 @@ function syncAllGoalRows(saved) {
         if (!requireAdmin("reset data on this page")) return;
 
         if (currentOpenTab === 'playersTab') {
-            if (!confirm("Reset the Players page?\n\nPlayer names, ratings, speeds and positions will return to their default values. Tournament history will stay.")) return;
+            if (!confirm("Reset the Players page?\n\nPlayer names, ratings, speeds and positions will return to their default values. Matches, tournament stats and history will stay.")) return;
+            const keepStats = {};
+            playersData.forEach(p => { keepStats[p.id] = { goals: p.goals, assists: p.assists, mvp: p.mvp }; });
             playersData = JSON.parse(JSON.stringify(initialPlayers));
-            playersData.forEach(p => { if (!p.speed) p.speed = fixedSpeeds[p.name] || 3; });
+            playersData.forEach(p => {
+                if (!p.speed) p.speed = fixedSpeeds[p.name] || 3;
+                if (keepStats[p.id]) Object.assign(p, keepStats[p.id]);
+            });
             renderPlayers();
             await saveData();
             updateResetButtonLabel();
-            alert("✅ Players page has been reset. History was not deleted.");
+            alert("✅ Players have been reset. Matches, stats and History were not deleted.");
             return;
         }
 
         if (currentOpenTab === 'teamsTab') {
-            if (!confirm("Reset Matches & Table?\n\nThe active teams, matches, scores and standings will be cleared. Players and tournament history will stay.")) return;
+            if (!confirm("Reset Matches & Table?\n\nThe active tournament (teams, matches, scores, standings) will be cleared, together with the goals, assists, MVP and rating changes made in it. Player list, All Time and History will stay.")) return;
+            revertActiveTournamentRatings();
+            resetCurrentTournamentStats();
             activeTeams = [];
             activeMatches = [];
             totalRounds = 0;
@@ -4055,9 +4094,11 @@ function syncAllGoalRows(saved) {
             document.getElementById('addNextRoundBtn').style.display = 'none';
             const finishBtn = document.getElementById('finishTournamentBtn');
             if (finishBtn) finishBtn.style.display = 'none';
+            renderPlayers();
+            renderLeaderboard(leaderboardMetric);
             await saveData();
             updateAccessUI();
-            alert("✅ Matches & Table have been reset. Players and History were not deleted.");
+            alert("✅ Matches & Table have been reset (with the tournament stats). Players, All Time and History were not deleted.");
             return;
         }
 
