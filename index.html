@@ -556,6 +556,18 @@
             transform: none !important;
         }
 
+
+        .pw-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); display: none; align-items: center; justify-content: center; z-index: 10000; padding: 20px; }
+        .pw-overlay.show { display: flex; }
+        .pw-box { background: var(--card-bg); color: var(--text-main); border: 1px solid var(--card-border); border-radius: 16px; padding: 22px; width: 100%; max-width: 340px; box-shadow: 0 10px 40px rgba(0,0,0,0.35); }
+        .pw-title { font-size: 16px; font-weight: 900; margin-bottom: 14px; }
+        .pw-field { position: relative; }
+        .pw-field input { width: 100%; padding: 14px 48px 14px 14px; border-radius: 12px; border: 1px solid var(--card-border); background: var(--input-bg); color: var(--text-main); font-size: 16px; box-sizing: border-box; }
+        .pw-eye { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); width: 40px; height: 40px; border: none; background: transparent; font-size: 18px; cursor: pointer; }
+        .pw-actions { display: flex; gap: 10px; margin-top: 14px; }
+        .pw-actions button { flex: 1; padding: 13px; border: none; border-radius: 12px; font-weight: 900; font-size: 14px; cursor: pointer; }
+        .pw-cancel { background: var(--input-bg); color: var(--text-main); }
+        .pw-ok { background: var(--primary-green); color: #fff; }
         .rating-rules { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px; padding: 14px 16px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
         .rating-rules-title { font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: .5px; color: var(--text-sub); margin-bottom: 10px; }
         .rating-rules-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; }
@@ -1008,13 +1020,51 @@
         });
     }
 
+    function askAdminPassword() {
+        return new Promise(resolve => {
+            const ov = document.getElementById('pwOverlay');
+            const inp = document.getElementById('pwInput');
+            const eye = document.getElementById('pwEye');
+            const ok = document.getElementById('pwOk');
+            const cancel = document.getElementById('pwCancel');
+            inp.type = 'password';
+            inp.value = '';
+            eye.textContent = '👁';
+            ov.classList.add('show');
+            setTimeout(() => inp.focus(), 50);
+            const done = (val) => {
+                ov.classList.remove('show');
+                inp.value = '';
+                ok.onclick = cancel.onclick = eye.onclick = inp.onkeydown = null;
+                resolve(val);
+            };
+            eye.onclick = () => {
+                const hidden = inp.type === 'password';
+                inp.type = hidden ? 'text' : 'password';
+                eye.textContent = hidden ? '🙈' : '👁';
+                inp.focus();
+            };
+            ok.onclick = () => done(inp.value);
+            cancel.onclick = () => done(null);
+            inp.onkeydown = (e) => {
+                if (e.key === 'Enter') done(inp.value);
+                if (e.key === 'Escape') done(null);
+            };
+        });
+    }
+
+    function roundRating(v) {
+        const n = Number(v);
+        return Number.isFinite(n) ? Math.round(n * 100) / 100 : 0;
+    }
+
     async function unlockAccess() {
         if (isAdminAuthenticated) {
             lockAdmin();
             return;
         }
 
-        const password = prompt("Enter admin password:");
+        const password = await askAdminPassword();
         if (password === null) return;
 
         const correct = await verifyAdminPassword(password);
@@ -1035,7 +1085,7 @@
             return;
         }
 
-        const password = prompt("Enter admin password:");
+        const password = await askAdminPassword();
         if (password === null) return;
 
         const correct = await verifyAdminPassword(password);
@@ -1095,6 +1145,10 @@
     }
 
     async function saveData() {
+        playersData.forEach(p => { p.rating = roundRating(p.rating); });
+        if (currentOpenTab === 'adminTab' && !(document.activeElement && document.activeElement.tagName === 'INPUT')) {
+            renderAdminPlayers();
+        }
         if (isApplyingRemoteState) return;
 
         const { error } = await supabaseClient
@@ -1265,7 +1319,7 @@
               </div>
             </div>
 
-            <input type="number" min="0" max="10" step="0.25" value="${p.rating}" placeholder="Rating" title="Rating" onchange="adminUpdateRating(${p.id}, this.value)">
+            <input type="number" min="0" max="10" step="0.25" value="${roundRating(p.rating)}" placeholder="Rating" title="Rating" onchange="adminUpdateRating(${p.id}, this.value)">
 
             <input type="number" min="1" max="5" step="1" value="${p.speed || 3}" placeholder="Speed" title="Speed" onchange="adminUpdateSpeed(${p.id}, this.value)">
 
@@ -4174,5 +4228,18 @@ function syncAllGoalRows(saved) {
         subscribeToOnlineChanges();
     };
 </script>
+<div id="pwOverlay" class="pw-overlay">
+    <div class="pw-box">
+        <div class="pw-title">Enter admin password</div>
+        <div class="pw-field">
+            <input id="pwInput" type="password" autocomplete="off" placeholder="Password">
+            <button type="button" class="pw-eye" id="pwEye" aria-label="Show password">👁</button>
+        </div>
+        <div class="pw-actions">
+            <button type="button" class="pw-cancel" id="pwCancel">Cancel</button>
+            <button type="button" class="pw-ok" id="pwOk">OK</button>
+        </div>
+    </div>
+</div>
 </body>
 </html>
