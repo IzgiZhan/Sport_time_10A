@@ -3382,7 +3382,7 @@ function syncAllGoalRows(saved) {
     function getHistoryTopPlayers(h, key) {
         const num = v => Number(v) || 0;
         if (Array.isArray(h.playerStats) && h.playerStats.length) {
-            return [...h.playerStats].sort((a, b) => num(b[key]) - num(a[key]) ||
+            return [...h.playerStats].filter(p => num(p[key]) > 0).sort((a, b) => num(b[key]) - num(a[key]) ||
                 (num(b.goals) + num(b.assists)) - (num(a.goals) + num(a.assists)) ||
                 String(a.name).localeCompare(String(b.name)))
                 .slice(0, 3).map(p => ({ ...p, value: num(p[key]) }));
@@ -3395,7 +3395,7 @@ function syncAllGoalRows(saved) {
             const saved = byName.get(p.name);
             if (!saved || num(p.value) > num(saved.value)) byName.set(p.name, p);
         });
-        return [...byName.values()].sort((a, b) => num(b.value) - num(a.value) || String(a.name).localeCompare(String(b.name))).slice(0, 3);
+        return [...byName.values()].filter(p => num(p.value) > 0).sort((a, b) => num(b.value) - num(a.value) || String(a.name).localeCompare(String(b.name))).slice(0, 3);
     }
 
     function drawShareForm(x, letters, left, cy, width, font) {
@@ -4030,6 +4030,7 @@ function syncAllGoalRows(saved) {
             return { name: p.name, value: p[key], logo: team ? team.logo : null };
         };
         const top3 = key => [...playersData]
+            .filter(p => (p[key] || 0) > 0)
             .sort((x, y) => (y[key] || 0) - (x[key] || 0) || (y.goals + y.assists) - (x.goals + x.assists))
             .slice(0, 3)
             .map(p => {
