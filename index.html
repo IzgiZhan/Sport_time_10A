@@ -637,6 +637,35 @@
         .pm-close-btn { width: 100%; margin-top: 20px; padding: 14px; }
         .pm-actions .dlg-btn { min-width: 0; }
         .pm-actions .dlg-btn:disabled { opacity: .65; cursor: wait; }
+        .pm-actions .compare-open-btn { background: linear-gradient(135deg,#7c3aed,#4f46e5); color:#fff; border:1px solid rgba(255,255,255,.16); box-shadow:0 7px 18px rgba(99,102,241,.25); transition:transform .18s ease,box-shadow .18s ease; }
+        .pm-actions .compare-open-btn:hover { transform:translateY(-2px); box-shadow:0 10px 22px rgba(99,102,241,.34); }
+        .compare-overlay { position: fixed; inset: 0; z-index: 10020; display: none; align-items: center; justify-content: center; padding: 16px; background: rgba(5,10,24,.76); backdrop-filter: blur(8px); }
+        .compare-overlay.show { display: flex; animation: compareFadeIn .18s ease-out; }
+        @keyframes compareFadeIn { from { opacity:0; } to { opacity:1; } }
+        .compare-card { width: 100%; max-width: 600px; max-height: 88vh; overflow-y: auto; background: var(--card-bg); color: var(--text-main); border: 1px solid var(--card-border); border-radius: 24px; padding: 22px; box-sizing: border-box; box-shadow: 0 24px 80px rgba(0,0,0,.42); }
+        .compare-top { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:18px; padding-bottom:15px; border-bottom:1px solid var(--card-border); }
+        .compare-heading { display:flex; align-items:center; gap:12px; }
+        .compare-heading-icon { display:grid; place-items:center; width:46px; height:46px; flex:0 0 46px; border-radius:15px; background:linear-gradient(135deg,rgba(124,58,237,.18),rgba(79,70,229,.12)); font-size:23px; }
+        .compare-heading-title { font-size:19px; font-weight:950; letter-spacing:-.03em; }
+        .compare-heading-sub { margin-top:3px; color:var(--text-sub); font-size:12px; }
+        .compare-player-strip { display:flex; align-items:center; gap:9px; margin:0 0 16px; padding:12px; border-radius:15px; background:var(--input-bg); border:1px solid var(--card-border); font-weight:850; overflow-wrap:anywhere; }
+        .compare-player-dot { width:8px; height:8px; border-radius:50%; background:#8b5cf6; flex:0 0 8px; box-shadow:0 0 0 4px rgba(139,92,246,.13); }
+        .compare-field-label { display:block; margin:0 0 8px; color:var(--text-sub); font-size:10px; font-weight:900; letter-spacing:.1em; }
+        .compare-select { width:100%; box-sizing:border-box; padding:13px 14px; border-radius:13px; border:1px solid var(--card-border); background:var(--input-bg); color:var(--text-main); font:inherit; font-weight:750; margin-bottom:18px; outline:none; transition:border-color .15s,box-shadow .15s; }
+        .compare-select:focus { border-color:#8b5cf6; box-shadow:0 0 0 3px rgba(139,92,246,.16); }
+        .compare-results-wrap { overflow:hidden; border:1px solid var(--card-border); border-radius:16px; }
+        .compare-table { width:100%; border-collapse:collapse; font-size:13px; }
+        .compare-table th,.compare-table td { padding:12px 10px; border-bottom:1px solid var(--card-border); text-align:center; }
+        .compare-table tbody tr:last-child td { border-bottom:0; }
+        .compare-table tbody tr:nth-child(even) { background:var(--input-bg); }
+        .compare-table th:first-child,.compare-table td:first-child { text-align:left; }
+        .compare-table th { font-size:11px; overflow-wrap:anywhere; color:var(--text-sub); background:var(--input-bg); }
+        .compare-table th:not(:first-child) { color:var(--text-main); font-weight:900; }
+        .compare-table td:first-child { font-weight:750; }
+        .compare-better { color:var(--primary-green); font-weight:950; background:rgba(34,197,94,.08); }
+        .compare-close { border:1px solid var(--card-border); background:var(--input-bg); color:var(--text-sub); width:36px; height:36px; border-radius:12px; font-size:16px; cursor:pointer; transition:background .15s,color .15s; }
+        .compare-close:hover { background:rgba(239,68,68,.12); color:#ef4444; }
+        @media(max-width:480px) { .compare-card { padding:16px; border-radius:20px; } .compare-table { font-size:12px; } .compare-table th,.compare-table td { padding:10px 6px; } .compare-heading-title { font-size:17px; } }
         .rating-rules { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px; padding: 14px 16px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
         .rating-rules-title { font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: .5px; color: var(--text-sub); margin-bottom: 10px; }
         .rating-rules-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
@@ -1102,7 +1131,9 @@
         return (n > 0 ? '+' : '') + formatRating(n);
     }
 
+    let currentPlayerModalId = null;
     function openPlayerModal(id) {
+        currentPlayerModalId = id;
         const p = playersData.find(x => x.id === id);
         if (!p) return;
         const sid = String(id);
@@ -1159,6 +1190,75 @@
         requestAnimationFrame(() => ov.classList.add('show'));
     }
 
+
+    function getPlayerCompareStats(p) {
+        const sid = String(p.id);
+        const saved = allTimeStats[sid] || {};
+        let matches = 0, tournaments = 0;
+        const places = [0, 0, 0];
+        (allTimeStats.__history || []).forEach(h => {
+            const ps = (h.playerStats || []).find(x => String(x.id) === sid);
+            const names = new Set([p.name, ps && ps.name].filter(Boolean));
+            const ti = (h.teams || []).findIndex(t => (t.players || []).some(n => names.has(n)));
+            if (ti < 0) return;
+            tournaments++;
+            matches += Number(h.teams[ti].mp) || 0;
+            if (ti < 3) places[ti]++;
+        });
+        const team = activeTeams.find(t => (t.players || []).some(tp => String(tp.id) === sid));
+        if (team && activeMatches.some(m => m.played)) {
+            tournaments++;
+            matches += activeMatches.filter(m => m.played && (m.t1 === team.id || m.t2 === team.id)).length;
+        }
+        const base = initialPlayers.find(x => x.id === p.id) || initialPlayers.find(x => x.name === p.name);
+        return {
+            rating: Number(p.rating) || 0, speed: Number(p.speed) || 3,
+            growth: base ? roundRating((Number(p.rating) || 0) - base.rating) : 0,
+            tournaments, matches,
+            goals: (Number(saved.goals) || 0) + (Number(p.goals) || 0),
+            assists: (Number(saved.assists) || 0) + (Number(p.assists) || 0),
+            mvp: (Number(saved.mvp) || 0) + (Number(p.mvp) || 0),
+            first: places[0], second: places[1], third: places[2]
+        };
+    }
+
+    function comparePlayer() {
+        const first = playersData.find(p => String(p.id) === String(currentPlayerModalId));
+        if (!first) return;
+        let overlay = document.getElementById('compareOverlay');
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.id = 'compareOverlay';
+            overlay.className = 'compare-overlay';
+            overlay.innerHTML = '<div class="compare-card" role="dialog" aria-modal="true"><div class="compare-top"><div class="compare-heading"><div class="compare-heading-icon">⚖️</div><div><div class="compare-heading-title">Player Comparison</div><div class="compare-heading-sub">Compare stats side by side</div></div></div><button class="compare-close" type="button" aria-label="Close" onclick="closeCompare()">✕</button></div><div class="compare-player-strip"><span class="compare-player-dot"></span><span id="compareFirstName"></span></div><label class="compare-field-label" for="comparePlayerSelect">SELECT OPPONENT</label><select id="comparePlayerSelect" class="compare-select"></select><div id="compareResults"></div></div>';
+            document.body.appendChild(overlay);
+            overlay.addEventListener('click', e => { if (e.target === overlay) closeCompare(); });
+        }
+        document.getElementById('compareFirstName').textContent = first.name;
+        const select = document.getElementById('comparePlayerSelect');
+        const others = playersData.filter(p => String(p.id) !== String(first.id));
+        select.innerHTML = others.map(p => `<option value="${String(p.id).replace(/"/g, '&quot;')}">${esc(p.name)}</option>`).join('');
+        const render = () => {
+            const second = playersData.find(p => String(p.id) === select.value);
+            if (!second) { document.getElementById('compareResults').innerHTML = '<p>No other players to compare.</p>'; return; }
+            const a = getPlayerCompareStats(first), b = getPlayerCompareStats(second);
+            const rows = [
+                ['⭐ Rating', a.rating, b.rating, true], ['⚡ Speed', a.speed, b.speed, true], ['📈 Growth', a.growth, b.growth, true],
+                ['🏆 Tournaments', a.tournaments, b.tournaments, false], ['🏟️ Matches', a.matches, b.matches, false], ['⚽ Goals', a.goals, b.goals],
+                ['🅰️ Assists', a.assists, b.assists], ['🏅 MVP', a.mvp, b.mvp], ['🥇 1st place', a.first, b.first],
+                ['🥈 2nd place', a.second, b.second], ['🥉 3rd place', a.third, b.third]
+            ];
+            document.getElementById('compareResults').innerHTML = `<div class="compare-results-wrap"><table class="compare-table"><thead><tr><th>Stat</th><th>${esc(first.name)}</th><th>${esc(second.name)}</th></tr></thead><tbody>${rows.map(([label,av,bv,higher=true]) => { const an=Number(av)||0,bn=Number(bv)||0; const ac=an===bn?'':((higher ? an>bn : an<bn)?'compare-better':''); const bc=an===bn?'':((higher ? bn>an : bn<an)?'compare-better':''); return `<tr><td>${label}</td><td class="${ac}">${label.includes('Rating') ? formatRating(av) : label.includes('Growth') ? fmtGrowth(av) : av}</td><td class="${bc}">${label.includes('Rating') ? formatRating(bv) : label.includes('Growth') ? fmtGrowth(bv) : bv}</td></tr>`; }).join('')}</tbody></table></div>`;
+        };
+        select.onchange = render;
+        render();
+        overlay.classList.add('show');
+    }
+
+    function closeCompare() {
+        const overlay = document.getElementById('compareOverlay');
+        if (overlay) overlay.classList.remove('show');
+    }
 
     // Capture the displayed window now, before fonts or images load asynchronously.
     function getPlayerShareSnapshot() {
@@ -4822,7 +4922,7 @@ function syncAllGoalRows(saved) {
         <div class="pm-grid" id="pmStats"></div>
         <div class="dlg-actions pm-actions">
             <button type="button" class="dlg-btn primary" id="pmShareBtn" onclick="sharePlayerStats()">📤 Share</button>
-            <button type="button" class="dlg-btn secondary" onclick="closePlayerModal()">Close</button>
+            <button type="button" class="dlg-btn compare-open-btn" onclick="comparePlayer()">⚖️ Compare</button>
         </div>
     </div>
 </div>
