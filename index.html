@@ -951,7 +951,10 @@
             ['🅰️', 'Assist', '+' + R.assist, 'plus'],
             ['🥅', 'Own goal', '−' + R.ownGoal, 'minus'],
             ['🏆', 'MVP', '+' + R.mvp, 'plus'],
-            ['✅', 'Win (whole team)', '+' + R.win, 'plus']
+            ['✅', 'Win', '+' + R.win, 'plus'],
+            ['🥇', '1st place', '+0.15', 'plus'],
+            ['🥈', '2nd place', '+0.10', 'plus'],
+            ['🥉', '3rd place', '+0.5', 'plus']
         ];
         grid.innerHTML = items.map(i =>
             `<div class="rating-rule ${i[3]}"><span>${i[0]} ${i[1]}</span><b>${i[2]}</b></div>`
@@ -4377,8 +4380,42 @@ function syncAllGoalRows(saved) {
         showUndoToast("Tournament deleted", snap);
     }
 
-    function archiveCurrentTournament() {
+    // Bonus rating for final tournament placement: 1st +0.15, 2nd +0.10, 3rd +0.05.
+    // Applied only when Finish Tournament is confirmed, and saved in history so deleting
+    // that history entry can also take the bonus back.
+    function applyTournamentPlacementBonuses() {
+        const bonuses = [0.15, 0.10, 0.05];
+        const changes = {};
+        const sorted = getSortedTeams();
+
+        sorted.slice(0, 3).forEach((team, index) => {
+            const bonus = bonuses[index] || 0;
+            if (!bonus) return;
+            (team.players || []).forEach(tp => {
+                const player = playersData.find(p => String(p.id) === String(tp.id));
+                if (!player) return;
+                const before = Number(player.rating) || 0;
+                player.rating = roundRating(Math.min(10, before + bonus));
+                const applied = roundRating(player.rating - before);
+                if (applied) changes[String(player.id)] = (changes[String(player.id)] || 0) + applied;
+            });
+        });
+        return changes;
+    }
+
+    function archiveCurrentTournament(applyPlacementBonus = false) {
+        const placementChanges = applyPlacementBonus ? applyTournamentPlacementBonuses() : {};
         saveTournamentToHistory();
+        const history = allTimeStats.__history;
+        if (Array.isArray(history) && history.length) {
+            const latest = history[history.length - 1];
+            if (!latest.ratingChanges || typeof latest.ratingChanges !== 'object') latest.ratingChanges = {};
+            Object.keys(placementChanges).forEach(id => {
+                latest.ratingChanges[id] = Math.round(((Number(latest.ratingChanges[id]) || 0) + placementChanges[id]) * 10000) / 10000;
+            });
+            latest.placementRatingBonuses = placementChanges;
+        }
+
         playersData.forEach(player => {
             const id = String(player.id);
 
@@ -4502,8 +4539,8 @@ function syncAllGoalRows(saved) {
             return;
         }
 
-        // Archive the finished tournament exactly once.
-        archiveCurrentTournament();
+        // Archive the finished tournament and apply placement bonuses exactly once.
+        archiveCurrentTournament(true);
         resetCurrentTournamentStats();
 
         // Clear only the current tournament. Players and All Time/History stay.
