@@ -315,6 +315,7 @@
             .admin-add button { grid-column:1/-1; }
         }
         @media(max-width:520px){
+            .rating-rules-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
             #adminTab { padding:0 10px 20px; }
             .admin-player { grid-template-columns:1fr; }
             .admin-player-main,.admin-player-roles,.admin-delete-btn { grid-column:auto; }
@@ -638,7 +639,7 @@
         .pm-actions .dlg-btn:disabled { opacity: .65; cursor: wait; }
         .rating-rules { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px; padding: 14px 16px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
         .rating-rules-title { font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: .5px; color: var(--text-sub); margin-bottom: 10px; }
-        .rating-rules-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; }
+        .rating-rules-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
         .rating-rule { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 10px; background: var(--input-bg); border: 1px solid var(--card-border); border-radius: 10px; font-size: 12px; font-weight: 800; color: var(--text-main); }
         .rating-rule b { font-weight: 900; }
         .rating-rule.plus b { color: var(--primary-green); }
