@@ -1308,57 +1308,119 @@
     }
 
     async function buildPlayerComparisonImage(first, second, rows) {
-        const W = 1200, H = 1180, pad = 42, tableTop = 330, headerH = 62, rowH = 57;
-        const canvas = document.createElement('canvas'); canvas.width = W; canvas.height = H;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) throw new Error('Canvas unavailable');
-        const font = (weight, size) => `${weight} ${size}px Inter, system-ui, -apple-system, "Segoe UI Emoji", "Segoe UI Symbol", sans-serif`;
-        const rr = (x, y, w, h, r) => { ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); };
-        const fit = (value, maxWidth) => { let str = String(value); while (str.length && ctx.measureText(str).width > maxWidth) str = str.slice(0,-1); return str.length < String(value).length ? str.slice(0, Math.max(0,str.length-1)) + '…' : str; };
-        const bg = ctx.createLinearGradient(0, 0, W, H); bg.addColorStop(0, '#0b1220'); bg.addColorStop(.55, '#172554'); bg.addColorStop(1, '#312e81');
-        ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
-        ctx.fillStyle = 'rgba(255,255,255,.035)';
-        for (let i=-H; i<W; i+=70) { ctx.save(); ctx.translate(i,0); ctx.rotate(Math.PI/4); ctx.fillRect(0,0,20,H*2); ctx.restore(); }
-        ctx.textAlign = 'left'; ctx.fillStyle = '#fff'; ctx.font = font('900', 38); ctx.fillText('SPORT TIME 10A', pad, 65);
-        ctx.fillStyle = '#c4b5fd'; ctx.font = font('900', 27); ctx.fillText('🆚 PLAYER COMPARISON', pad, 112);
-        ctx.fillStyle = '#cbd5e1'; ctx.font = font('600', 18); ctx.fillText(new Date().toLocaleDateString(), pad, 145);
-        const drawPlayerCard = (p, x, accent) => {
-            const y = 175, w = 540, h = 116;
-            ctx.fillStyle = 'rgba(255,255,255,.96)'; rr(x,y,w,h,20); ctx.fill();
-            ctx.fillStyle = accent; rr(x,y,9,h,5); ctx.fill();
-            ctx.textAlign = 'left'; ctx.fillStyle = '#64748b'; ctx.font = font('800',15); ctx.fillText('PLAYER',x+28,y+34);
-            ctx.fillStyle = '#0f172a'; ctx.font = font('900',27); ctx.fillText(`${getComparePlayerEmoji(p)} ${fit(p.name,w-56)}`,x+28,y+76);
-            const st = getPlayerCompareStats(p);
-            ctx.fillStyle = '#475569'; ctx.font = font('700',16); ctx.fillText(`⭐ ${formatRating(st.rating)} rating   ·   ⚽ ${st.goals} goals   ·   🅰️ ${st.assists} assists`,x+28,y+101);
-        };
-        drawPlayerCard(first, pad, '#6366f1'); drawPlayerCard(second, W-pad-540, '#0ea5e9');
-        ctx.save();
-        ctx.beginPath(); ctx.arc(W/2, 233, 23, 0, Math.PI*2);
-        ctx.fillStyle = '#4338ca'; ctx.fill();
-        ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(255,255,255,.95)'; ctx.stroke();
-        ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.font = font('900', 24); ctx.fillStyle = '#fff'; ctx.fillText('🆚', W/2, 233);
-        ctx.restore();
-        const tableX = pad, tableW = W - pad*2, labelW = 500, valueW = (tableW-labelW)/2;
-        ctx.fillStyle = '#e2e8f0'; rr(tableX,tableTop,tableW,headerH,13); ctx.fill(); ctx.fillRect(tableX,tableTop+headerH-14,tableW,14);
-        ctx.fillStyle = '#475569'; ctx.font = font('900',18); ctx.textAlign = 'left'; ctx.fillText('STATISTICS',tableX+20,tableTop+39);
-        ctx.textAlign = 'center'; ctx.fillStyle = '#1e293b'; ctx.font = font('900',17);
-        ctx.fillText(`${getComparePlayerEmoji(first)} ${fit(first.name,valueW-24)}`,tableX+labelW+valueW/2,tableTop+39);
-        ctx.fillText(`${getComparePlayerEmoji(second)} ${fit(second.name,valueW-24)}`,tableX+labelW+valueW+valueW/2,tableTop+39);
-        const displayVal = (label,val) => label.includes('Rating') ? formatRating(val) : label.includes('Growth') ? fmtGrowth(val) : String(val);
-        rows.forEach(([label,av,bv,higher=true,compareAv=av,compareBv=bv],i) => {
-            const y = tableTop+headerH+i*rowH;
-            ctx.fillStyle = i%2 ? '#f8fafc' : '#fff'; ctx.fillRect(tableX,y,tableW,rowH);
-            const an=Number(compareAv)||0,bn=Number(compareBv)||0;
-            const aBetter = higher !== null && an!==bn && (higher ? an>bn : an<bn);
-            const bBetter = higher !== null && an!==bn && (higher ? bn>an : bn<an);
-            ctx.textAlign='left'; ctx.fillStyle='#334155'; ctx.font=font('750',18); ctx.fillText(label,tableX+20,y+35);
-            const drawVal = (val,cx,better) => { ctx.textAlign='center'; ctx.fillStyle=better?'#166534':'#0f172a'; ctx.font=font('900',20); if (better) { ctx.fillStyle='#dcfce7'; rr(cx-valueW*.31,y+9,valueW*.62,rowH-18,10); ctx.fill(); ctx.fillStyle='#166534'; } ctx.fillText(displayVal(label,val),cx,y+36); };
-            drawVal(av,tableX+labelW+valueW/2,aBetter); drawVal(bv,tableX+labelW+valueW+valueW/2,bBetter);
-            ctx.strokeStyle='#e2e8f0'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(tableX,y+rowH); ctx.lineTo(tableX+tableW,y+rowH); ctx.stroke();
+    await document.fonts.ready;
+
+    const W = 1080, pad = 56;
+    const cardTop = 200, cardH = 236, cardGap = 40;
+    const cw = (W - pad * 2 - cardGap) / 2;
+    const tableTop = cardTop + cardH + 36, headH = 84, rowH = 66;
+    const tableW = W - pad * 2, labelW = 368, valW = (tableW - labelW) / 2;
+    const tableH = headH + rows.length * rowH;
+    const H = tableTop + tableH + 110;
+
+    const c = document.createElement('canvas');
+    c.width = W; c.height = H;
+    const x = c.getContext('2d');
+    if (!x) throw new Error('Canvas unavailable');
+
+    shareBackground(x, W, H);
+    shareHeader(x, W, pad, 'PLAYER COMPARISON');
+
+    const A = { main: '#6366f1', soft: '#4338ca', g: ['#818cf8', '#4f46e5'] };
+    const B = { main: '#0ea5e9', soft: '#0284c7', g: ['#38bdf8', '#0369a1'] };
+
+    // ---------- две карточки игроков ----------
+    const drawPlayer = (p, cx0, col) => {
+        const st = getPlayerCompareStats(p);
+        shareCard(x, cx0, cardTop, cw, cardH);
+        x.save(); shareRR(x, cx0, cardTop, cw, cardH, 28); x.clip();
+        x.fillStyle = col.main; x.fillRect(cx0, cardTop, cw, 8);
+        x.restore();
+        const cx = cx0 + cw / 2, r = 46, ay = cardTop + 78;
+        const g = x.createLinearGradient(cx - r, ay - r, cx + r, ay + r);
+        g.addColorStop(0, col.g[0]); g.addColorStop(1, col.g[1]);
+        x.fillStyle = g; x.beginPath(); x.arc(cx, ay, r, 0, Math.PI * 2); x.fill();
+        x.fillStyle = '#fff'; x.font = SF('900', 44); x.textAlign = 'center'; x.textBaseline = 'middle';
+        x.fillText(String(p.name || '?').trim().charAt(0).toUpperCase(), cx, ay + 2);
+        x.fillStyle = '#1a202c'; x.font = SF('900', 36);
+        x.fillText(shareFit(x, p.name, cw - 110), cx, cardTop + 156);
+        shareInline(x, [
+            { e: '⭐', size: 26 }, { t: formatRating(st.rating), font: SF('800', 24), color: '#4a5568' },
+            { e: '⚡', size: 26 }, { t: String(st.speed), font: SF('800', 24), color: '#4a5568' }
+        ], cx, cardTop + 202, 'center', 8);
+    };
+    drawPlayer(first, pad, A);
+    drawPlayer(second, pad + cw + cardGap, B);
+
+    // VS в центре
+    const vx = W / 2, vy = cardTop + cardH / 2;
+    x.save();
+    x.shadowColor = 'rgba(0,0,0,0.3)'; x.shadowBlur = 18; x.shadowOffsetY = 6;
+    x.fillStyle = '#1e1b4b'; x.beginPath(); x.arc(vx, vy, 36, 0, Math.PI * 2); x.fill();
+    x.restore();
+    x.lineWidth = 4; x.strokeStyle = '#fff'; x.beginPath(); x.arc(vx, vy, 36, 0, Math.PI * 2); x.stroke();
+    x.fillStyle = '#fff'; x.font = SF('900', 26); x.textAlign = 'center'; x.textBaseline = 'middle';
+    x.fillText('VS', vx, vy + 1);
+
+    // ---------- таблица ----------
+    shareCard(x, pad, tableTop, tableW, tableH);
+    x.save();
+    shareRR(x, pad, tableTop, tableW, tableH, 28); x.clip();
+
+    x.fillStyle = '#edf2f7'; x.fillRect(pad, tableTop, tableW, headH);
+    x.fillStyle = '#718096'; x.font = SF('900', 20); x.textAlign = 'left'; x.textBaseline = 'middle';
+    x.fillText('STATISTICS', pad + 28, tableTop + headH / 2);
+    x.textAlign = 'center';
+    [[first, A, 0], [second, B, 1]].forEach(([p, col, i]) => {
+        const cx = pad + labelW + valW * i + valW / 2;
+        x.fillStyle = col.soft; x.font = SF('900', 26);
+        x.fillText(shareFit(x, p.name, valW - 30), cx, tableTop + headH / 2);
+        x.fillStyle = col.main; x.fillRect(pad + labelW + valW * i + 24, tableTop + headH - 5, valW - 48, 5);
+    });
+
+    const show = (label, v) => {
+        if (label.includes('Rating')) return formatRating(v);
+        if (label.includes('Growth')) return fmtGrowth(v);
+        if (label.includes('Positions')) return String(v).replace(/[^\x00-\x7F]/g, '').replace(/\s+/g, ' ').trim() || '—';
+        return String(v);
+    };
+
+    rows.forEach(([label, av, bv, higher = true, ca = av, cb = bv], i) => {
+        const y = tableTop + headH + i * rowH, cy = y + rowH / 2;
+        x.fillStyle = i % 2 ? '#f7fafc' : '#ffffff';
+        x.fillRect(pad, y, tableW, rowH);
+
+        const sp = label.indexOf(' ');
+        const emoji = sp > 0 ? label.slice(0, sp) : '', text = sp > 0 ? label.slice(sp + 1) : label;
+        shareInline(x, [
+            { e: emoji, size: 30 },
+            { t: text, font: SF('700', 24), color: '#334155' }
+        ].filter(p => p.e !== '' ), pad + 28, cy, 'left', 14);
+
+        const an = Number(ca) || 0, bn = Number(cb) || 0;
+        const aBest = higher !== null && an !== bn && (higher ? an > bn : an < bn);
+        const bBest = higher !== null && an !== bn && (higher ? bn > an : bn < an);
+        [[av, aBest, 0], [bv, bBest, 1]].forEach(([val, best, k]) => {
+            const cx = pad + labelW + valW * k + valW / 2;
+            if (best) {
+                x.fillStyle = '#dcfce7'; shareRR(x, cx - valW / 2 + 40, y + 11, valW - 80, rowH - 22, 14); x.fill();
+            }
+            x.fillStyle = best ? '#166534' : '#0f172a';
+            x.font = SF('900', 28); x.textAlign = 'center'; x.textBaseline = 'middle';
+            x.fillText(shareFit(x, show(label, val), valW - 100), cx, cy + 1);
         });
-        ctx.textAlign='center'; ctx.fillStyle='rgba(255,255,255,.75)'; ctx.font=font('700',19); ctx.fillText('Sport Time 10A  ·  Head-to-head stats',W/2,H-30);
-        return await new Promise(resolve => canvas.toBlob(resolve,'image/png'));
-    }
+    });
+
+    // тонкие вертикальные разделители
+    x.strokeStyle = '#e2e8f0'; x.lineWidth = 2;
+    [labelW, labelW + valW].forEach(dx => {
+        x.beginPath(); x.moveTo(pad + dx, tableTop + headH); x.lineTo(pad + dx, tableTop + tableH); x.stroke();
+    });
+    x.restore();
+
+    shareFooter(x, W, H);
+    return new Promise(resolve => c.toBlob(resolve, 'image/png'));
+}
 
     function closeCompare() {
         const overlay = document.getElementById('compareOverlay');
@@ -1366,6 +1428,107 @@
     }
 
     // Capture the displayed window now, before fonts or images load asynchronously.
+    const SHARE_FONT = 'Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif';
+const SHARE_EMOJI_FONT = '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
+const shareEmojiCache = {};
+const SF = (w, s) => `${w} ${s}px ${SHARE_FONT}`;
+
+function shareRR(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+}
+
+function shareFit(ctx, text, max) {
+    text = String(text);
+    if (ctx.measureText(text).width <= max) return text;
+    while (text.length > 1 && ctx.measureText(text + '…').width > max) text = text.slice(0, -1);
+    return text + '…';
+}
+
+// Эмодзи рисуется в маленький canvas, обрезается по реальным границам
+// и потом ровно центрируется — поэтому все иконки стоят идеально ровно.
+function shareEmojiSprite(ch) {
+    if (shareEmojiCache[ch]) return shareEmojiCache[ch];
+    const S = 240, c = document.createElement('canvas');
+    c.width = c.height = S;
+    const g = c.getContext('2d');
+    g.font = `130px ${SHARE_EMOJI_FONT}`;
+    g.textAlign = 'left'; g.textBaseline = 'alphabetic';
+    const m = g.measureText(ch);
+    const l = m.actualBoundingBoxLeft, a = m.actualBoundingBoxAscent;
+    const w = Math.max(1, Math.ceil(m.actualBoundingBoxLeft + m.actualBoundingBoxRight));
+    const h = Math.max(1, Math.ceil(m.actualBoundingBoxAscent + m.actualBoundingBoxDescent));
+    const sx = Math.floor((S - w) / 2), sy = Math.floor((S - h) / 2);
+    g.fillText(ch, sx + l, sy + a);
+    return (shareEmojiCache[ch] = { c, sx, sy, w, h });
+}
+
+function shareDrawEmoji(ctx, ch, cx, cy, size) {
+    const s = shareEmojiSprite(ch);
+    const k = size / Math.max(s.w, s.h);
+    ctx.drawImage(s.c, s.sx, s.sy, s.w, s.h, cx - s.w * k / 2, cy - s.h * k / 2, s.w * k, s.h * k);
+}
+
+// Строка из эмодзи и текста, выровненная по центру по вертикали
+function shareInline(ctx, parts, x, cy, align = 'left', gap = 10) {
+    const items = parts.map(p => {
+        if (p.e) return { ...p, w: p.size || 28 };
+        ctx.font = p.font;
+        return { ...p, w: ctx.measureText(p.t).width };
+    });
+    const total = items.reduce((s, i) => s + i.w, 0) + gap * (items.length - 1);
+    let cx = align === 'center' ? x - total / 2 : align === 'right' ? x - total : x;
+    ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+    items.forEach(i => {
+        if (i.e) shareDrawEmoji(ctx, i.e, cx + i.w / 2, cy, i.w);
+        else { ctx.font = i.font; ctx.fillStyle = i.color; ctx.fillText(i.t, cx, cy + 1); }
+        cx += i.w + gap;
+    });
+    return total;
+}
+
+function shareBackground(ctx, W, H) {
+    const g = ctx.createLinearGradient(0, 0, W, H);
+    g.addColorStop(0, '#0f2742'); g.addColorStop(1, '#2b6cb0');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = 'rgba(255,255,255,0.05)';
+    for (let i = -H; i < W; i += 60) {
+        ctx.save(); ctx.translate(i, 0); ctx.rotate(Math.PI / 4);
+        ctx.fillRect(0, 0, 18, H * 2); ctx.restore();
+    }
+}
+
+function shareHeader(ctx, W, pad, subtitle) {
+    ctx.textBaseline = 'middle';
+    ctx.textAlign = 'left'; ctx.fillStyle = '#fff'; ctx.font = SF('900', 52);
+    ctx.fillText('SPORT TIME 10A', pad, 78);
+    ctx.fillStyle = '#90cdf4'; ctx.font = SF('700', 26);
+    ctx.fillText(subtitle, pad, 128);
+    ctx.textAlign = 'right'; ctx.fillStyle = '#bee3f8'; ctx.font = SF('700', 24);
+    ctx.fillText(new Date().toLocaleDateString(), W - pad, 78);
+    ctx.fillStyle = '#f6e05e'; shareRR(ctx, pad, 160, 120, 6, 3); ctx.fill();
+}
+
+function shareFooter(ctx, W, H) {
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillStyle = 'rgba(255,255,255,0.7)'; ctx.font = SF('700', 24);
+    ctx.fillText('Sport Time 10A · Izgi_Zhan', W / 2, H - 46);
+}
+
+// белая карточка с мягкой тенью
+function shareCard(ctx, x, y, w, h, r = 28, fill = '#fff') {
+    ctx.save();
+    ctx.shadowColor = 'rgba(0,0,0,0.22)'; ctx.shadowBlur = 28; ctx.shadowOffsetY = 10;
+    ctx.fillStyle = fill; shareRR(ctx, x, y, w, h, r); ctx.fill();
+    ctx.restore();
+}
+
+
     function getPlayerShareSnapshot() {
         const modal = document.getElementById('playerModal');
         if (!modal || !modal.classList.contains('open')) return null;
@@ -1387,76 +1550,91 @@
     }
 
     async function buildPlayerStatsImage(data) {
-        if (!data) return null;
-        await document.fonts.ready;
-        const icons = {};
-        const sources = {"🛡️": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEgAAABICAMAAABiM0N1AAAAk1BMVEVHcEzM1t3M1t3M1t3M1t3M1t3M1t3M1t3M1t3M1t3M1t3M1t3M1t3M1t3M1t3M1t3M1t0tbZ1cr+2fxuOMrMRikLOCvOhNgqpVrO6iusyuzOFzt+oiZplrtOtCe6Z3nruRweaJvudsl7fF097Bz9mswdC2zuCYxORksew3dKK3yNW90d9Xia56uemCpb+Xs8inyeL68RH8AAAAEHRSTlMAgI+/YDDPQJ8Q368g71BwOmdwowAAAl5JREFUeF7t1tly6yAMBmDsgA12nOIl+750X9//6Q6MqwkwWIlpLnpm+l/m4hshCWLSFZZGUT5IJEQmgzy6Sxm5PiKNcgA8SfIoFZcRyg0D0ThFMBa7CI7FzK9kFnBc1LvJcjnTWelMp+NtMz9ZVuZagpq1PNT7FoCsjJTTQ3Nv1kVNKD0jOzD8EGjbM5Ya0F2rfE0qABAIsPFnC90ZEFfKAhQMcq25grgBDRQER0IhN1MFDQxIqlQhUClVzs5Qj3sWAq30OgytoS3CIN2k1BpaHQY11tgiBe3CoK2CIgLJFTQJg8YKypHpIxA2/+RnUGKt0SwMWkmV3wnBYr+GQi+w2rDYQRCs9n8M/UHip3skfu9dKxT0FAY9K6e42cN2s6f29o8/VdBXGPSpIEog7MIiXVgjduP/fhjbewj05nyNxAp6DIE+FBQb0AhvEt6iESjQpHV/aGO1SCdHz4aeLLcgip4NPRm1ICGx64ZcNHiMrLPVfaEGvmndT/anftAzfK5byZCSkIIy4oYiJSEFQaudkhZ9oDkU5Cvp/XrozVsQ3NxjdS1Unoz7aofJrvet60WTjHgTa2l/HXTQTkz8EUnHfnfsdCJIR1ih27S+DG10gwpGOkOlV/I6khIksVfyOjFBw32Sz+EAoJKcdENj6Ti4VFd+qGw8DtYn+bD2QZt7iffHnZ3OY+VC5YeUzrzwsEzqHCc2ND5JnYyRqyN4W9RrS7XMS/sbF6RPRtk3ta80VB6+mWxEekZERUsd6+W0ObVMEQnSP0MunfAhAOFUOAMHzFolg0OFZ8SLgl9u8T92AGF17KClGwAAAABJRU5ErkJggg==", "⚽": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEgAAABICAMAAABiM0N1AAAAvVBMVEVHcEyCiI43PUNITVMxNz0xNz31+PoxNz0xNz1KT1X1+Pr1+Po7QUf1+Pr1+PoxNz2TmJxDSU71+PoxNz05P0X1+Prz9vgxNz31+Pr1+Pr1+Pr1+Pp/hImvs7fn6u31+PoxNz3M1t08QkjZ4ebn7PDP2N9ITlTy9vhWXGHR2uHQ1NfDzdPp7O7v8/ZhZ22JkJfi6O2TmJyssLPEyMufpKfe5eq2vcPr8PPU3OJ6f4SlrrRtc3jd4OJOVVuVnKLdUfDLAAAAH3RSTlMA/uGWIFAgn++An4/P79+AQK+Av2BAr49Qv2DPUN/f67gDGQAAA/9JREFUeF6d12lz4ygQBmB8X7EnmVyTzOx2o/uW7zPJ//9Za4RSwAKKJs8nl+1qd7+ACpMG/YfefRdr3fveQ598w2DURU2394f8lWFvjBad2ZC09fh0RqsC4OmxXTfTpR+g3S4EmLbo6ufcpRQbUH8JMP/5VTu/DzGl9IRWBaX0eAD43djUr/mSVo7JZnUqUOEUne0+pRU3h/mvhrHyI60sgXvj5YJotd1kwLCGK8sQrONNPZ8y8QFk9AqEpU8rsQdTYjRC7FRth9BUCEKXcu5haqmDSKnvAZgLCQdWKi2CqOgRzQQZeszBXkjwYloiM9GOFjLBDqBVIQiXH1gZEEV/jMwFbIV0CVbGfSK7wcrKXkiH3I0aELcBg7LzYSxUIDdRBuMy0LxFiFhkoDuhNtwIuQA0awcZx9DrFmsjUrtFTs86E6e3ozW1wU+3hLtDNGedBChEiZ527a5OCNGc9QpVW1CJn+EpPSOass4K/Vn0BrILfnomzBhr7zvpfOwd1Dl7ELwSP43F4WAulMY7j7fTQbML7zr3XJ+exdsDvva1kjK+60ESoU2wgcPuWH1xjyjvgC7WnJTWSmzSoZ9ESF15zUqXcidsdqKc7zvSuj2gtK3Z5JTiV+jVcZlLmxsfSA9ra6h4u9jBZu/XGHOoRFjrkXvkCm1/WH0Yjsk96eq7eo3N3gyPgC5B7gTCGzaKQJI5yBH1V8TkdlvjgSSmc79qNxkXyIWcDGRJ68lE3kQsvcRpnEwVVkE4hIUVHEB1aj8ZHPaIziojSYDOfgeqdfvJYEfTfQxAwD2n9AiqrP1kwJ4ELgBZePQqBFXRerKQXnmwIC85f6Xatp6s6iOHFzKDmPemSFpPtmN3LoAZef18qQpsk1kieiXDurl2GyACc0QwJGRRvV6CItyjUXkwR7RgV1Bw9ZByH432fmiMaMru1sDu1j4oXPphee67xoiqO/e82gBKz6w0PYagCmMegh7RnDAz8CN0ykweTOQvy+n/3z+WnT3NYUaYIaR4FazFx3L8WqdxCLWErW0UszWrPG0ReSlpMBdMXOmjdYGVFJ4I91ggilJ8AD8Hk9Cvm822gbhVPSpXPy7aiEhNDpQ5nqRHXzCVL6NCcRbdm2M6Fygbs4RqP1BWpH4IVm6Jqol6YZddPLA7o+pG/wshnMAqEemIW7ZkgIoVWGQOqgaEs8SEa0udSAtIM2pT6YSqEREslZwEdCu9zrcqrW11mnNysi8WbEKsBmOUvKdUlqp1xgPSoH+jVKKyd5Td9EmzH3JTZypR2pmQL/VF5k5q6WjUJ23c3mElSMz/Au9uSVv95zFilJm2Ufe5T/7KoPcvaP7pDcg3DF9nLwuoLV5mr0Ni9x8M+A0WYx+bogAAAABJRU5ErkJggg==", "🅰️": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEgAAABICAMAAABiM0N1AAAARVBMVEVHcEzdLkTdLkTdLkTdLkTdLkT////fO1DdLkTul6LqfIr98vP75ejysbn52NzjVWfhSFvsiZbob370vsXwpK33y9DmYnMa5CznAAAABnRSTlMAYO8gz79WeQLOAAABkUlEQVR4Xu3YaY6DMAwF4NCCs29s9z/qqC2yIDNk/zXqO8CnPrCDGvLKMLGGTAP55DmyxozPt/NgzXm8pJF1yEjIwLpkIFMfaCKsU/4l9IUoNwBS21bISviEt0HoAPgmyAAGXAMk4BTdABk4h1ZDDi4R1RC/Qls1pOAaVwntEMRXQvoA5HJApg6i8oAWD0dsFYRDJPDtrVXQgvOD86RqIByihTHsNldAHpudUF0BKWx22hVZDllsdplxUQyt2CxgSyGJzYKihdCMzYIf6AuhBZsFj8yUQRTCKtjNFUH+1Czoxosgg81+nSmqBHLnZuFrtAXQ+sej1fE1IfH10DsGh1vmQzNEM2dDOg4tuRCVEA/NhAQkIjKhLQVteZCDZFwW5NOQz4JUGlI5kEVg40E0SjYD0veDRxFaMyAZWYXlvhu5Xw8dm7A9CfGg2U03XgBFDzyeX03Hv+NJiJnYQUiPIZM0DdH3qsmbb7N9S8pmLa3lXFB2l5nz+fvHL8gX6nXJ0u3ap9dFVLersX6Xdd2uD38A3uOeRbXBYxIAAAAASUVORK5CYII=", "🔥": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEgAAABICAMAAABiM0N1AAAAh1BMVEVHcEz0kAz0kAz0kAz0kAz0kAz0kAz0kAz0kAz0kAz0kAz0kAz0kAz0kAz0kAz0kAz/zE3/zE3/zE3/zE3/zE3/zE3/zE3/zE39wkL/zE3/zE3/zE3/zE30kAz/zE36ri33nxz+yEn+xUX5qij8vT32mxj9wUH3oyD1mBT6sjH1lBD7tjX8uTmQeifTAAAAHXRSTlMAMEBQv++PEM+A359gryBwzxDvv4CPUK9gIN9gMOUtXcUAAAKrSURBVHjarZfZkoIwEEWDLEkAcXfWDpu78//fN4OMqdAkJFCeJy3LI919OwJxJAtm5DUkENGXiGYAof8SUwwAERkPxV+K4I+AjvawoFdbAxtrYpAQBDiacB1c06SG+RiPBxpRAC2cuDMHgMQkgszZkz2a0W/bP4GzaAENuKsg8dwra0hJBx8kiXuIG2K8bJLQVaQbjwcKM3cRLo7KVlsTEGX9ti56Hnso/Vg3H5bSRsNDkFgCkIUJEklXwAATm0UBcPWNDaMn7UwimiyicUfkTxZxtIoxaLEnMkQ/YqstMHUIb6I/UcRw7Gegw7q1nkyxq2jR/b7X6UjiXBpeWj9SK4OQujcbzZz9h6i30jSEQRg+B2mnjtBzXZE5Pgd9mcbW1JbuMbDA8aw4/n3GOceao21oi2euLBdwqvLb4NDiZ9NgmFqIMscinDkX0VH8cToaSwtcRVA2pvJs2JCFDFYGFg7iQXtNOLteKEUULNxbUXlBlyQ9rqXlouWgFkcf18ABJohEAQoB5/MQpokOYEQfSJS/H/HkMrzFAW5uAR0qKaqHj14OHa7ijAIp+RneYh9UzkLkaPqSExjwSS9IlxI19SgUwMB/QBnu7E1p/Ela0Aeo1+iELkRDjj2aJBXK6+iZc+NeFYoHieqD5i6XqRfUUNa3pu93gcjV4Rb9/4JUM6GqFH2uarrumlvNUB49w1Sdc1Nza8JlZRZqNRRF/z+FxnI9nUy10rGYEoVUzsxGlefXSj0NUs0zVCVGUelulbKm32IkTaczgvCniXzSI5oiioiG+XjR3PCoP1ZkenSny3GeJSUGVm9jPG8rYmbn7tmRQfZrN816Tyx8bFw8mw9i5/3Tpvl8J06stuvBqraUOPO1NM78i4zje7fUWHbfZAKr/XazlI7Ndj8UnF+YwEpCshNBaAAAAABJRU5ErkJggg==", "🏆": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEgAAABICAMAAABiM0N1AAAAq1BMVEVHcEz/zE3/zE3/zE3/zE3/zE3/zE3/zE3/zE3/zE3/rDP/rDP/rDP/rjX/vkL/rDP/rDP/rDP/tDr/xEf/rDP/vED/rDP/rDP/wEP/sDb/rDP/rDP/zE3/zE3/rDP/rDP/rDP/zE3/zE3/zE3/zE3/zE3/rDP/rDP/wkX/ykv/xkj/tjv/sjj/uD3BaU/BaU/BaU/BaU/BaU/BaU/BaU/BaU/BaU/BaU/BaU/Lbtl5AAAAOXRSTlMAIHCAj79g/zCvgN/////vEM///6//v0D//2CfQO8gcI9Qz5/fEDBQ////////MK//72BQv99AzyD2svjjAAACS0lEQVR4AdXWB5azOgwF4JvqDCgPMyEwkz6997r/jU0RKRbnkMjw2v8t4B5LyDIoQqPZ+tXulGs1G9ipa1Ta2KFnWP2kPaPVAIqCkFb6Ru0vWokCCwA2po19ozagjdgCSMgxNHrkSIGMXAdG75AcI4zJNTB6++SIEdUPYqClJLMAOkZvAtgsKAYlYH5Bv4JCUAZmvINsIQi5qXcQKIeYmK1aGohFGBPLqgbNiKWYEwu87izr4deI2ALZKpG1jB7Ygth8UyM7MmrHYPG6NSGxGX41jNoJGOUskBAbgZ0arS5+ZcTCzWguwE48N2RALN1kxp5NOgZLiAXujLMzz+UfOY0JxUjueU3RjHLnAJASC7zetVOwC8q5/Uq87m1TjGPspobItY3GGVhKLBF1WrCGxzSCRFsi0W109CvkXK7FVIwkJmanDnIjys3gdju06iNNkIspV8gda4/UQW5OYgfhXD5JQEdzIJuNiWRTEJG0r/99YCMsBVRwqX30WYQVG5N0eKX6MVq6wNp5RNLQlLrqlxTGbErStSlzQ0I0gpQl5Lo1JS7JFQYWO7RK1scZfHXK95mfs9PyNeSnNy3dHp56pmAPFXWNcHyGqiZXsq7qbjeDOUQNM+oP80MNbgk1ZETUvzsYDG/5EaxuLi95dWNyBKguJkeKyiwJqGxErH6TEhIW1SuTojofXxihmpAK0jqtFjJ4uX943OrpWZnz9LjLCzReH3d6g8ajwh8YdP/6qPT0jm0+HtWeFGXp/G1B99ji6VHvE1s865NeIXwDBvTA37rZqRcAAAAASUVORK5CYII=", "👑": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEgAAABICAMAAABiM0N1AAAAwFBMVEVHcEz1kQ3/zE30kAz5rzz/zE3/zE3/zEz/zE3/zE3/zE3/zE30kAz/rDPnWy70kAz0kAz0kAz/zE30kAzdLkT/zE30kAz0kAz5oyT/zE3/zE3dLkT/zE3dLkTdLkTdLkT/zE3dLkT8vD6YHOv0kAz/xEdckTuur0T3nxz4piP6ri3YiojgO0XCtkb/rDP1yEzzk0q/XrC4U7pmlTyySMSFoED2mhaZp0LjwkrTvEioN9LloHXsc0jufUn3pUueJ+FYKgbxAAAAIHRSTlMA7+8gEEAwgJ+/r2BghDCfgECPz7ogv49Qz9/vcM+PIBitsd0AAAKvSURBVHhe7ZXXctswEEVBCuyyqi3JtpKAqsW1l9T//6sQWGC9AmUOZXIyycTnSXMJHCywIMX+O7wwHvN8zMdx6O3jCUTGcc7Ej2UelPccCUVo5yHkR3sUpHDt3IU8eKeo2el03ynyydZ4f5bRplvzy1lwhqvOojNTqJqOXPSXNuHCAxB1oNR9PSyCGUSE/qiEoNFtmEPCNg9BNHq9Fj4ZTAmiaKzbk01owspFhx1ag9k4igLGeiIjUYGTiRw12SU3r6VTvKcu3xrMEhn2mBC475nEPMK12zJtQkFAgoP1eUqoqG32cCIEltRVeoergoATHExE4AuYOY5h5vGEIaRdCzH2oAl9DocMpfAYGmH2PaIzhC8LgpJ8Qf0jmb22OObww1WmpprR4uKVaDDTdCIS85aDJ+e7WIjcNse71w8EYWVEDk2DvsoGssPyQBmgv2KNGTCnookRTWg612FDf+vI+yBic4fXKKElrbbTNaRDFmPTsX89B5emTIpSpyeoqEdXeRQWKyyI8kir7zEgoA83tmiCBVE2dNGAAQk9wrmwWVkF5ccmDPBwceuoMZ3k0zVJPVskNviQsoKCbP1G2CJG1hE7mNh2eyhDUUXIH18lXPKpr0RUvyisJgrJf30lgnKi54vl8uKqnCgp0DwsFE8FqgRF3puei7uF5u75TZG3U3R2P53efjP1gAdMV9aIvKj1KU3PryG8mSrOQPSwIDztGvHjPE0Pv2jPaSpRprOpRq34vNjiKj/ieyo55Up0mCrOpeirEd1I0XJb9LI14la+zinwWYlSzc9MNDXc7xAthT3iWosOaxPVtrXaDrvG9gPx1oX8td+FjMFR/Na+lHhFAioq89JWEdHPSDUR8qdFXhWR9zeLDi4rcYCiy4rUJqp/a2w0r8Don27/R/uL+eA3t4HcDMEeM50AAAAASUVORK5CYII=", "⭐": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEgAAABICAMAAABiM0N1AAAAM1BMVEVHcEz/rDP/rDP/rDP/rDP/rDP/rDP/rDP/rDP/rDP/rDP/rDP/rDP/rDP/rDP/rDP/rDPIzIGKAAAAEXRSTlMAMK/v/78gcM8QYFDfgECfjzPxc0MAAAFZSURBVHgB7djVYsUwCIBhEoin8v4vO2WeM0jpfN/t0Z+mCif45zyid2DmkG6gA6tAdwIYRWIRbBKxBDaZWLaXsWguY8lcxoK9jBVzGavmMubtZayYy1g1lzFvL2PFXMaquYx5exkr5jJWzWXM28tUba2TSW/8PWTW4FYnsw43Cp2gnPVFp6WdO2xoSCbYgBVPBr7Ak4R0ECZ4wWU6JDt4baEDFhhYO03qKwwVb5gyYw3nN/pYDKQUoniAVUkgclm90QXFq6cskL8IVAqJCmhUElXQ2Ei0gQaSCEGhkULTl9nbuvZoL3Ck4kCyk8oOkkwqGQSRlA4cRTAlnD+O5OEhw+XZtnJpqvvkjlsvHpjX13l15lAUCjwqYeagNB7oeEOod9js3j+cN+Wy3gu8UXbl4g7i6a+hakjp1ZQHStAsyYj8HsXixyg+5MlOcQrt0oFkTSuI1rrCt3cNofAlUpDr+CkAAAAASUVORK5CYII=", "⚡": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEgAAABICAMAAABiM0N1AAAAMFBMVEVHcEz/rDP/rDP/rDP/rDP/rDP/rDP/rDP/rDP/rDP/rDP/rDP/rDP/rDP/rDP/rDNIzNElAAAAD3RSTlMA7xBgnzDPgCDfj0C/r3DHfpOdAAABLklEQVR42q2XSxLDIAzFbCCBJml9/9v2s3kbdwGKDsBoRvXL1OY5IrpxyjM+GKbs8aUYZPP40gxyevwYxqgRTEi57hAqLSSEc3GhTe80nv2HD5RLkPPoIbzYMi1uESpX3CI09sBCysWFqgcTUnYupFziBUY1QjzYlYoKcmGh0wMLKRcXOiKhglEFQsqFhbb8nYtlF+d0rln6n1GdJ7/SBdJRXeDIRnWBmuWax2s2qvP4RrKLfSRXusCVLHgs0MzAQ/QXzcfg/JtrkivPtZHtFnuxWR5prmJMSFcKhG7/uvlpTEjZsZBycaHn2juv5EpXKI5yiZ6MKhFSLiakUWVCGlUmpFxUiP9DQ9nFcJRLNOVC7wx2paIlo4qEDmM05UIMjSqjKTuiKBdEowrpS7neXD5UXwGvjogAAAAASUVORK5CYII=", "📈": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEgAAABICAMAAABiM0N1AAAAb1BMVEVHcEzh6O3h6O3h6O3h6O3h6O3h6O3M1t3h6O3dLkTOwcrSl6TbQ1fNzNPeRVnXbX3Roq3ZWGrgrrjh3OLX3+XR2+HgusPcOU7fi5nh0djVgpHgoq7g5+zdOk/fdIPeaHnQ2eDYY3TeXW7QrLfN196Tx1eoAAAAB3RSTlMAYO8QIM+/iPzB7wAAAhBJREFUeF7N2NluwjAUBFBCIV6yb+w7/f9vrEzs+CaXWnYuD8wbVXQyUuuh8uJbE8V8ZuIIMKs1J2S9GpwlJ2VppPl9mqbv1DuRAk5tx3QUwHScn8tUiLxWUvSCYuXcGAuFSvGKkuIXpMiWhUNpD+UKVs6Pgrpw6CB0RhALhrKtgRoNLeZAoFDKKRAolJAgUIiRIGkL0aDCFiJBe2HypEEX41QMQoGBhTZKmQ9djfPgJGhjC9Ggh3Gumpl5RGwhyVRmQ0OhgpGgpy1Eg1JbiAQlxtlKAgQLHRgBgoUyEgQLkaCDLUSCsi0q5IbqVIi0RBAcWC+o1is6geDiv4WmaXLd/8jH2Rkn5yBjCD+Ppf0Z/dwJNfp5JF1QIQzhQljCA8udeyTFKMmwBgUYWObxWyvERNKQtIW8ICmmOfbQ3RbygirxToJ7tvGA9PNYAi+4cxeEC1UJlODAekElGGQoJZUdWC8IDrKScKQXlIBCSNKFfKBssn9Y2koPCMzNOUMVzQs8IDA3OzT2ZmCdEJ6bhg85QmjH3wRB+8l4YOnceEB4brC0404IFao5ktALHHtU/Xu6jVSaz84Zwacbfz15QPC0BnxhYgieVhIETysJAqeVBoHTSoPsYSJCtlAw1I2gvHfSLBxqByjmwz8yJQuGbqfhAiHiSsr1324Q9Nu1yuGRuWQhZv3hax/6RdSnrsa+NH++RJUePREKqAAAAABJRU5ErkJggg==", "📉": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEgAAABICAMAAABiM0N1AAAAb1BMVEVHcEzh6O3h6O3h6O3h6O3h6O3h6O3M1t07lNnh6O3D0t26zt1NnNqWvdxQn9xxrdufwdzX3+XR2+FfpdqOvuOjyeaEtdvX4+ytzudEmNng5+y40+hFmdpvrt/Q2eBoqdplqd6oxtx5tOHN197M3usNTMi4AAAAB3RSTlMAYO8QIM+/iPzB7wAAAg9JREFUeF7N2MmS4jAQBNAxA9bmlX2nl/n/b5woQFVy4W5JFAfy1gdepMM4TevPu6YozZMpi4CZzowgsyk6EyPKxEszI8zs5hQAbButq05BAFA+kb/n/R6k4gqV4OhrumQIcwapvEJANjeostmQ6gEG5y9A+p51PjQfhXY2G/oGCC+twkrZkBpAtfZxMkhhpVYIdVRJBqmFhxajkLWp0CdWOjxC2wq/91GIKn08QCv83scgyD+stDVh0NGNGQ2HzJeHGu74LGMQr7Qad/RxkwSZJVbaMAcrRSEFsTv8gPKpdZidjd81yBqvwTLHZ50GWXp2mYOVXAziBZx3WNo0KHh20WFxaVBHlQZOvcBKSVD47IbOKngUXRpEHwidcB0uUYgqcYetQxrkxhxocMF1SINUy5z63thRpTTIMQf3p8VKP0EsS3ZdtA5UiWUc2hyZExksBvFK5FClI/pp0KZhzuNg/bJHFPyRU/Oxp8GqI3ct8vqhwaoiUOyFSJXWqRCHeaWdlUGKNlQI1VRJALFKMogqOQHEZl0EhaMrg9QHVhJCB6rEoNxgpZOBPA9RpYMMMiccXRHER/fpuxaO7kJy1waVPmWQaXHhhJCj0ZVBwegKIUuVZFBQSQhRpQE0z4WwEoP6fEhVwVsXDxD253yoo/+lSjrS2PfzPAikSusGHFO86pDlxcc+8oOoVx2NvWn+A8oxmWCM9XrhAAAAAElFTkSuQmCC", "➖": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEgAAABICAMAAABiM0N1AAAAElBMVEVHcEwxNz0xNz0xNz0xNz0xNz3y9AWAAAAABXRSTlMA7yCfMKQ6t0YAAABOSURBVHja7dO7EQAhDANRhFH/LV/GESMHBPsK0Pg7AAAAXjBLvqKa47Dka1pHPXJAf03lSO0gOaId5FB3UN5a97Dz9TcfZP4iAAAAD/gAXIUOWQcR/RwAAAAASUVORK5CYII=", "🏅": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEgAAABICAMAAABiM0N1AAAAwFBMVEVHcEw7iMP/rDP/rDP/rDP/rDP/rDP/rDM7iMNVrO7/rDNVrO5VrO7/rDM7iMNImtn/rDM7iMNImtlVrO7/rDM7iMP/rDNVrO7/rDNVrO7/rDNVrO7/rDM7iMNVrO47iMP/rDM7iMM7iMPWqFf/2YP/rDP/rzj/0XT/03n/wFb/tEL/uEn/zm//sj3/ymf/w1v/xWD/1n7/vVH0rD94k5Y7iMNVrO5AkMxQpeZIm9qanYRlrN1UjbGqrJGVrKiKrLT/lPyIAAAAJHRSTlMA0YBA72DPEO/vMDDPIDAQ36QgYnBgn5+/t4+IUHtQUK+Pv/dMKoYRAAAC7klEQVR4XoTUzYrDMAwE4MnNxsaiNiWE0JbuO9jJ/r//Wy17yEF0FH3XwBA0kpEHM8N06cwEiYNZYXh2JgiQeFIDdeU5BQDaoO4gHp264h/WwcSEFyV05nZ8X3hShYbKcy44CK8uCxSZeGGCA2rkSVB4TlA/ngY1+wvUC5Q2vHV6moVp86CaXiA+aG2x18leoDe8knyyTiVYhREpmutUg3UZ1H1QWWTq1AOGZiQZOTdofnWbUxjBB77TQeOE9cy906fsVHKSnMLcge8buQzHypNIYZ7FGZNTmHsrG7kMR408iTxljnQ+pgLFr+7z51v5+PIK47fy+1dZ2e24DQJReOvYjpTWrStZUbrKxarLYPyDwdltL1r1/V+rCcQMIc4ynBtrLPGJc2aANwj1Jwia1Lq/yEG9+1cZsXX/YEWv2DBy4K+wJgyarP0ap0znNDms6Xmbhtke4IHqXQpnVzsAHzql1CAdKS8SOIst2bXsKqH7BVWkcvjEbjQuqCMxn9JyhpmFUld3tJyeLUc7U8Mg3KY4fQo2loO2OoDOFa0lZQSQbRguZRJAYjVZc1WUU9h8kNNe6hbrzg5mFHSAcGGwwVmavGMTXhnOid04Q29oLjZMjQEJ31m4RWbyfqE461ngDL3hrwjIrFJnQA+r6p23HSGi8QyCB7rETQhp4yI6rXNOLv+MADJJaH6P4fbcDEkgJu5i6gVLBuFhRylmlQ5io88Z3e8+DtrhEm8aw5k0ZUOYI42j56m7xW8+BpV49oOpxHnXptxSrsfZcgTcSCA+fkke/f5oC9DL1+9AQ7og+Yxtli1jrbSO8S9UMVDmBWvOhGHO5sR419Eh/hjlOAHce9qmc2Fy49gzypZ4e1k0Lfm6Yu4Br7WISkcKhJy8Snix0RWqlUmvfwFWgwi2o8BqjwAaiZ88f0Jx5KSSAGSnx7Mm1QMgh65jDo+UPSWpOqxj6s1Tqor6HpNneOZTUGWwmwYxiaqa/RVWvzQfv4j/AedAxoOyNh9xAAAAAElFTkSuQmCC", "🏟️": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEgAAABICAMAAABiM0N1AAAAvVBMVEVHcEzp7/Pe5upKb4rM1t24fY/n7fFldYDj6O5ndoDi6e6Jlp/By9Lc4+jdL0Xd5Olse4RldX/M1tzp7/PdL0UiZ5jj6u7dL0UiZ5giZ5jdL0VmdX8qaJVmdX+ptbzdL0UiZ5jCP1Lp7/PM1tzp7/N0UKBckD9/jZaSeraap6/Y3eW0v8bAuNZ7WqXMzd6jkcGvocqFZ6zF1chvfYekwZp+qGu4zrW2q8+ZuYxomE5mdX+FY3DdL0VScYYiZ5hQ8CA4AAAAI3RSTlMAgvknwRHCQP1/KfupSTpipMLqn5+yc4BZj9Pn12D1a3D3rwTOtD8AAAOkSURBVHhe7NFNDoMgEIBRDJkYtVKbYEVLo14Df+5/rGrjOOqkC9k0TfotCbwwIL7fPwl8yctxj6PzdJkHFLqhNHsocm2hPKBxKjewhfoprTyguVKuUNe/qwrSWVnEIcwQhC0Tyixkxzr4BOWSQRpw2BuD2unGikN5szAE6Rro1XAHQev0BFn8NoKqWu1WhnHOGiCIbo2QI4INQtBSAyuE1V7QKA+QVsIDsqUUBOFrn4LoPxDqFKBxAnI2FPyYB4T0r0Fxml6DTZckic9B6T14MVKGOW6DQBR2otaduo2i1lIOsDgrNAIGtrGd9P4Hq2EAMd5u0/fvBfh4M4zT99M7QTJ9fzifnoOGy3ic/kPH8TJ8DDq9g6BuRN6jSPjy/ddfQMMIdYfxOtho8SplIsAYV2E/z7vx+6YKxVDgQz66IEGY4VavJRwcmhcYXjLFka2HbATpaORPlE2ohR5KqhMUetjXsQqQjntanw8CP+O56V+bIMSIxdRqvbyqhIp1MdasCUW7fftegxW26tJ1I3M4qCCFfZOwrdUmDmpi0tBB8rYukUhAu16HatIMrNs5Jo1dUxGHora5Lg2iJ6213awRHOS8CdlzIt2uG6Z4E42U0TZzOE6SZxDKeSGIJCqNxLcibGYtuPaFNYMUcIii4DJiuc+PV6H5fntLueJlHKcm+tQpBfJbsJvHe8MQesxLLkF+OBGkjltgviD37i4Be9aGWuWYokoghTBhyRQi54luTQk0TaAUgxjlbQHNr8/EtfHsASoGFR2RLI/h7RlnnpAxHhiTQVXoQ7pkefybgxD4j4QpGSTlvL4SwjJ/jFkmE66BHFMkSGol7wDKHMlJWgCMJu/+9ErHug3CQACGT2BkCEYQhi5RslDJMq4y2FUHv/+D9dK0p2D7CLRS/5XzJzBHAgNR17m47dfk3Pu9D3dbxrqY3ghIIL55LrC6rguMbmQFsq2ZdsRDPgT9O8D6oB+ggF24UWuMtRzk8aRbQjqrtOG7NmuZgNklFH5eIJ4jKgNpDrriE28iJ5WM1mYdMo8nnA/LLF0wZp5BNIRqlKcLxvQWSNOBZZb8DRChLlLoc/LQyEI2hdoVSLHQJYU0CymoRg4ye6Ae4DBuhwIHCcAOYh/UppCo4FaldkEmgRQ698rjH6BTBw/JgX75CuRT6HSGqKoXBHF7pGNokJDr0KvTdmhUXQV8ZTMcn0PHoSlhQ7J7USK72aNQzVnC3kqJNV+dJQb/0CdpFyPQ1yJLCwAAAABJRU5ErkJggg==", "🥇": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEgAAABICAMAAABiM0N1AAAAwFBMVEVHcEz/rDP/rDP/rDP/rDPbqVRVrO47iMP/rDNImtn/rDP/rDP/rDNVrO47iMNImtn/rDP/rDNVrO7/rDM7iMM7iMNVrO47iMP/rDP/rDP/rDM7iMM7iMNVrO7/rDNVrO47iMM7iMNVrO47iMNVrO5VrO5VrO47iMP/rDOeUgDPfxrnlia1aAzYiB73qTfCcxOkWAOArL/tmym2n2m/rHlVrO47iMNCks9QpeY9jMeVrKhKnt1qrNdgj6iqrJGHmZGsr2t5AAAAKHRSTlMAz4Bg7+/P7xAQcDAgMDAgn99gQGDPn5+/r1BQe3uPUL+vr4+/74/fala3nAAAAh9JREFUeNrVlelS8kAQRTskmoUkLC6IC674TYjgGnD3/d9KLbVkwm16mh9fledvqk4yc293aL1CbBNLb4rYongITefEcAo9YUyUYVOXIJvYk9MH3QpySIC9KWTz6+kBFA0zWiAPoWefvjnBphbVaGHPMf0Q4+jWY7KIt3Bg8dyrhthEFtgTWh+eVXKdelNIThbdSqrTKRuYzTY2dX8LBOnRAmd8nfgCHZGFFR2sUx5ygQGyIVunVshNBuSwYurEFGi6RwwHjInx7BOGj24mBAbAF37/AFfZErg19wRXGUCMbuYYmDwrM34ydNHdg8AkTuRrOiYWeVZmYDIg4pp7AKtMIMPXxKwyObrnx1eLtxcpMDwrjxNTY/ImTQZac9cG8AJWmRTdHRLd/otJSbaGRGs5qdlBoh1S0wgMokE6Us8weCkpaAaGJWjqPAqT0qM3RTXP+KooirFlilbJ/bL4ZKRvgW+P10UBRMbXHuzmqrBEisMlZo6y+GGkLmbHzDFiRR0S2DVuIrMriAZ28ryoLZ7MoizLMRZ1hMzMAiUWmeW5bbiLNuS7lkVyJxvuosYfEyXuouT/pJa6i4SfQOAqCmg5fVdRX9qPriJft/l5UUQCbTdRmyRSN1FKIgMX0YBkotpum1xefFDin4i23XyrVQPHj5k2OZiY3qT34IKDSmtoeljjNUlLEixqgoRWIPK92tf4Ea1ImvS/69npJ8un4h2v/9fVMHO/HAAAAABJRU5ErkJggg==", "🥈": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEgAAABICAMAAABiM0N1AAAAwFBMVEVHcEzM1t3M1t3M1t3M1t2yytw7iMNVrO7M1t1ImtnM1t3M1t3M1t1VrO47iMNImtnM1t3M1t1VrO47iMPM1t1VrO5VrO47iMNVrO47iMNVrO7M1t07iMPM1t3M1t3M1t07iMNVrO5Imtk7iMPM1t1icHd9ipHF0diyvcRqd36Hk5qXo6p2g4q4w8qQnaSrtr2/ydCksLeWudOfxuNfnMqeqbA7iMNVrO5Gl9VDj8mCvOhTqutPpOSRweZrtOtzqdHCX3XZAAAAJHRSTlMAz4Bg7+/R7xAQcCAwMDAgn99gYEDPn5+3iIi/t6+PUFBQcO+i3U6CAAACYklEQVR42p3V6VbiQBAF4AKi2QgBXBAcEKVIICyDsySiM/r+bzUqjCfd3E7RfL8991B9qyJdFcg1GfVy5Jx8FyYNyKAPcyY+UYSTugRd4JwWvesW0D0B4xy6oE8DGORGdKA1gTl92rvBSTFpYpzzjf7zcXVXPin8c1xY6c9iFyeRAudMlB8eFfI69XKoRYpuIa1T31SY5hondUsLhPTowE3lOo1zoTCSqnOjrwWChQGRa1yneGK6DOi+MKyTYYHyMRk8GJIMOQ+kkqvbCoUB+MH/4E9ZFd/FSfBTBkjVvTwdV5h8Ky9bcBmCwTHD9clAvpUn4TLgreAkcBmC2MXPBD5lgqj6mbTC5Open/8q3rZSYfhWnlPWpG/gMsTqXhn4BQqTqvvJwA9QmCA6Y+CsRdZuGbgla3WHkTrZCWtsUAvJQtNhI6dplyMm2efM3p2U5JVzNtl8+iH7Xk7yrHtfT78kqeUWNEq3tZyWLEtJDbvBsqliYTVcwMageWqzmB3WRstWvNonlh68Q4I7ZjXpkT8k+mx8JwSNGFocBLXFyaC1GiTP5jG220plwat7u6yabM5ll8JbIyt9j+SdrDOQLrU1wpskB62VLTo9aLbLydgmKACDzdFgzIFtawkYTG4tZN3vXc6adSFVcnDzS9Y5VG2IH2jFuuFR30f9i5TNPm3wPspffn6cKhJ8ali7/EBzY1CbJKF+GjgoJNFIXWkcNCKZ1+G9TaJZCP9E5O0Wttri4IQzE5rDcGNykpwjLzjWICvNGkO1JtkKHD7gBHQCr1HTfk3DoxOFwXC/np1hUH0V/wACRMbfu6GvZAAAAABJRU5ErkJggg==", "🥉": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEgAAABICAMAAABiM0N1AAAAwFBMVEVHcEz/ijv/ijv/ijv/ijv/ijtVrO7bjlpImtk7iMP/ijv/ijtVrO47iMP/ijtImtk7iMP/ijv/ijv/ijtVrO47iMNVrO47iMM7iMP/ijv/ijv/ijtVrO7/ijtVrO47iMNVrO5VrO5VrO47iMM7iMNVrO7/ijt8QRn3hTmVTx+dUyKERhveeDOtXCbmfDWMSh3KbC3WczC+ZirvgTe7kHb0i0U7iMNVrO5AkMxQpeaOobNIm9qqm5VgiaqHjZRqqNjU0Zy2AAAAJnRSTlMAz4BgEO/P7xDucDAwMCAgYp/fQGDPn5+Iv69QUI97UI+vv7+v74B88gQAAAJ7SURBVHjapZVrW9pAEIUnJNEQAiiiIN5qK5uQkAug3Frt//9XtUC7WXI206XvFz7I8z7OnjMDna0QN6RlsERckzeGpi+kYQg9TY8owKY+QS6wp02f9FeQewI8LSEXtOMRisYBVWg3oWdIB56xqUtHdLHnhf7g4ejOPFLwrnFgpa91x9hECtjTVP7xYMXXabCEtEmhv+LqNNQGpnKDTX1ZIMiAKnzV10lfoG8kYaIbB7JAKDBAMNbWqdvUbQbkfqWpkyyQyhNpeNSYgAcFxke3ZgID4Aff4FNWg+7MfYenrJaAMTGBsbuyWesf2iy6DThlHM/8cC+khd+VNdgMCHvm1uCUMQT4mTSnjI/u5/aHwsc7Fxjele2bOOLtg9sMdOa2AvAOThkX3SsSvYLNYAjOkei8TcbcItEtGdNwBaJBZnQsocHqkAEtV2hxW2Ye1mTumX4SnWJyyp5FmoS/mRRlk2Oc+zz8SxwZtsCW34/SsMSkZLLNBitChbnRcL6QRBNFlBgVsydUU1JEYnEQZvIvPWK4EwrRPNt97KObCskdI3oQkLgiumQng+TqG/GzOUJSqUEqytTndlWRzOI4lj0qccW8NXgd4GE72dCK8gU8ceaiMMn+T5SGwMSLfAGYFvnepLySb5SaunTzf0+tIzCz/UkSJTpUi1snCoXEpXpGRyPlMzmasiMj7j5WniYuprNJWBnNNrn8k1ClwKuGuRSSRPXkmivC55YppiTTZcaftiyWnri8bA/E4/SUVqf5bqp0KvAvpHm7cavNF45ZMyY5BE6MN/EevuAYm4xoWVhjtcgUHxwC16cTcGxL1Vi2QyfS8UeHevZGfv1W/AJd+tJ+f8/cdAAAAABJRU5ErkJggg=="};
-        await Promise.all(Object.keys(sources).map(async key => { icons[key] = await loadImg(sources[key]); }));
-        const theme = getComputedStyle(document.documentElement);
-        const color = key => theme.getPropertyValue(key).trim();
-        const palette = { bg: color('--bg-color'), card: color('--card-bg'), border: color('--card-border'),
-            text: color('--text-main'), sub: color('--text-sub'), input: color('--input-bg'),
-            blue: color('--primary-blue'), green: color('--primary-green'), red: color('--primary-red') };
-        const canvas = document.createElement('canvas');
-        canvas.width = 1000;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return null;
-        const font = (weight, size) => `${weight} ${size}px Inter, system-ui, sans-serif`;
-        ctx.font = font(900, 52);
-        const lines = [];
-        let line = '';
-        for (const char of Array.from(data.name)) {
-            if (line && ctx.measureText(line + char).width > 680) { lines.push(line.trimEnd()); line = ''; }
-            line += char;
-        }
-        if (line || !lines.length) lines.push(line);
-        const nameHeight = lines.length * 64;
-        const roleY = 188 + nameHeight;
-        const ratingY = roleY + 54;
-        const statsY = ratingY + 218;
-        const rows = Math.ceil(data.stats.length / 4);
-        canvas.height = statsY + rows * 194 + 102;
-        ctx.fillStyle = palette.bg; ctx.fillRect(0, 0, canvas.width, canvas.height);
-        const box = (x, y, w, h, fill) => {
-            ctx.beginPath(); ctx.roundRect(x, y, w, h, 18);
-            ctx.fillStyle = fill; ctx.fill();
-            ctx.strokeStyle = palette.border; ctx.lineWidth = 2; ctx.stroke();
-        };
-        const text = (value, x, y, size, weight, fill, align = 'left', maxWidth) => {
-            ctx.font = font(weight, size); ctx.fillStyle = fill; ctx.textAlign = align;
-            if (maxWidth) ctx.fillText(String(value), x, y, maxWidth);
-            else ctx.fillText(String(value), x, y);
-        };
-        const icon = (value, cx, cy, size) => {
-            if (icons[value]) ctx.drawImage(icons[value], cx - size / 2, cy - size / 2, size, size);
-            else text(value, cx, cy + size * .33, size, 700, palette.text, 'center');
-        };
-        text('SPORT TIME 10A', 50, 72, 30, 900, palette.blue);
-        text('PLAYER STATISTICS', 950, 72, 20, 700, palette.sub, 'right');
-        ctx.fillStyle = palette.blue; ctx.fillRect(50, 100, 900, 4);
-        box(50, 146, 100, 100, palette.blue);
-        text(data.avatar.toUpperCase(), 100, 211, 48, 900, palette.card, 'center');
-        lines.forEach((value, i) => text(value, 184, 191 + i * 64, 52, 900, palette.text));
-        text(data.roles.join('   ·   '), 184, roleY, 24, 700, palette.sub, 'left', 740);
-        data.ratings.forEach((item, i) => {
-            const x = 50 + i * 306, cx = x + 144;
-            box(x, ratingY, 288, 154, palette.card);
-            icon(item.icon, cx, ratingY + 33, 28);
-            const tone = item.tone === 'up' ? palette.green : item.tone === 'down' ? palette.red : palette.text;
-            text(item.value, cx, ratingY + 94, 42, 900, tone, 'center', 256);
-            text(item.label.toUpperCase(), cx, ratingY + 128, 18, 700, palette.sub, 'center');
-        });
-        text('STATISTICS', 50, statsY - 26, 24, 800, palette.sub);
-        data.stats.forEach((item, i) => {
-            const x = 50 + (i % 4) * 230, y = statsY + Math.floor(i / 4) * 194, cx = x + 105;
-            box(x, y, 210, 174, palette.card);
-            icon(item.icon, cx, y + 35, 34);
-            text(item.value, cx, y + 105, 48, 900, palette.text, 'center', 182);
-            text(item.label, cx, y + 145, 20, 700, palette.sub, 'center', 182);
-        });
-        text('Sport Time 10A · Izgi_Zhan', 500, canvas.height - 36, 22, 700, palette.sub, 'center');
-        return new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
-    }
+    if (!data) return null;
+    await document.fonts.ready;
+
+    const W = 1080, pad = 56, gap = 18;
+    const cardTop = 200, cardH = 200;
+    const ratingTop = cardTop + cardH + 24, ratingH = 190;
+    const titleY = ratingTop + ratingH + 52;
+    const gridTop = titleY + 30;
+    const tileW = (W - pad * 2 - gap * 3) / 4, tileH = 176;
+    const rows = Math.ceil(data.stats.length / 4);
+    const H = gridTop + rows * tileH + (rows - 1) * gap + 110;
+
+    const c = document.createElement('canvas');
+    c.width = W; c.height = H;
+    const x = c.getContext('2d');
+    if (!x) return null;
+
+    shareBackground(x, W, H);
+    shareHeader(x, W, pad, 'PLAYER STATISTICS');
+
+    // ---------- карточка игрока ----------
+    shareCard(x, pad, cardTop, W - pad * 2, cardH);
+    const av = 120, avX = pad + 36, avY = cardTop + (cardH - av) / 2;
+    const ag = x.createLinearGradient(avX, avY, avX + av, avY + av);
+    ag.addColorStop(0, '#4299e1'); ag.addColorStop(1, '#2b6cb0');
+    x.fillStyle = ag; shareRR(x, avX, avY, av, av, 34); x.fill();
+    x.fillStyle = '#fff'; x.font = SF('900', 62); x.textAlign = 'center'; x.textBaseline = 'middle';
+    x.fillText(String(data.avatar || '?').toUpperCase(), avX + av / 2, avY + av / 2 + 2);
+
+    const tx = avX + av + 32, maxW = W - pad - 36 - tx;
+    let nameSize = 58;
+    x.font = SF('900', nameSize);
+    while (x.measureText(data.name).width > maxW && nameSize > 34) { nameSize -= 2; x.font = SF('900', nameSize); }
+    x.fillStyle = '#1a202c'; x.textAlign = 'left'; x.textBaseline = 'middle';
+    x.fillText(shareFit(x, data.name, maxW), tx, cardTop + 76);
+
+    // позиции — аккуратные "таблетки"
+    let chipX = tx;
+    const chipH = 46, chipY = cardTop + 118;
+    (data.roles || []).forEach(r => {
+        const sp = String(r).indexOf(' ');
+        const emoji = sp > 0 ? r.slice(0, sp) : '', label = sp > 0 ? r.slice(sp + 1) : r;
+        x.font = SF('800', 22);
+        const w = 22 + (emoji ? 26 + 8 : 0) + x.measureText(label).width + 22;
+        if (chipX + w > tx + maxW) return;
+        x.fillStyle = '#edf2f7'; shareRR(x, chipX, chipY, w, chipH, 23); x.fill();
+        x.strokeStyle = '#e2e8f0'; x.lineWidth = 2; x.stroke();
+        const parts = [];
+        if (emoji) parts.push({ e: emoji, size: 26 });
+        parts.push({ t: label, font: SF('800', 22), color: '#4a5568' });
+        shareInline(x, parts, chipX + 22, chipY + chipH / 2, 'left', 8);
+        chipX += w + 10;
+    });
+
+    // ---------- Rating / Speed / Growth ----------
+    const rw = (W - pad * 2 - gap * 2) / 3;
+    data.ratings.forEach((item, i) => {
+        const rx = pad + i * (rw + gap), cx = rx + rw / 2;
+        shareCard(x, rx, ratingTop, rw, ratingH);
+        shareDrawEmoji(x, item.icon, cx, ratingTop + 50, 46);
+        const tone = item.tone === 'up' ? '#38a169' : item.tone === 'down' ? '#e53e3e' : item.tone === 'flat' ? '#718096' : '#1a202c';
+        x.fillStyle = tone; x.font = SF('900', 60); x.textAlign = 'center'; x.textBaseline = 'middle';
+        x.fillText(shareFit(x, item.value, rw - 30), cx, ratingTop + 112);
+        x.fillStyle = '#718096'; x.font = SF('800', 20);
+        x.fillText(String(item.label).toUpperCase(), cx, ratingTop + 156);
+    });
+
+    // ---------- сетка статистики ----------
+    x.fillStyle = '#bee3f8'; x.font = SF('900', 24); x.textAlign = 'left'; x.textBaseline = 'middle';
+    x.fillText('STATISTICS', pad, titleY);
+    data.stats.forEach((item, i) => {
+        const tx2 = pad + (i % 4) * (tileW + gap);
+        const ty = gridTop + Math.floor(i / 4) * (tileH + gap);
+        const cx = tx2 + tileW / 2;
+        shareCard(x, tx2, ty, tileW, tileH, 26);
+        shareDrawEmoji(x, item.icon, cx, ty + 44, 46);
+        x.fillStyle = '#1a202c'; x.font = SF('900', 52); x.textAlign = 'center'; x.textBaseline = 'middle';
+        x.fillText(shareFit(x, item.value, tileW - 20), cx, ty + 104);
+        x.fillStyle = '#718096'; x.font = SF('700', 20);
+        x.fillText(shareFit(x, item.label, tileW - 16), cx, ty + 146);
+    });
+
+    shareFooter(x, W, H);
+    return new Promise(resolve => c.toBlob(resolve, 'image/png'));
+}
 
     async function sharePlayerStats() {
         const button = document.getElementById('pmShareBtn');
