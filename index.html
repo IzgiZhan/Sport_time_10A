@@ -9,8 +9,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@1,900&display=swap" rel="stylesheet">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#3182ce">
-    <link rel="icon" href="icon-192.png">
-    <link rel="apple-touch-icon" href="icon-192.png">
+    <link rel="icon" type="image/png" href="icon-192.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Sport Time">
     <style>
         :root {
             --bg-color: #f4f6f9;
@@ -1185,7 +1188,7 @@
 
     function roundRating(v) {
         const n = Number(v);
-        return Number.isFinite(n) ? Math.round(n * 100) / 100 : 0;
+        return Number.isFinite(n) ? Math.round(n * 10000) / 10000 : 0;
     }
 
     async function unlockAccess() {
@@ -1567,11 +1570,13 @@
     function updateResetButtonLabel() {
         const btn = document.getElementById('resetAllBtn');
         if (!btn) return;
+        const hide = currentOpenTab === 'adminTab' || currentOpenTab === 'playersTab' ||
+            (currentOpenTab === 'leadersTab' && leaderboardMode !== 'history');
+        btn.style.display = hide ? 'none' : '';
         if (currentOpenTab === 'playersTab') btn.innerText = '🔄 Reset Players';
         else if (currentOpenTab === 'teamsTab') btn.innerText = '🔄 Reset Matches & Table';
         else if (currentOpenTab === 'leadersTab') {
-            const modeName = leaderboardMode === 'history' ? 'History' : (leaderboardMode === 'allTime' ? 'All Time' : 'Current Tournament');
-            btn.innerText = `🔄 Reset ${modeName}`;
+            btn.innerText = '🔄 Reset History';
         } else btn.innerText = '🔄 Reset This Page';
     }
 
@@ -1582,7 +1587,7 @@
 
     function formatRating(value) {
         const n = Number(value);
-        return Number.isFinite(n) ? n.toFixed(2).replace(/0+$/, "").replace(/\.$/, "") : "0";
+        return Number.isFinite(n) ? n.toFixed(3).replace(/0+$/, "").replace(/\.$/, "") : "0";
     }
 
     function renderPlayers() {
