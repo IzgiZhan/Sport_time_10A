@@ -648,7 +648,9 @@
         .compare-heading-icon { display:grid; place-items:center; width:46px; height:46px; flex:0 0 46px; border-radius:15px; background:linear-gradient(135deg,rgba(124,58,237,.18),rgba(79,70,229,.12)); font-size:23px; }
         .compare-heading-title { font-size:19px; font-weight:950; letter-spacing:-.03em; }
         .compare-heading-sub { margin-top:3px; color:var(--text-sub); font-size:12px; }
-        .compare-player-strip { display:flex; align-items:center; gap:9px; margin:0 0 16px; padding:12px; border-radius:15px; background:var(--input-bg); border:1px solid var(--card-border); font-weight:850; overflow-wrap:anywhere; }
+        .compare-player-strip { display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:10px; margin:0 0 16px; padding:12px; border-radius:15px; background:var(--input-bg); border:1px solid var(--card-border); font-weight:850; overflow-wrap:anywhere; }
+        .compare-strip-player { display:inline-flex; align-items:center; justify-content:center; gap:6px; min-width:0; overflow-wrap:anywhere; }
+        .compare-vs-badge { display:inline-grid; place-items:center; flex:0 0 auto; min-width:0; height:auto; padding:0; box-sizing:border-box; border-radius:0; background:transparent; color:inherit; font-size:20px; line-height:1; box-shadow:none; }
         .compare-player-dot { width:8px; height:8px; border-radius:50%; background:#8b5cf6; flex:0 0 8px; box-shadow:0 0 0 4px rgba(139,92,246,.13); }
         .compare-field-label { display:block; margin:0 0 8px; color:var(--text-sub); font-size:10px; font-weight:900; letter-spacing:.1em; }
         .compare-select { width:100%; box-sizing:border-box; padding:13px 14px; border-radius:13px; border:1px solid var(--card-border); background:var(--input-bg); color:var(--text-main); font:inherit; font-weight:750; margin-bottom:18px; outline:none; transition:border-color .15s,box-shadow .15s; }
@@ -663,9 +665,16 @@
         .compare-table th:not(:first-child) { color:var(--text-main); font-weight:900; }
         .compare-table td:first-child { font-weight:750; }
         .compare-better { color:var(--primary-green); font-weight:950; background:rgba(34,197,94,.08); }
+        .compare-top-actions { display:flex; align-items:center; gap:8px; flex:0 0 auto; }
+        .compare-share-btn { display:inline-flex; align-items:center; justify-content:center; gap:6px; border:1px solid rgba(59,130,246,.3); background:linear-gradient(135deg,#2563eb,#4f46e5); color:#fff; border-radius:12px; padding:9px 12px; font-size:12px; font-weight:900; cursor:pointer; box-shadow:0 5px 14px rgba(59,130,246,.22); transition:transform .16s ease,box-shadow .16s ease; }
+        .compare-share-btn:hover { transform:translateY(-1px); box-shadow:0 8px 18px rgba(59,130,246,.3); }
+        .compare-share-btn:disabled { opacity:.65; cursor:wait; transform:none; }
         .compare-close { border:1px solid var(--card-border); background:var(--input-bg); color:var(--text-sub); width:36px; height:36px; border-radius:12px; font-size:16px; cursor:pointer; transition:background .15s,color .15s; }
         .compare-close:hover { background:rgba(239,68,68,.12); color:#ef4444; }
-        @media(max-width:480px) { .compare-card { padding:16px; border-radius:20px; } .compare-table { font-size:12px; } .compare-table th,.compare-table td { padding:10px 6px; } .compare-heading-title { font-size:17px; } }
+        .compare-name-group { display:inline-flex; align-items:center; justify-content:center; gap:6px; max-width:100%; vertical-align:middle; }
+        .compare-name-emoji { display:inline-flex; align-items:center; justify-content:center; width:auto; height:auto; box-sizing:border-box; border:0; border-radius:0; background:transparent; color:inherit; font-size:17px; line-height:1; flex:0 0 auto; box-shadow:none; padding:0; }
+        .compare-table th:not(:first-child) { min-width:0; }
+        @media(max-width:480px) { .compare-card { padding:16px; border-radius:20px; } .compare-table { font-size:12px; } .compare-table th,.compare-table td { padding:10px 6px; } .compare-heading-title { font-size:17px; } .compare-share-btn { padding:8px 9px; font-size:11px; } .compare-top-actions { gap:6px; } }
         .rating-rules { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px; padding: 14px 16px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
         .rating-rules-title { font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: .5px; color: var(--text-sub); margin-bottom: 10px; }
         .rating-rules-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
@@ -1191,6 +1200,17 @@
     }
 
 
+    // Use the same generic player icon for everyone; positions are compared separately.
+    function getComparePlayerEmoji(p) {
+        return '👤';
+    }
+
+    function getComparePlayerPositions(p) {
+        const roles = Array.isArray(p && p.roles) ? p.roles : [];
+        const roleEmojis = { FWD: '⚽ FWD', DEF: '🛡️ DEF', GK: '🧤 GK' };
+        return roles.length ? roles.map(role => roleEmojis[role] || role).join(' / ') : '—';
+    }
+
     function getPlayerCompareStats(p) {
         const sid = String(p.id);
         const saved = allTimeStats[sid] || {};
@@ -1212,6 +1232,8 @@
         }
         const base = initialPlayers.find(x => x.id === p.id) || initialPlayers.find(x => x.name === p.name);
         return {
+            position: getComparePlayerPositions(p),
+            positionCount: Array.isArray(p && p.roles) ? p.roles.length : 0,
             rating: Number(p.rating) || 0, speed: Number(p.speed) || 3,
             growth: base ? roundRating((Number(p.rating) || 0) - base.rating) : 0,
             tournaments, matches,
@@ -1230,29 +1252,112 @@
             overlay = document.createElement('div');
             overlay.id = 'compareOverlay';
             overlay.className = 'compare-overlay';
-            overlay.innerHTML = '<div class="compare-card" role="dialog" aria-modal="true"><div class="compare-top"><div class="compare-heading"><div class="compare-heading-icon">⚖️</div><div><div class="compare-heading-title">Player Comparison</div><div class="compare-heading-sub">Compare stats side by side</div></div></div><button class="compare-close" type="button" aria-label="Close" onclick="closeCompare()">✕</button></div><div class="compare-player-strip"><span class="compare-player-dot"></span><span id="compareFirstName"></span></div><label class="compare-field-label" for="comparePlayerSelect">SELECT OPPONENT</label><select id="comparePlayerSelect" class="compare-select"></select><div id="compareResults"></div></div>';
+            overlay.innerHTML = '<div class="compare-card" role="dialog" aria-modal="true"><div class="compare-top"><div class="compare-heading"><div class="compare-heading-icon">🆚</div><div><div class="compare-heading-title">Player Comparison</div><div class="compare-heading-sub">Compare stats side by side</div></div></div><div class="compare-top-actions"><button class="compare-share-btn" id="compareShareBtn" type="button" onclick="sharePlayerComparison()">📤 Share</button><button class="compare-close" type="button" aria-label="Close" onclick="closeCompare()">✕</button></div></div><div class="compare-player-strip"><span id="compareFirstName" class="compare-strip-player"></span><span class="compare-vs-badge" aria-label="versus">🆚</span><span id="compareSecondName" class="compare-strip-player"></span></div><label class="compare-field-label" for="comparePlayerSelect">SELECT OPPONENT</label><select id="comparePlayerSelect" class="compare-select"></select><div id="compareResults"></div></div>';
             document.body.appendChild(overlay);
             overlay.addEventListener('click', e => { if (e.target === overlay) closeCompare(); });
         }
-        document.getElementById('compareFirstName').textContent = first.name;
+        document.getElementById('compareFirstName').innerHTML = `<span class="compare-name-emoji">${getComparePlayerEmoji(first)}</span><span>${esc(first.name)}</span>`;
         const select = document.getElementById('comparePlayerSelect');
         const others = playersData.filter(p => String(p.id) !== String(first.id));
-        select.innerHTML = others.map(p => `<option value="${String(p.id).replace(/"/g, '&quot;')}">${esc(p.name)}</option>`).join('');
+        select.innerHTML = others.map(p => `<option value="${String(p.id).replace(/"/g, '&quot;')}">${getComparePlayerEmoji(p)} ${esc(p.name)}</option>`).join('');
         const render = () => {
             const second = playersData.find(p => String(p.id) === select.value);
-            if (!second) { document.getElementById('compareResults').innerHTML = '<p>No other players to compare.</p>'; return; }
+            if (!second) { document.getElementById('compareSecondName').textContent = 'Choose player'; document.getElementById('compareResults').innerHTML = '<p>No other players to compare.</p>'; return; }
+            document.getElementById('compareSecondName').innerHTML = `<span class="compare-name-emoji">${getComparePlayerEmoji(second)}</span><span>${esc(second.name)}</span>`;
             const a = getPlayerCompareStats(first), b = getPlayerCompareStats(second);
             const rows = [
+                ['🎽 Positions', a.position, b.position, true, a.positionCount, b.positionCount],
                 ['⭐ Rating', a.rating, b.rating, true], ['⚡ Speed', a.speed, b.speed, true], ['📈 Growth', a.growth, b.growth, true],
                 ['🏆 Tournaments', a.tournaments, b.tournaments, false], ['🏟️ Matches', a.matches, b.matches, false], ['⚽ Goals', a.goals, b.goals],
                 ['🅰️ Assists', a.assists, b.assists], ['🏅 MVP', a.mvp, b.mvp], ['🥇 1st place', a.first, b.first],
                 ['🥈 2nd place', a.second, b.second], ['🥉 3rd place', a.third, b.third]
             ];
-            document.getElementById('compareResults').innerHTML = `<div class="compare-results-wrap"><table class="compare-table"><thead><tr><th>Stat</th><th>${esc(first.name)}</th><th>${esc(second.name)}</th></tr></thead><tbody>${rows.map(([label,av,bv,higher=true]) => { const an=Number(av)||0,bn=Number(bv)||0; const ac=an===bn?'':((higher ? an>bn : an<bn)?'compare-better':''); const bc=an===bn?'':((higher ? bn>an : bn<an)?'compare-better':''); return `<tr><td>${label}</td><td class="${ac}">${label.includes('Rating') ? formatRating(av) : label.includes('Growth') ? fmtGrowth(av) : av}</td><td class="${bc}">${label.includes('Rating') ? formatRating(bv) : label.includes('Growth') ? fmtGrowth(bv) : bv}</td></tr>`; }).join('')}</tbody></table></div>`;
+            document.getElementById('compareResults').innerHTML = `<div class="compare-results-wrap"><table class="compare-table"><thead><tr><th>Statistics</th><th><span class="compare-name-group"><span class="compare-name-emoji">${getComparePlayerEmoji(first)}</span><span>${esc(first.name)}</span></span></th><th><span class="compare-name-group"><span class="compare-name-emoji">${getComparePlayerEmoji(second)}</span><span>${esc(second.name)}</span></span></th></tr></thead><tbody>${rows.map(([label,av,bv,higher=true,compareAv=av,compareBv=bv]) => { const an=Number(compareAv)||0,bn=Number(compareBv)||0; const ac=an===bn?'':((higher ? an>bn : an<bn)?'compare-better':''); const bc=an===bn?'':((higher ? bn>an : bn<an)?'compare-better':''); return `<tr><td>${label}</td><td class="${ac}">${label.includes('Rating') ? formatRating(av) : label.includes('Growth') ? fmtGrowth(av) : esc(String(av))}</td><td class="${bc}">${label.includes('Rating') ? formatRating(bv) : label.includes('Growth') ? fmtGrowth(bv) : esc(String(bv))}</td></tr>`; }).join('')}</tbody></table></div>`;
         };
         select.onchange = render;
         render();
         overlay.classList.add('show');
+    }
+
+    async function sharePlayerComparison() {
+        const first = playersData.find(p => String(p.id) === String(currentPlayerModalId));
+        const select = document.getElementById('comparePlayerSelect');
+        const second = select && playersData.find(p => String(p.id) === String(select.value));
+        const button = document.getElementById('compareShareBtn');
+        if (!first || !second) { alert('Choose another player to compare first.'); return; }
+        if (button) { button.disabled = true; button.textContent = '⏳ Preparing…'; }
+        try {
+            const a = getPlayerCompareStats(first), b = getPlayerCompareStats(second);
+            const rows = [
+                ['🎽 Positions', a.position, b.position, true, a.positionCount, b.positionCount],
+                ['⭐ Rating', a.rating, b.rating, true], ['⚡ Speed', a.speed, b.speed, true], ['📈 Growth', a.growth, b.growth, true],
+                ['🏆 Tournaments', a.tournaments, b.tournaments, false], ['🏟️ Matches', a.matches, b.matches, false], ['⚽ Goals', a.goals, b.goals],
+                ['🅰️ Assists', a.assists, b.assists], ['🏅 MVP', a.mvp, b.mvp], ['🥇 1st place', a.first, b.first],
+                ['🥈 2nd place', a.second, b.second], ['🥉 3rd place', a.third, b.third]
+            ];
+            const blob = await buildPlayerComparisonImage(first, second, rows);
+            if (!blob) throw new Error('Could not create comparison image');
+            const safe = value => String(value || 'player').toLowerCase().replace(/[^a-z0-9]+/gi, '-').replace(/^-+|-+$/g, '').slice(0, 40) || 'player';
+            await shareBlob(blob, `sport-time-compare-${safe(first.name)}-vs-${safe(second.name)}.png`);
+        } catch (e) {
+            console.error(e);
+            alert('Could not share comparison. Please try again.');
+        } finally {
+            if (button) { button.disabled = false; button.textContent = '📤 Share'; }
+        }
+    }
+
+    async function buildPlayerComparisonImage(first, second, rows) {
+        const W = 1200, H = 1180, pad = 42, tableTop = 330, headerH = 62, rowH = 57;
+        const canvas = document.createElement('canvas'); canvas.width = W; canvas.height = H;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) throw new Error('Canvas unavailable');
+        const font = (weight, size) => `${weight} ${size}px Inter, system-ui, -apple-system, "Segoe UI Emoji", "Segoe UI Symbol", sans-serif`;
+        const rr = (x, y, w, h, r) => { ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); };
+        const fit = (value, maxWidth) => { let str = String(value); while (str.length && ctx.measureText(str).width > maxWidth) str = str.slice(0,-1); return str.length < String(value).length ? str.slice(0, Math.max(0,str.length-1)) + '…' : str; };
+        const bg = ctx.createLinearGradient(0, 0, W, H); bg.addColorStop(0, '#0b1220'); bg.addColorStop(.55, '#172554'); bg.addColorStop(1, '#312e81');
+        ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+        ctx.fillStyle = 'rgba(255,255,255,.035)';
+        for (let i=-H; i<W; i+=70) { ctx.save(); ctx.translate(i,0); ctx.rotate(Math.PI/4); ctx.fillRect(0,0,20,H*2); ctx.restore(); }
+        ctx.textAlign = 'left'; ctx.fillStyle = '#fff'; ctx.font = font('900', 38); ctx.fillText('SPORT TIME 10A', pad, 65);
+        ctx.fillStyle = '#c4b5fd'; ctx.font = font('900', 27); ctx.fillText('🆚 PLAYER COMPARISON', pad, 112);
+        ctx.fillStyle = '#cbd5e1'; ctx.font = font('600', 18); ctx.fillText(new Date().toLocaleDateString(), pad, 145);
+        const drawPlayerCard = (p, x, accent) => {
+            const y = 175, w = 540, h = 116;
+            ctx.fillStyle = 'rgba(255,255,255,.96)'; rr(x,y,w,h,20); ctx.fill();
+            ctx.fillStyle = accent; rr(x,y,9,h,5); ctx.fill();
+            ctx.textAlign = 'left'; ctx.fillStyle = '#64748b'; ctx.font = font('800',15); ctx.fillText('PLAYER',x+28,y+34);
+            ctx.fillStyle = '#0f172a'; ctx.font = font('900',27); ctx.fillText(`${getComparePlayerEmoji(p)} ${fit(p.name,w-56)}`,x+28,y+76);
+            const st = getPlayerCompareStats(p);
+            ctx.fillStyle = '#475569'; ctx.font = font('700',16); ctx.fillText(`⭐ ${formatRating(st.rating)} rating   ·   ⚽ ${st.goals} goals   ·   🅰️ ${st.assists} assists`,x+28,y+101);
+        };
+        drawPlayerCard(first, pad, '#6366f1'); drawPlayerCard(second, W-pad-540, '#0ea5e9');
+        ctx.save();
+        ctx.beginPath(); ctx.arc(W/2, 233, 23, 0, Math.PI*2);
+        ctx.fillStyle = '#4338ca'; ctx.fill();
+        ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(255,255,255,.95)'; ctx.stroke();
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.font = font('900', 24); ctx.fillStyle = '#fff'; ctx.fillText('🆚', W/2, 233);
+        ctx.restore();
+        const tableX = pad, tableW = W - pad*2, labelW = 500, valueW = (tableW-labelW)/2;
+        ctx.fillStyle = '#e2e8f0'; rr(tableX,tableTop,tableW,headerH,13); ctx.fill(); ctx.fillRect(tableX,tableTop+headerH-14,tableW,14);
+        ctx.fillStyle = '#475569'; ctx.font = font('900',18); ctx.textAlign = 'left'; ctx.fillText('STATISTICS',tableX+20,tableTop+39);
+        ctx.textAlign = 'center'; ctx.fillStyle = '#1e293b'; ctx.font = font('900',17);
+        ctx.fillText(`${getComparePlayerEmoji(first)} ${fit(first.name,valueW-24)}`,tableX+labelW+valueW/2,tableTop+39);
+        ctx.fillText(`${getComparePlayerEmoji(second)} ${fit(second.name,valueW-24)}`,tableX+labelW+valueW+valueW/2,tableTop+39);
+        const displayVal = (label,val) => label.includes('Rating') ? formatRating(val) : label.includes('Growth') ? fmtGrowth(val) : String(val);
+        rows.forEach(([label,av,bv,higher=true,compareAv=av,compareBv=bv],i) => {
+            const y = tableTop+headerH+i*rowH;
+            ctx.fillStyle = i%2 ? '#f8fafc' : '#fff'; ctx.fillRect(tableX,y,tableW,rowH);
+            const an=Number(compareAv)||0,bn=Number(compareBv)||0;
+            const aBetter = higher !== null && an!==bn && (higher ? an>bn : an<bn);
+            const bBetter = higher !== null && an!==bn && (higher ? bn>an : bn<an);
+            ctx.textAlign='left'; ctx.fillStyle='#334155'; ctx.font=font('750',18); ctx.fillText(label,tableX+20,y+35);
+            const drawVal = (val,cx,better) => { ctx.textAlign='center'; ctx.fillStyle=better?'#166534':'#0f172a'; ctx.font=font('900',20); if (better) { ctx.fillStyle='#dcfce7'; rr(cx-valueW*.31,y+9,valueW*.62,rowH-18,10); ctx.fill(); ctx.fillStyle='#166534'; } ctx.fillText(displayVal(label,val),cx,y+36); };
+            drawVal(av,tableX+labelW+valueW/2,aBetter); drawVal(bv,tableX+labelW+valueW+valueW/2,bBetter);
+            ctx.strokeStyle='#e2e8f0'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(tableX,y+rowH); ctx.lineTo(tableX+tableW,y+rowH); ctx.stroke();
+        });
+        ctx.textAlign='center'; ctx.fillStyle='rgba(255,255,255,.75)'; ctx.font=font('700',19); ctx.fillText('Sport Time 10A  ·  Head-to-head stats',W/2,H-30);
+        return await new Promise(resolve => canvas.toBlob(resolve,'image/png'));
     }
 
     function closeCompare() {
