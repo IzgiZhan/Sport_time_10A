@@ -649,7 +649,9 @@
         .compare-heading-title { font-size:19px; font-weight:950; letter-spacing:-.03em; }
         .compare-heading-sub { margin-top:3px; color:var(--text-sub); font-size:12px; }
         .compare-player-strip { display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:10px; margin:0 0 16px; padding:12px; border-radius:15px; background:var(--input-bg); border:1px solid var(--card-border); font-weight:850; overflow-wrap:anywhere; }
-        .compare-strip-player { display:inline-flex; align-items:center; justify-content:center; gap:6px; min-width:0; overflow-wrap:anywhere; }
+        .compare-strip-player { display:flex; flex:1; flex-direction:column; align-items:center; justify-content:center; gap:8px; min-width:0; overflow-wrap:anywhere; text-align:center; }
+        .compare-player-details { display:flex; flex-wrap:wrap; justify-content:center; gap:8px; color:var(--text-sub); font-size:13px; font-weight:750; }
+        .compare-player-roles { color:var(--text-main); font-size:13px; font-weight:800; }
         .compare-vs-badge { display:inline-grid; place-items:center; flex:0 0 auto; min-width:0; height:auto; padding:0; box-sizing:border-box; border-radius:0; background:transparent; color:inherit; font-size:20px; line-height:1; box-shadow:none; }
         .compare-player-dot { width:8px; height:8px; border-radius:50%; background:#8b5cf6; flex:0 0 8px; box-shadow:0 0 0 4px rgba(139,92,246,.13); }
         .compare-field-label { display:block; margin:0 0 8px; color:var(--text-sub); font-size:10px; font-weight:900; letter-spacing:.1em; }
@@ -1258,14 +1260,14 @@
             document.body.appendChild(overlay);
             overlay.addEventListener('click', e => { if (e.target === overlay) closeCompare(); });
         }
-        document.getElementById('compareFirstName').innerHTML = `<span class="compare-name-emoji">${getComparePlayerEmoji(first)}</span><span>${esc(first.name)}</span>`;
+        document.getElementById('compareFirstName').innerHTML = `<span class="compare-name-group"><span class="compare-name-emoji">${getComparePlayerEmoji(first)}</span><span>${esc(first.name)}</span></span><span class="compare-player-details"><span>⭐ ${formatRating(first.rating)}</span><span>⚡ ${esc(first.speed || 3)}</span></span><span class="compare-player-roles">${esc(getComparePlayerPositions(first))}</span>`;
         const select = document.getElementById('comparePlayerSelect');
         const others = playersData.filter(p => String(p.id) !== String(first.id));
         select.innerHTML = others.map(p => `<option value="${String(p.id).replace(/"/g, '&quot;')}">${getComparePlayerEmoji(p)} ${esc(p.name)}</option>`).join('');
         const render = () => {
             const second = playersData.find(p => String(p.id) === select.value);
             if (!second) { document.getElementById('compareSecondName').textContent = 'Choose player'; document.getElementById('compareResults').innerHTML = '<p>No other players to compare.</p>'; return; }
-            document.getElementById('compareSecondName').innerHTML = `<span class="compare-name-emoji">${getComparePlayerEmoji(second)}</span><span>${esc(second.name)}</span>`;
+            document.getElementById('compareSecondName').innerHTML = `<span class="compare-name-group"><span class="compare-name-emoji">${getComparePlayerEmoji(second)}</span><span>${esc(second.name)}</span></span><span class="compare-player-details"><span>⭐ ${formatRating(second.rating)}</span><span>⚡ ${esc(second.speed || 3)}</span></span><span class="compare-player-roles">${esc(getComparePlayerPositions(second))}</span>`;
             const a = getPlayerCompareStats(first), b = getPlayerCompareStats(second);
             const rows = [
                 ['📈 Growth', a.growth, b.growth, true],
@@ -1311,7 +1313,7 @@
     await document.fonts.ready;
 
     const W = 1080, pad = 56;
-    const cardTop = 200, cardH = 236, cardGap = 40;
+    const cardTop = 200, cardH = 320, cardGap = 40;
     const cw = (W - pad * 2 - cardGap) / 2;
     const tableTop = cardTop + cardH + 36, headH = 84, rowH = 88;
     const tableW = W - pad * 2, labelW = 368, valW = (tableW - labelW) / 2;
@@ -1348,6 +1350,14 @@
             { e: '⭐', size: 26 }, { t: formatRating(st.rating), font: SF('800', 24), color: '#4a5568' },
             { e: '⚡', size: 26 }, { t: String(st.speed), font: SF('800', 24), color: '#4a5568' }
         ], cx, cardTop + 202, 'center', 8);
+        const roleIcons = { FWD: '⚽', DEF: '🛡️', GK: '🧤' };
+        const roles = Array.isArray(p.roles) ? p.roles : [];
+        const roleParts = roles.flatMap(role => [
+            { e: roleIcons[role] || '👤', size: 24 },
+            { t: String(role), font: SF('800', 22), color: '#4a5568' }
+        ]);
+        if (roleParts.length) shareInline(x, roleParts, cx, cardTop + 261, 'center', 8);
+        else { x.fillStyle = '#4a5568'; x.font = SF('800', 22); x.textAlign = 'center'; x.fillText('—', cx, cardTop + 261); }
     };
     drawPlayer(first, pad, A);
     drawPlayer(second, pad + cw + cardGap, B);
