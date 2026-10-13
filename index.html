@@ -4319,7 +4319,6 @@ function syncAllGoalRows(saved) {
             const player = playersData.find(p => String(p.id) === String(member && member.id));
             return String((player && player.name) || (member && member.name) || 'Unknown player');
         };
-        const totalPlayers = teams.reduce((sum, team) => sum + (Array.isArray(team.players) ? team.players.length : 0), 0);
 
         subtitle.textContent = teams.length ? 'Every squad, clearly organized in one place' : 'Team line-ups will appear here';
         summary.innerHTML = teams.length
@@ -4360,196 +4359,80 @@ function syncAllGoalRows(saved) {
     }
 
     async function buildRostersImage() {
-        // Keep the roster order exactly as shown in the teams setup; never sort by points or results.
+        // Same visual system as the other Share images; each team gets an equal-sized card.
         const teams = Array.isArray(activeTeams) ? [...activeTeams] : [];
         const logos = await Promise.all(teams.map(t => loadLogo(t.logo || defaultLogo)));
-        const F = (w, size) => `${w} ${size}px Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif`;
-        const W = 1400, pad = 42, gap = 26, colW = (W - pad * 2 - gap) / 2;
-        const top = 250, headerH = 88, rowH = 68, bottomPad = 16, rowGap = 22;
-        const totalPlayers = teams.reduce((sum, team) => sum + (Array.isArray(team.players) ? team.players.length : 0), 0);
-        const dateText = new Date().toLocaleDateString();
-        const palette = ['#2563EB', '#16A34A', '#EA580C', '#DC2626', '#7C3AED', '#0F766E'];
-        const nameOf = member => {
-            const player = playersData.find(p => String(p.id) === String(member && member.id));
-            return String((player && player.name) || (member && member.name) || 'Unknown player');
+        await document.fonts.ready;
+        const W = 1080, pad = 44, gap = 22, colW = (W - pad * 2 - gap) / 2;
+        const headerH = 78, rowH = 64, cardGap = 22, top = 180, footerH = 76;
+        const F = (w, size) => SF(w, size);
+        const getPlayer = member => playersData.find(p => String(p.id) === String(member && member.id));
+        const getName = member => { const p = getPlayer(member); return String((p && p.name) || (member && member.name) || 'Unknown player'); };
+        const entries = teams.map((team, i) => ({team, number:i+1, logo:logos[i], players:(Array.isArray(team.players)?team.players:[])}));
+        const rows = entries.map(e => Math.max(1,e.players.length));
+        const maxRowsPerPair = [];
+        for(let i=0;i<rows.length;i+=2) maxRowsPerPair.push(Math.max(rows[i] || 1, rows[i+1] || 0));
+        const heights = rows.map((n,i) => headerH + (maxRowsPerPair[Math.floor(i/2)] || n)*rowH + 18);
+        const rowHeights = [];
+        for(let i=0;i<entries.length;i+=2) rowHeights.push(Math.max(heights[i], heights[i+1] || 0));
+        let H = top + rowHeights.reduce((sum,h)=>sum+h+cardGap,0) - (rowHeights.length?cardGap:0) + footerH;
+        H = Math.max(H, 520);
+        const c = document.createElement('canvas'); c.width=W; c.height=H;
+        const x = c.getContext('2d'); if(!x) throw new Error('Canvas is not supported');
+        shareBackground(x,W,H);
+        shareHeader(x,W,pad,'TEAM LINE-UPS');
+        // Keep the roster clean: no crowded team/player summary strip.
+        const palette=['#1D4ED8','#15803D','#C2410C','#B91C1C','#6D28D9','#0E7490'];
+        const drawLogo=(img,cx,cy,size)=>{
+            x.fillStyle='#EFF6FF'; shareRR(x,cx-size/2,cy-size/2,size,size,12); x.fill();
+            if(img){const iw=img.width||size,ih=img.height||size,k=Math.min((size-10)/iw,(size-10)/ih);x.drawImage(img,cx-iw*k/2,cy-ih*k/2,iw*k,ih*k);}
+            else {x.textAlign='center';x.fillStyle='#2563EB';x.font=F('800',24);x.fillText('⚽',cx,cy);}
         };
-        const data = teams.map((team, index) => ({
-            team,
-            teamNumber: index + 1,
-            logo: logos[index],
-            color: palette[index % palette.length],
-            names: (Array.isArray(team.players) ? team.players : []).map(nameOf).filter(Boolean)
-        }));
-        const c = document.createElement('canvas');
-        const x = c.getContext('2d');
-        if (!x) throw new Error('Canvas is not supported');
-        const rr = (X, Y, w, h, r) => {
-            x.beginPath();
-            x.moveTo(X + r, Y); x.arcTo(X + w, Y, X + w, Y + h, r);
-            x.arcTo(X + w, Y + h, X, Y + h, r); x.arcTo(X, Y + h, X, Y, r);
-            x.closePath();
-        };
-        const fillRound = (X, Y, w, h, r, color) => {
-            x.fillStyle = color; rr(X, Y, w, h, r); x.fill();
-        };
-        const fitText = (text, maxWidth, font) => {
-            let value = String(text || '');
-            x.font = font;
-            if (x.measureText(value).width <= maxWidth) return value;
-            while (value.length > 2 && x.measureText(value + '…').width > maxWidth) value = value.slice(0, -1);
-            return value + '…';
-        };
-        const drawLogo = (img, cx, cy, boxSize) => {
-            fillRound(cx - boxSize / 2, cy - boxSize / 2, boxSize, boxSize, 14, '#FFFFFF');
-            x.strokeStyle = 'rgba(14,35,61,.13)'; x.lineWidth = 1.5;
-            rr(cx - boxSize / 2, cy - boxSize / 2, boxSize, boxSize, 14); x.stroke();
-            if (!img) {
-                x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillStyle = '#1769AA'; x.font = F('800', 26);
-                x.fillText('⚽', cx, cy + 1); x.textBaseline = 'alphabetic';
-                return;
+        const drawTeam=(e,index,cy,cardH)=>{
+            const cx=pad+(index%2)*(colW+gap), color=palette[index%palette.length];
+            shareCard(x,cx,cy,colW,cardH,22,'#FFFFFF');
+            // Solid, familiar team color; the header and roster rows have straight aligned edges.
+            x.save(); shareRR(x,cx,cy,colW,headerH,22); x.clip(); x.fillStyle=color; x.fillRect(cx,cy,colW,headerH); x.restore();
+            drawLogo(e.logo,cx+42,cy+headerH/2,48);
+            x.textAlign='left';x.textBaseline='middle';x.fillStyle='#FFFFFF';x.font=F('900',20);
+            const teamName=shareFit(x,`${e.number}. ${e.team.name||'Unnamed team'}`,colW-190);
+            x.fillText(teamName,cx+76,cy+headerH/2);
+            x.textAlign='right';x.fillStyle='#FFFFFF';x.font=F('850',12);x.fillText('⭐ RATINGS',cx+colW-14,cy+headerH/2);
+            const listTop=cy+headerH;
+            const pairMaxRows = maxRowsPerPair[Math.floor(index/2)] || 1;
+            if(!e.players.length){
+                x.fillStyle='#F8FAFC';x.fillRect(cx+1,listTop,colW-2,rowH);
+                x.textAlign='left';x.fillStyle='#64748B';x.font=F('600',16);x.fillText('No players assigned yet',cx+20,listTop+rowH/2);
+                x.strokeStyle='#D1D5DB';x.lineWidth=1;x.beginPath();x.moveTo(cx+16,listTop+rowH);x.lineTo(cx+colW-16,listTop+rowH);x.stroke();
             }
-            const iw = img.width || boxSize, ih = img.height || boxSize;
-            const scale = Math.min((boxSize - 12) / iw, (boxSize - 12) / ih);
-            const dw = iw * scale, dh = ih * scale;
-            x.drawImage(img, cx - dw / 2, cy - dh / 2, dw, dh);
-        };
-        const rowsFor = (entry, fullWidth) => {
-            const n = Math.max(entry.names.length, 1);
-            return fullWidth ? Math.ceil(n / 2) : n;
-        };
-        const cardHeight = (entry, fullWidth = false) => headerH + rowsFor(entry, fullWidth) * rowH + bottomPad;
-        const layout = [];
-        let y = top;
-        for (let i = 0; i < data.length; i += 2) {
-            const left = data[i], right = data[i + 1];
-            const rowHgt = right ? Math.max(cardHeight(left), cardHeight(right)) : cardHeight(left, true);
-            layout.push({ entry: left, x: pad, y, width: right ? colW : W - pad * 2, fullWidth: !right });
-            if (right) layout.push({ entry: right, x: pad + colW + gap, y, width: colW, fullWidth: false });
-            y += rowHgt + rowGap;
-        }
-        const footerH = 70;
-        const H = (data.length ? y - rowGap : top) + footerH;
-        c.width = W; c.height = H;
-
-        // Premium navy background with crisp cyan/lime accents.
-        x.fillStyle = '#F1F5F9'; x.fillRect(0, 0, W, H);
-        x.fillStyle = '#E2E8F0'; x.fillRect(0, 0, W, 224);
-        x.fillStyle = '#CBD5E1'; x.fillRect(0, 222, W, 2);
-
-        // Brand pill + clear title.
-        fillRound(pad, 35, 264, 44, 22, '#DBEAFE');
-        x.strokeStyle = '#BFDBFE'; x.lineWidth = 1; rr(pad, 35, 264, 44, 22); x.stroke();
-        x.textAlign = 'left'; x.textBaseline = 'middle'; x.fillStyle = '#1D4ED8'; x.font = F('900', 18);
-        x.fillText('🏟️  SPORT TIME 10A', pad + 18, 57); x.textBaseline = 'alphabetic';
-        x.fillStyle = '#0F172A'; x.font = F('900', 62); x.fillText('⚽ TEAM LINE-UPS', pad, 139);
-        x.fillStyle = '#475569'; x.font = F('650', 24);
-        x.fillText(`${teams.length} ${teams.length === 1 ? 'team' : 'teams'}   ·   ${totalPlayers} ${totalPlayers === 1 ? 'player' : 'players'}`, pad + 2, 184);
-        fillRound(pad, 208, 96, 6, 3, '#2563EB');
-        fillRound(pad + 104, 208, 45, 6, 3, '#16A34A');
-        fillRound(W - pad - 242, 48, 242, 58, 18, '#FFFFFF');
-        x.strokeStyle = '#CBD5E1'; rr(W - pad - 242, 48, 242, 58, 18); x.stroke();
-        x.textAlign = 'center'; x.fillStyle = '#0F172A'; x.font = F('850', 17);
-        x.fillText(dateText, W - pad - 121, 72);
-        x.fillStyle = '#2563EB'; x.font = F('700', 13); x.fillText('OFFICIAL SQUAD SHEET', W - pad - 121, 93);
-
-        const drawCard = ({ entry, x: cx, y: cy, width, fullWidth }) => {
-            const { team, teamNumber, logo, color, names } = entry;
-            const members = Array.isArray(team.players) ? team.players : [];
-            const ratings = members.map(member => {
-                const player = playersData.find(p => String(p.id) === String(member && member.id));
-                return player && Number.isFinite(Number(player.rating)) ? Number(player.rating) : null;
-            }).filter(value => value !== null);
-            const teamRating = ratings.length ? (ratings.reduce((sum, value) => sum + value, 0) / ratings.length).toFixed(2).replace(/\.?0+$/, '') : '—';
-            const h = cardHeight(entry, fullWidth);
-            // Soft shadow, white card, thin precise border.
-            x.save(); x.shadowColor = 'rgba(0,0,0,.22)'; x.shadowBlur = 18; x.shadowOffsetY = 7;
-            fillRound(cx, cy, width, h, 21, '#FFFFFF'); x.restore();
-            x.strokeStyle = '#D1D5DB'; x.lineWidth = 1.5; rr(cx, cy, width, h, 21); x.stroke();
-            // Team-color header.
-            x.save(); rr(cx + 1, cy + 1, width - 2, headerH, 20); x.clip();
-            x.fillStyle = color; x.fillRect(cx, cy, width, headerH);
-            x.restore();
-            drawLogo(logo, cx + 48, cy + headerH / 2, 56);
-            const countText = `${names.length} ${names.length === 1 ? 'PLAYER' : 'PLAYERS'}`;
-            const countW = 116, ratingW = 132;
-            // The team rating stays close to the team name; the player count gets its own line.
-            fillRound(cx + width - ratingW - 12, cy + 13, ratingW, 30, 8, 'rgba(255,255,255,.20)');
-            x.strokeStyle = 'rgba(255,255,255,.48)'; x.lineWidth = 1; rr(cx + width - ratingW - 12, cy + 13, ratingW, 30, 8); x.stroke();
-            x.textBaseline = 'middle'; x.textAlign = 'center'; x.fillStyle = '#FFFFFF'; x.font = F('900', 12);
-            x.fillText(`⭐ Rating ${teamRating}`, cx + width - ratingW / 2 - 12, cy + 28); x.textBaseline = 'alphabetic';
-            fillRound(cx + width - countW - 12, cy + 51, countW, 27, 8, 'rgba(255,255,255,.20)');
-            x.strokeStyle = 'rgba(255,255,255,.48)'; rr(cx + width - countW - 12, cy + 51, countW, 27, 8); x.stroke();
-            x.textBaseline = 'middle'; x.textAlign = 'center'; x.fillStyle = '#FFFFFF'; x.font = F('850', 11);
-            x.fillText(`👥 ${countText}`, cx + width - countW / 2 - 12, cy + 64); x.textBaseline = 'alphabetic';
-            const nameFont = F('900', 25);
-            const maxTeamNameW = width - 56 - 56 - ratingW - 35;
-            x.textAlign = 'left'; x.fillStyle = '#FFFFFF'; x.font = nameFont;
-            x.fillText(fitText(`${teamNumber}. ${team.name || 'Unnamed team'}`, maxTeamNameW, nameFont), cx + 84, cy + 42);
-            // Roster rows: strict grid, numbered in roster order, with crisp dividers.
-            const listTop = cy + headerH;
-            const rowCount = rowsFor(entry, fullWidth);
-            for (let r = 0; r < rowCount; r++) {
-                const yy = listTop + r * rowH;
-                x.fillStyle = r % 2 === 0 ? '#F3F4F6' : '#FFFFFF';
-                x.fillRect(cx + 1, yy, width - 2, rowH);
-                if (fullWidth && !names.length && r === 0) {
-                    x.textAlign = 'left'; x.fillStyle = '#71849A'; x.font = F('650', 19);
-                    x.fillText('👤  No players assigned yet', cx + 24, yy + 30);
-                } else if (fullWidth) {
-                    const halfGap = 28, innerPad = 24, nameColW = (width - innerPad * 2 - halfGap) / 2;
-                    [r * 2, r * 2 + 1].forEach((idx, column) => {
-                        if (idx >= names.length) return;
-                        const ix = cx + innerPad + column * (nameColW + halfGap);
-                        if (column === 1) { x.strokeStyle = '#D1D5DB'; x.lineWidth = 1; x.beginPath(); x.moveTo(cx + width / 2, yy + 9); x.lineTo(cx + width / 2, yy + rowH - 9); x.stroke(); }
-                        fillRound(ix, yy + 8, 34, 32, 10, '#E4F5F8');
-                        x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillStyle = '#087E8B'; x.font = F('900', 12);
-                        x.fillText(String(idx + 1), ix + 17, yy + 24); x.textBaseline = 'alphabetic';
-                        x.textAlign = 'center'; x.font = F('800', 18); x.fillText('👤', ix + 50, yy + 28);
-                        x.textAlign = 'left'; x.fillStyle = '#17324B'; x.font = F('750', 20);
-                        const member = (Array.isArray(entry.team.players) ? entry.team.players : [])[idx];
-                        const player = playersData.find(p => String(p.id) === String(member && member.id));
-                        const rating = player && Number.isFinite(Number(player.rating)) ? formatRating(Number(player.rating)) : '—';
-                        x.fillText(fitText(names[idx], nameColW - 120, F('750', 20)), ix + 72, yy + 27);
-                        x.textAlign = 'left'; x.fillStyle = '#B45309'; x.font = F('850', 15); x.fillText(`⭐ ${rating}`, ix + 72, yy + 51);
-                    });
-                } else if (r < names.length) {
-                    fillRound(cx + 20, yy + 8, 34, 32, 10, '#E4F5F8');
-                    x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillStyle = '#087E8B'; x.font = F('900', 12);
-                    x.fillText(String(r + 1), cx + 37, yy + 24); x.textBaseline = 'alphabetic';
-                    x.textAlign = 'center'; x.font = F('800', 18); x.fillText('👤', cx + 72, yy + 28);
-                    x.textAlign = 'left'; x.fillStyle = '#17324B'; x.font = F('750', 20);
-                    const member = (Array.isArray(entry.team.players) ? entry.team.players : [])[r];
-                    const player = playersData.find(p => String(p.id) === String(member && member.id));
-                    const rating = player && Number.isFinite(Number(player.rating)) ? formatRating(Number(player.rating)) : '—';
-                    x.fillText(fitText(names[r], width - 126, F('750', 20)), cx + 94, yy + 27);
-                    x.textAlign = 'left'; x.fillStyle = '#B45309'; x.font = F('850', 15); x.fillText(`⭐ ${rating}`, cx + 94, yy + 51);
-                } else if (!names.length && r === 0) {
-                    x.textAlign = 'left'; x.fillStyle = '#71849A'; x.font = F('650', 19);
-                    x.fillText('👤  No players assigned yet', cx + 24, yy + 30);
-                }
-                x.strokeStyle = '#D1D5DB'; x.lineWidth = 1.25;
-                x.beginPath(); x.moveTo(cx + 16, yy + rowH); x.lineTo(cx + width - 16, yy + rowH); x.stroke();
+            e.players.forEach((member,j)=>{
+                const yy=listTop+j*rowH;
+                x.fillStyle=j%2===0?'#F8FAFC':'#FFFFFF';x.fillRect(cx+1,yy,colW-2,rowH);
+                x.fillStyle='#DBEAFE';shareRR(x,cx+15,yy+16,32,32,9);x.fill();
+                x.textAlign='center';x.fillStyle='#1D4ED8';x.font=F('900',14);x.fillText(String(j+1),cx+31,yy+32);
+                x.textAlign='left';x.fillStyle='#1F2937';x.font=F('750',17);
+                x.fillText(shareFit(x,getName(member),colW-190),cx+58,yy+rowH/2);
+                const pl=getPlayer(member); const rating=pl&&Number.isFinite(Number(pl.rating))?formatRating(Number(pl.rating)):'—';
+                // Rating value sits at the right edge; the RATINGS label appears only in the team header.
+                x.textAlign='right';x.textBaseline='middle';x.fillStyle='#92400E';x.font=F('850',16);x.fillText(`⭐ ${rating}`,cx+colW-16,yy+rowH/2);
+                x.strokeStyle='#D1D5DB';x.lineWidth=1;x.beginPath();x.moveTo(cx+16,yy+rowH);x.lineTo(cx+colW-16,yy+rowH);x.stroke();
+            });
+            for(let j=e.players.length || 1;j<pairMaxRows;j++){
+                const yy=listTop+j*rowH;
+                x.fillStyle=j%2===0?'#F8FAFC':'#FFFFFF';x.fillRect(cx+1,yy,colW-2,rowH);
+                x.strokeStyle='#D1D5DB';x.lineWidth=1;x.beginPath();x.moveTo(cx+16,yy+rowH);x.lineTo(cx+colW-16,yy+rowH);x.stroke();
             }
-            // Accent rail at the base makes each card finish at the same clean edge.
-            fillRound(cx + 20, cy + h - 5, width - 40, 3, 2, color);
+            x.fillStyle=color;x.fillRect(cx+18,cy+cardH-4,colW-36,4);
         };
-        if (!teams.length) {
-            fillRound(pad, top, W - pad * 2, 170, 22, '#FFFFFF');
-            x.textAlign = 'center'; x.fillStyle = '#17324B'; x.font = F('850', 30);
-            x.fillText('No teams yet', W / 2, top + 70);
-            x.fillStyle = '#71849A'; x.font = F('600', 20); x.fillText('Start a tournament to display the squads.', W / 2, top + 108);
-        } else {
-            layout.forEach(drawCard);
+        let cy=top;
+        for(let i=0;i<entries.length;i+=2){
+            const cardH=Math.max(heights[i],heights[i+1]||0);
+            drawTeam(entries[i],i,cy,cardH);
+            if(entries[i+1]) drawTeam(entries[i+1],i+1,cy,cardH);
+            cy+=cardH+cardGap;
         }
-        // Fine footer divider and signature.
-        const fy = H - 42;
-        x.strokeStyle = '#CBD5E1'; x.lineWidth = 1;
-        x.beginPath(); x.moveTo(pad, fy - 16); x.lineTo(W - pad, fy - 16); x.stroke();
-        x.textAlign = 'left'; x.fillStyle = '#64748B'; x.font = F('700', 15);
-        x.fillText('SPORT TIME 10A  ·  TEAM LINE-UPS', pad, fy + 7);
-        x.textAlign = 'right'; x.fillStyle = '#2563EB'; x.font = F('850', 15);
-        x.fillText('PLAY AS ONE', W - pad, fy + 7);
-        return await new Promise(resolve => c.toBlob(resolve, 'image/png'));
+        shareFooter(x,W,H);
+        return await new Promise(resolve=>c.toBlob(resolve,'image/png'));
     }
 
     async function shareRosters() {
