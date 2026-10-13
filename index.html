@@ -467,6 +467,49 @@
         .btn-dark { background: var(--card-bg); border: 1px solid var(--card-border); color: var(--text-sub); margin-top: 30px; font-size: 12px; font-weight: 800; }
 
         .teams-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px; margin-bottom: 20px; }
+
+        /* Teams roster modal: a clean roster-only view, separate from standings and scorers */
+        .teams-open-btn { display:inline-flex; align-items:center; justify-content:center; gap:9px; flex:0 0 auto; border:1px solid rgba(59,130,246,.45); border-radius:12px; padding:10px 15px; background:linear-gradient(120deg,#2563eb 0%,#087eaa 100%); color:#fff; font-size:13px; font-weight:900; cursor:pointer; box-shadow:0 5px 14px rgba(37,99,235,.22); transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease; }
+        .teams-open-btn span { font-size:15px; transition:transform .16s ease; }
+        .teams-open-btn:hover { transform:translateY(-1px); box-shadow:0 8px 18px rgba(37,99,235,.28); border-color:rgba(34,211,238,.8); }
+        .teams-open-btn:disabled { opacity:.7; cursor:wait; transform:none; box-shadow:none; }
+        .teams-open-btn:hover span { transform:translate(2px,-2px); }
+        .teams-roster-overlay { position:fixed; inset:0; z-index:10019; display:none; align-items:center; justify-content:center; padding:18px; background:rgba(5,10,24,.76); -webkit-backdrop-filter:blur(9px); backdrop-filter:blur(9px); }
+        .teams-roster-overlay.open { display:flex; animation:teamsRosterFade .18s ease-out; }
+        @keyframes teamsRosterFade { from { opacity:0; } to { opacity:1; } }
+        .teams-roster-dialog { display:flex; flex-direction:column; width:min(960px,100%); max-height:min(88vh,900px); overflow:hidden; border:1px solid var(--card-border); border-radius:25px; background:var(--card-bg); color:var(--text-main); box-shadow:0 28px 90px rgba(0,0,0,.45); animation:teamsRosterRise .24s cubic-bezier(.2,.9,.3,1); }
+        @keyframes teamsRosterRise { from { transform:translateY(12px) scale(.985); } to { transform:translateY(0) scale(1); } }
+        .teams-roster-head { display:flex; align-items:center; justify-content:space-between; gap:14px; padding:22px 24px; color:#fff; background:linear-gradient(120deg,#10233d 0%,#174878 58%,#285bb8 100%); }
+        .teams-roster-head-main { display:flex; align-items:center; gap:14px; min-width:0; }
+        .teams-roster-head-icon { display:grid; place-items:center; width:48px; height:48px; flex:0 0 48px; border:1px solid rgba(255,255,255,.20); border-radius:16px; background:rgba(255,255,255,.12); font-size:25px; }
+        .teams-roster-title { font-size:22px; line-height:1.15; font-weight:950; letter-spacing:-.035em; }
+        .teams-roster-subtitle { margin-top:5px; color:rgba(255,255,255,.75); font-size:12px; font-weight:650; }
+        .teams-roster-close { display:grid; place-items:center; width:38px; height:38px; flex:0 0 38px; border:1px solid rgba(255,255,255,.22); border-radius:12px; background:rgba(255,255,255,.10); color:#fff; font-size:18px; cursor:pointer; transition:background .15s ease,transform .15s ease; }
+        .teams-roster-close:hover { background:rgba(255,255,255,.2); transform:rotate(4deg); }
+        .teams-roster-body { overflow-y:auto; padding:20px; }
+        .teams-roster-summary { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin:0 0 16px; }
+        .teams-roster-summary span { display:inline-flex; align-items:center; gap:7px; padding:7px 11px; border:1px solid var(--card-border); border-radius:999px; background:var(--input-bg); color:var(--text-sub); font-size:11px; font-weight:850; }
+        .teams-roster-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; align-items:start; }
+        .roster-team-card { min-width:0; overflow:hidden; border:1px solid var(--card-border); border-radius:18px; background:var(--card-bg); box-shadow:0 5px 16px rgba(0,0,0,.045); }
+        .roster-team-head { display:flex; align-items:center; gap:11px; min-height:68px; padding:14px 15px; border-bottom:1px solid var(--card-border); background:linear-gradient(110deg,var(--input-bg),var(--card-bg)); }
+        .roster-team-logo-wrap { display:grid; place-items:center; position:relative; width:42px; height:42px; flex:0 0 42px; padding:4px; border:1px solid var(--card-border); border-radius:14px; background:#fff; box-sizing:border-box; }
+        .roster-team-logo { width:100%; height:100%; object-fit:contain; }
+        .roster-team-logo-fallback { display:none; font-size:22px; }
+        .roster-team-name { min-width:0; flex:1; overflow-wrap:anywhere; font-size:15px; line-height:1.25; font-weight:950; letter-spacing:-.02em; color:var(--text-main); }
+        .roster-player-count { flex:0 0 auto; padding:5px 8px; border:1px solid rgba(49,130,206,.22); border-radius:9px; background:rgba(49,130,206,.10); color:var(--primary-blue); font-size:10px; font-weight:900; white-space:nowrap; }
+        .roster-player-list { display:grid; gap:0; padding:5px 12px 8px; }
+        .roster-player-row { display:flex; align-items:center; gap:10px; min-width:0; padding:10px 4px; border-bottom:1px solid var(--card-border); color:var(--text-main); font-size:13px; font-weight:750; line-height:1.35; overflow-wrap:anywhere; }
+        .roster-player-name { min-width:0; flex:1; overflow-wrap:anywhere; }
+        .roster-player-rating { flex:0 0 auto; padding:4px 7px; border-radius:8px; background:rgba(234,179,8,.12); color:#A16207; font-size:11px; font-weight:900; white-space:nowrap; }
+        .roster-player-row:last-child { border-bottom:0; }
+        .roster-player-dot { width:7px; height:7px; flex:0 0 7px; border-radius:50%; background:#3182ce; box-shadow:0 0 0 4px rgba(49,130,206,.11); }
+        .roster-empty { grid-column:1/-1; padding:36px 20px; border:1px dashed var(--card-border); border-radius:18px; color:var(--text-sub); text-align:center; background:var(--input-bg); }
+        .roster-empty-icon { margin-bottom:10px; font-size:32px; }
+        .roster-empty-title { color:var(--text-main); font-size:16px; font-weight:900; }
+        .roster-empty-text { margin-top:5px; font-size:12px; line-height:1.5; }
+        @media(max-width:640px) { .teams-roster-overlay { padding:9px; } .teams-roster-dialog { max-height:92vh; border-radius:19px; } .teams-roster-head { padding:16px; gap:8px; } .teams-roster-head-icon { width:40px; height:40px; flex-basis:40px; border-radius:13px; font-size:21px; } .teams-roster-title { font-size:19px; } .teams-roster-subtitle { font-size:11px; } .teams-roster-body { padding:12px; } .teams-roster-grid { grid-template-columns:1fr; gap:11px; } .roster-team-head { min-height:60px; } }
+        @media(max-width:380px) { .teams-open-btn { padding:9px 10px; font-size:12px; } .teams-roster-summary span { font-size:10px; } .roster-team-name { font-size:14px; } }
+
         .team-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
         .team-header { background: var(--input-bg); color: var(--text-main); padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; gap: 8px; border-bottom: 1px solid var(--card-border); }
         .team-header-title { display: flex; align-items: center; gap: 10px; flex: 1; }
@@ -630,10 +673,16 @@
         .pm-stat b.flat { color: var(--text-sub); }
         .pm-section { margin: 20px 0 10px; font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: .08em; color: var(--text-sub); }
         .pm-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
-        .pm-tile { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 12px 2px 10px; min-height: 92px; border-radius: 16px; background: var(--input-bg); border: 1px solid var(--card-border); text-align: center; }
+        .pm-tile { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px 2px 8px; min-height: 108px; border-radius: 16px; background: var(--input-bg); border: 1px solid var(--card-border); text-align: center; }
         .pm-tile i { font-style: normal; font-size: 20px; line-height: 1; }
         .pm-tile b { margin-top: 7px; font-size: 22px; font-weight: 900; line-height: 1; }
         .pm-tile span { margin-top: 6px; font-size: 9px; font-weight: 700; color: var(--text-sub); letter-spacing: -0.02em; white-space: nowrap; }
+        .pm-wdl { display: flex; justify-content: center; align-items: center; gap: 6px; margin-top: 5px; font-size: 9px; font-weight: 900; line-height: 1; white-space: nowrap; }
+        .pm-wdl span { margin: 0; padding: 0; font-size: inherit; font-weight: 900; letter-spacing: 0; color: inherit; }
+        .pm-wdl .pm-w { color: #16a34a; }
+        .pm-wdl .pm-d { color: #ca8a04; }
+        .pm-wdl .pm-l { color: #dc2626; }
+        .pm-wdl b { font-size: 9px; font-weight: 950; }
         .pm-close-btn { width: 100%; margin-top: 20px; padding: 14px; }
         .pm-actions .dlg-btn { min-width: 0; }
         .pm-actions .dlg-btn:disabled { opacity: .65; cursor: wait; }
@@ -804,6 +853,7 @@
     <div id="teamsTab" class="section">
         <div class="section-header" style="margin-top:0;">
             <span class="section-title">⚙️ Squads & Clubs</span>
+            <button type="button" id="teamsShareBtn" class="teams-open-btn" onclick="shareRosters()">⚽ Teams <span aria-hidden="true">📤</span></button>
         </div>
         <button id="balanceTeamsBtn" class="btn btn-blue" style="margin-top:0; margin-bottom: 20px;" onclick="balanceExistingTeams()">Balance teams</button>
         
@@ -812,7 +862,6 @@
         <div class="section-header">
             <span class="section-title">📊 League Standings</span>
             <span style="display:flex;gap:14px;">
-                <button onclick="shareRosters()" style="background:none;border:none;color:var(--primary-blue);font-size:13px;font-weight:900;cursor:pointer;">📋 Rosters</button>
                 <button onclick="shareResults()" style="background:none;border:none;color:var(--primary-blue);font-size:13px;font-weight:900;cursor:pointer;">📤 Share</button>
             </span>
         </div>
@@ -1156,15 +1205,19 @@
         const saved = allTimeStats[sid] || {};
 
         // --- finished tournaments: matches, tournaments and places come from History ---
-        let matches = 0, tournaments = 0;
+        let matches = 0, tournaments = 0, wins = 0, draws = 0, losses = 0;
         const places = [0, 0, 0];
         (allTimeStats.__history || []).forEach(h => {
             const ps = (h.playerStats || []).find(x => String(x.id) === sid);
             const names = new Set([p.name, ps && ps.name].filter(Boolean));
             const ti = (h.teams || []).findIndex(t => (t.players || []).some(n => names.has(n)));
             if (ti < 0) return;
+            const historyTeam = h.teams[ti];
             tournaments++;
-            matches += Number(h.teams[ti].mp) || 0;
+            matches += Number(historyTeam.mp) || 0;
+            wins += Number(historyTeam.w ?? historyTeam.win) || 0;
+            draws += Number(historyTeam.d ?? historyTeam.draw) || 0;
+            losses += Number(historyTeam.l ?? historyTeam.loss) || 0;
             if (ti < 3) places[ti]++;
         });
 
@@ -1172,7 +1225,17 @@
         const team = activeTeams.find(t => (t.players || []).some(tp => String(tp.id) === sid));
         if (team && activeMatches.some(m => m.played)) {
             tournaments++;
-            matches += activeMatches.filter(m => m.played && (m.t1 === team.id || m.t2 === team.id)).length;
+            const playerTeamMatches = activeMatches.filter(m => m.played && (String(m.t1) === String(team.id) || String(m.t2) === String(team.id)));
+            matches += playerTeamMatches.length;
+            playerTeamMatches.forEach(m => {
+                const teamIsFirst = String(m.t1) === String(team.id);
+                const ownScore = Number(teamIsFirst ? m.s1 : m.s2);
+                const opponentScore = Number(teamIsFirst ? m.s2 : m.s1);
+                if (!Number.isFinite(ownScore) || !Number.isFinite(opponentScore)) return;
+                if (ownScore > opponentScore) wins++;
+                else if (ownScore < opponentScore) losses++;
+                else draws++;
+            });
         }
 
         const goals = (Number(saved.goals) || 0) + (Number(p.goals) || 0);
@@ -1194,9 +1257,10 @@
         g.className = growth > 0 ? 'up' : growth < 0 ? 'down' : 'flat';
         document.getElementById('pmGrowthIcon').textContent = growth > 0 ? '📈' : growth < 0 ? '📉' : '➖';
 
-        const tile = (icon, v, label) => `<div class="pm-tile"><i>${icon}</i><b>${v}</b><span>${label}</span></div>`;
+        const wdlLine = `<div class="pm-wdl" aria-label="Match results: ${wins} wins, ${draws} draws, ${losses} losses"><span class="pm-w" data-count="${wins}"><b>W</b> ${wins}</span><span class="pm-d" data-count="${draws}"><b>D</b> ${draws}</span><span class="pm-l" data-count="${losses}"><b>L</b> ${losses}</span></div>`;
+        const tile = (icon, v, label, extra = '') => `<div class="pm-tile"><i>${icon}</i><b>${v}</b><span>${label}</span>${extra}</div>`;
         document.getElementById('pmStats').innerHTML =
-            tile('🏅', tournaments, 'Tournaments') + tile('🏟️', matches, 'Matches') + tile('⚽', goals, 'Goals') + tile('🅰️', assists, 'Assists') +
+            tile('🏅', tournaments, 'Tournaments') + tile('🏟️', matches, 'Matches', wdlLine) + tile('⚽', goals, 'Goals') + tile('🅰️', assists, 'Assists') +
             tile('🏆', mvp, 'MVP') + tile('🥇', places[0], '1st place') + tile('🥈', places[1], '2nd place') + tile('🥉', places[2], '3rd place');
 
         const ov = document.getElementById('playerModal');
@@ -1557,7 +1621,12 @@ function shareCard(ctx, x, y, w, h, r = 28, fill = '#fff') {
             stats: Array.from(modal.querySelectorAll('.pm-tile'), el => ({
                 icon: el.querySelector('i')?.textContent || '',
                 value: el.querySelector('b')?.textContent || '0',
-                label: el.querySelector('span')?.textContent || ''
+                label: el.querySelector(':scope > span')?.textContent || '',
+                wdl: el.querySelector('.pm-wdl') ? {
+                    w: Number(el.querySelector('.pm-w')?.dataset.count || 0),
+                    d: Number(el.querySelector('.pm-d')?.dataset.count || 0),
+                    l: Number(el.querySelector('.pm-l')?.dataset.count || 0)
+                } : null
             }))
         };
     }
@@ -1571,7 +1640,7 @@ function shareCard(ctx, x, y, w, h, r = 28, fill = '#fff') {
     const ratingTop = cardTop + cardH + 24, ratingH = 190;
     const titleY = ratingTop + ratingH + 52;
     const gridTop = titleY + 30;
-    const tileW = (W - pad * 2 - gap * 3) / 4, tileH = 176;
+    const tileW = (W - pad * 2 - gap * 3) / 4, tileH = 190;
     const rows = Math.ceil(data.stats.length / 4);
     const H = gridTop + rows * tileH + (rows - 1) * gap + 110;
 
@@ -1643,6 +1712,22 @@ function shareCard(ctx, x, y, w, h, r = 28, fill = '#fff') {
         x.fillText(shareFit(x, item.value, tileW - 20), cx, ty + 104);
         x.fillStyle = '#718096'; x.font = SF('700', 20);
         x.fillText(shareFit(x, item.label, tileW - 16), cx, ty + 146);
+        if (item.wdl) {
+            const resultParts = [
+                { text: `W ${item.wdl.w}`, color: '#16a34a' },
+                { text: `D ${item.wdl.d}`, color: '#ca8a04' },
+                { text: `L ${item.wdl.l}`, color: '#dc2626' }
+            ];
+            const resultGap = 18;
+            const resultWidths = resultParts.map(part => { x.font = SF('900', 16); return x.measureText(part.text).width; });
+            const totalResultWidth = resultWidths.reduce((sum, width) => sum + width, 0) + resultGap * 2;
+            let resultX = cx - totalResultWidth / 2;
+            resultParts.forEach((part, k) => {
+                x.fillStyle = part.color; x.font = SF('900', 16); x.textAlign = 'left';
+                x.fillText(part.text, resultX, ty + 174);
+                resultX += resultWidths[k] + resultGap;
+            });
+        }
     });
 
     shareFooter(x, W, H);
@@ -4201,101 +4286,290 @@ function syncAllGoalRows(saved) {
         return await new Promise(res => c.toBlob(res, 'image/png'));
     }
 
-    async function buildRostersImage() {
-        const teams = getSortedTeams();
-        const logos = await Promise.all(teams.map(t => loadLogo(t.logo || defaultLogo)));
-        const F = (w, s) => `${w} ${s}px Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif`;
-        const W = 1200, pad = 40, gap = 24, colW = (W - pad * 2 - gap) / 2, top = 230;
-        const nameOf = p => (playersData.find(x => x.id === p.id) || p).name;
-        const probe = document.createElement('canvas').getContext('2d');
-        probe.font = F('800', 26);
-        const fitW = colW - 60 - 130;
-        const fitName = t => { let s = String(t); while (s.length > 3 && probe.measureText(s).width > fitW) s = s.slice(0, -2); return s; };
-        const colLists = [[], []];
-        teams.forEach((t, i) => colLists[i % 2].push({ t, logo: logos[i], names: (t.players || []).map(p => fitName(nameOf(p))) }));
-        const rowH = 46, cardPad = 22, headH = 74;
-        const cardH = e => cardPad * 2 + headH + Math.max(e.names.length, 1) * rowH;
-        const colH = ci => colLists[ci].reduce((s, e) => s + cardH(e), 0) + Math.max(colLists[ci].length - 1, 0) * gap;
-        const H = top + Math.max(colH(0), colH(1)) + 90;
+    // Open a dedicated, roster-only view. No league rank, match table, or player leaderboard is shown here.
+    function openTeamsModal() {
+        const overlay = document.getElementById('teamsRosterModal');
+        if (!overlay) return;
+        renderTeamsRosterModal();
+        overlay.classList.add('open');
+        document.body.style.overflow = 'hidden';
+        document.addEventListener('keydown', teamsRosterEscapeKey);
+    }
 
+    function closeTeamsModal() {
+        const overlay = document.getElementById('teamsRosterModal');
+        if (overlay) overlay.classList.remove('open');
+        document.body.style.overflow = '';
+        document.removeEventListener('keydown', teamsRosterEscapeKey);
+    }
+
+    function teamsRosterEscapeKey(event) {
+        if (event.key === 'Escape') closeTeamsModal();
+    }
+
+    function renderTeamsRosterModal() {
+        const grid = document.getElementById('teamsRosterGrid');
+        const subtitle = document.getElementById('teamsRosterSubtitle');
+        const summary = document.getElementById('teamsRosterSummary');
+        if (!grid || !subtitle || !summary) return;
+
+        // Preserve the current team order; do not sort by points, place, or match results.
+        const teams = Array.isArray(activeTeams) ? activeTeams : [];
+        const getName = member => {
+            const player = playersData.find(p => String(p.id) === String(member && member.id));
+            return String((player && player.name) || (member && member.name) || 'Unknown player');
+        };
+        const totalPlayers = teams.reduce((sum, team) => sum + (Array.isArray(team.players) ? team.players.length : 0), 0);
+
+        subtitle.textContent = teams.length ? 'Every squad, clearly organized in one place' : 'Team line-ups will appear here';
+        summary.innerHTML = teams.length
+            ? `<span>👥 ${teams.length} ${teams.length === 1 ? 'team' : 'teams'}</span><span>⚽ ${totalPlayers} ${totalPlayers === 1 ? 'player' : 'players'}</span>`
+            : '';
+
+        if (!teams.length) {
+            grid.innerHTML = `<div class="roster-empty"><div class="roster-empty-icon">👥</div><div class="roster-empty-title">No teams yet</div><div class="roster-empty-text">Start a tournament to see each team's roster here.</div></div>`;
+            return;
+        }
+
+        grid.innerHTML = teams.map((team, index) => {
+            const members = Array.isArray(team.players) ? team.players : [];
+            const teamName = esc(team.name || `Team ${index + 1}`);
+            const logo = esc(team.logo || defaultLogo);
+            const names = members.map(getName).filter(Boolean);
+            const playerRows = members.map(member => {
+                const player = playersData.find(p => String(p.id) === String(member && member.id));
+                const name = String((player && player.name) || (member && member.name) || 'Unknown player');
+                const rating = player && Number.isFinite(Number(player.rating)) ? formatRating(Number(player.rating)) : '—';
+                return `<div class="roster-player-row"><span class="roster-player-dot" aria-hidden="true"></span><span class="roster-player-name">${esc(name)}</span><span class="roster-player-rating">⭐ ${esc(rating)}</span></div>`;
+            });
+            const playersHtml = playerRows.length
+                ? playerRows.join('')
+                : `<div class="roster-player-row" style="color:var(--text-sub);font-weight:650;">No players assigned</div>`;
+            return `<article class="roster-team-card">
+                <div class="roster-team-head">
+                    <div class="roster-team-logo-wrap">
+                        <img class="roster-team-logo" src="${logo}" alt="" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='grid';">
+                        <span class="roster-team-logo-fallback" aria-hidden="true">⚽</span>
+                    </div>
+                    <div class="roster-team-name">${teamName}</div>
+                    <span class="roster-player-count">${names.length} ${names.length === 1 ? 'PLAYER' : 'PLAYERS'}</span>
+                </div>
+                <div class="roster-player-list">${playersHtml}</div>
+            </article>`;
+        }).join('');
+    }
+
+    async function buildRostersImage() {
+        // Keep the roster order exactly as shown in the teams setup; never sort by points or results.
+        const teams = Array.isArray(activeTeams) ? [...activeTeams] : [];
+        const logos = await Promise.all(teams.map(t => loadLogo(t.logo || defaultLogo)));
+        const F = (w, size) => `${w} ${size}px Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif`;
+        const W = 1400, pad = 42, gap = 26, colW = (W - pad * 2 - gap) / 2;
+        const top = 250, headerH = 88, rowH = 68, bottomPad = 16, rowGap = 22;
+        const totalPlayers = teams.reduce((sum, team) => sum + (Array.isArray(team.players) ? team.players.length : 0), 0);
+        const dateText = new Date().toLocaleDateString();
+        const palette = ['#2563EB', '#16A34A', '#EA580C', '#DC2626', '#7C3AED', '#0F766E'];
+        const nameOf = member => {
+            const player = playersData.find(p => String(p.id) === String(member && member.id));
+            return String((player && player.name) || (member && member.name) || 'Unknown player');
+        };
+        const data = teams.map((team, index) => ({
+            team,
+            teamNumber: index + 1,
+            logo: logos[index],
+            color: palette[index % palette.length],
+            names: (Array.isArray(team.players) ? team.players : []).map(nameOf).filter(Boolean)
+        }));
         const c = document.createElement('canvas');
-        c.width = W; c.height = H;
         const x = c.getContext('2d');
+        if (!x) throw new Error('Canvas is not supported');
         const rr = (X, Y, w, h, r) => {
             x.beginPath();
             x.moveTo(X + r, Y); x.arcTo(X + w, Y, X + w, Y + h, r);
             x.arcTo(X + w, Y + h, X, Y + h, r); x.arcTo(X, Y + h, X, Y, r);
-            x.arcTo(X, Y, X + w, Y, r); x.closePath();
+            x.closePath();
         };
+        const fillRound = (X, Y, w, h, r, color) => {
+            x.fillStyle = color; rr(X, Y, w, h, r); x.fill();
+        };
+        const fitText = (text, maxWidth, font) => {
+            let value = String(text || '');
+            x.font = font;
+            if (x.measureText(value).width <= maxWidth) return value;
+            while (value.length > 2 && x.measureText(value + '…').width > maxWidth) value = value.slice(0, -1);
+            return value + '…';
+        };
+        const drawLogo = (img, cx, cy, boxSize) => {
+            fillRound(cx - boxSize / 2, cy - boxSize / 2, boxSize, boxSize, 14, '#FFFFFF');
+            x.strokeStyle = 'rgba(14,35,61,.13)'; x.lineWidth = 1.5;
+            rr(cx - boxSize / 2, cy - boxSize / 2, boxSize, boxSize, 14); x.stroke();
+            if (!img) {
+                x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillStyle = '#1769AA'; x.font = F('800', 26);
+                x.fillText('⚽', cx, cy + 1); x.textBaseline = 'alphabetic';
+                return;
+            }
+            const iw = img.width || boxSize, ih = img.height || boxSize;
+            const scale = Math.min((boxSize - 12) / iw, (boxSize - 12) / ih);
+            const dw = iw * scale, dh = ih * scale;
+            x.drawImage(img, cx - dw / 2, cy - dh / 2, dw, dh);
+        };
+        const rowsFor = (entry, fullWidth) => {
+            const n = Math.max(entry.names.length, 1);
+            return fullWidth ? Math.ceil(n / 2) : n;
+        };
+        const cardHeight = (entry, fullWidth = false) => headerH + rowsFor(entry, fullWidth) * rowH + bottomPad;
+        const layout = [];
+        let y = top;
+        for (let i = 0; i < data.length; i += 2) {
+            const left = data[i], right = data[i + 1];
+            const rowHgt = right ? Math.max(cardHeight(left), cardHeight(right)) : cardHeight(left, true);
+            layout.push({ entry: left, x: pad, y, width: right ? colW : W - pad * 2, fullWidth: !right });
+            if (right) layout.push({ entry: right, x: pad + colW + gap, y, width: colW, fullWidth: false });
+            y += rowHgt + rowGap;
+        }
+        const footerH = 70;
+        const H = (data.length ? y - rowGap : top) + footerH;
+        c.width = W; c.height = H;
 
-        const g = x.createLinearGradient(0, 0, W, H);
-        g.addColorStop(0, '#0f2742'); g.addColorStop(1, '#2b6cb0');
-        x.fillStyle = g; x.fillRect(0, 0, W, H);
-        x.fillStyle = 'rgba(255,255,255,0.05)';
-        for (let i = -H; i < W; i += 60) { x.save(); x.translate(i, 0); x.rotate(Math.PI / 4); x.fillRect(0, 0, 18, H * 2); x.restore(); }
+        // Premium navy background with crisp cyan/lime accents.
+        x.fillStyle = '#F1F5F9'; x.fillRect(0, 0, W, H);
+        x.fillStyle = '#E2E8F0'; x.fillRect(0, 0, W, 224);
+        x.fillStyle = '#CBD5E1'; x.fillRect(0, 222, W, 2);
 
-        x.textAlign = 'left'; x.fillStyle = '#fff'; x.font = F('900', 60);
-        x.fillText('SPORT TIME 10A', pad, 100);
-        x.fillStyle = '#90cdf4'; x.font = F('700', 32);
-        x.fillText(`📋 Team rosters  ·  Round ${currentDisplayedRound} of ${totalRounds}  ·  ${new Date().toLocaleDateString()}`, pad, 155);
-        x.fillStyle = '#f6e05e'; x.fillRect(pad, 180, 120, 6);
+        // Brand pill + clear title.
+        fillRound(pad, 35, 264, 44, 22, '#DBEAFE');
+        x.strokeStyle = '#BFDBFE'; x.lineWidth = 1; rr(pad, 35, 264, 44, 22); x.stroke();
+        x.textAlign = 'left'; x.textBaseline = 'middle'; x.fillStyle = '#1D4ED8'; x.font = F('900', 18);
+        x.fillText('🏟️  SPORT TIME 10A', pad + 18, 57); x.textBaseline = 'alphabetic';
+        x.fillStyle = '#0F172A'; x.font = F('900', 62); x.fillText('⚽ TEAM LINE-UPS', pad, 139);
+        x.fillStyle = '#475569'; x.font = F('650', 24);
+        x.fillText(`${teams.length} ${teams.length === 1 ? 'team' : 'teams'}   ·   ${totalPlayers} ${totalPlayers === 1 ? 'player' : 'players'}`, pad + 2, 184);
+        fillRound(pad, 208, 96, 6, 3, '#2563EB');
+        fillRound(pad + 104, 208, 45, 6, 3, '#16A34A');
+        fillRound(W - pad - 242, 48, 242, 58, 18, '#FFFFFF');
+        x.strokeStyle = '#CBD5E1'; rr(W - pad - 242, 48, 242, 58, 18); x.stroke();
+        x.textAlign = 'center'; x.fillStyle = '#0F172A'; x.font = F('850', 17);
+        x.fillText(dateText, W - pad - 121, 72);
+        x.fillStyle = '#2563EB'; x.font = F('700', 13); x.fillText('OFFICIAL SQUAD SHEET', W - pad - 121, 93);
 
-        const medal = ['#d69e2e', '#a0aec0', '#dd6b20'];
-        colLists.forEach((list, ci) => {
-            let y = top;
-            list.forEach(e => {
-                const h = cardH(e), cx = pad + ci * (colW + gap);
-                x.fillStyle = '#fff'; rr(cx, y, colW, h, 24); x.fill();
-                const place = teams.indexOf(e.t);
-                x.fillStyle = medal[place] || '#e2e8f0';
-                x.beginPath(); x.arc(cx + cardPad + 24, y + cardPad + 26, 22, 0, Math.PI * 2); x.fill();
-                x.fillStyle = place < 3 ? '#fff' : '#4a5568'; x.font = F('900', 24); x.textAlign = 'center';
-                x.fillText(String(place + 1), cx + cardPad + 24, y + cardPad + 35);
-                if (e.logo) {
-                    const lx = cx + cardPad + 84, lcy = y + cardPad + 26;
-                    x.save(); x.beginPath(); x.arc(lx, lcy, 26, 0, Math.PI * 2); x.clip();
-                    x.fillStyle = '#fff'; x.fillRect(lx - 26, lcy - 26, 52, 52);
-                    const r = Math.min(46 / (e.logo.width || 46), 46 / (e.logo.height || 46));
-                    const w = (e.logo.width || 46) * r, hh = (e.logo.height || 46) * r;
-                    x.drawImage(e.logo, lx - w / 2, lcy - hh / 2, w, hh);
-                    x.restore();
-                    x.strokeStyle = '#e2e8f0'; x.lineWidth = 2;
-                    x.beginPath(); x.arc(lx, lcy, 26, 0, Math.PI * 2); x.stroke();
+        const drawCard = ({ entry, x: cx, y: cy, width, fullWidth }) => {
+            const { team, teamNumber, logo, color, names } = entry;
+            const members = Array.isArray(team.players) ? team.players : [];
+            const ratings = members.map(member => {
+                const player = playersData.find(p => String(p.id) === String(member && member.id));
+                return player && Number.isFinite(Number(player.rating)) ? Number(player.rating) : null;
+            }).filter(value => value !== null);
+            const teamRating = ratings.length ? (ratings.reduce((sum, value) => sum + value, 0) / ratings.length).toFixed(2).replace(/\.?0+$/, '') : '—';
+            const h = cardHeight(entry, fullWidth);
+            // Soft shadow, white card, thin precise border.
+            x.save(); x.shadowColor = 'rgba(0,0,0,.22)'; x.shadowBlur = 18; x.shadowOffsetY = 7;
+            fillRound(cx, cy, width, h, 21, '#FFFFFF'); x.restore();
+            x.strokeStyle = '#D1D5DB'; x.lineWidth = 1.5; rr(cx, cy, width, h, 21); x.stroke();
+            // Team-color header.
+            x.save(); rr(cx + 1, cy + 1, width - 2, headerH, 20); x.clip();
+            x.fillStyle = color; x.fillRect(cx, cy, width, headerH);
+            x.restore();
+            drawLogo(logo, cx + 48, cy + headerH / 2, 56);
+            const countText = `${names.length} ${names.length === 1 ? 'PLAYER' : 'PLAYERS'}`;
+            const countW = 116, ratingW = 132;
+            // The team rating stays close to the team name; the player count gets its own line.
+            fillRound(cx + width - ratingW - 12, cy + 13, ratingW, 30, 8, 'rgba(255,255,255,.20)');
+            x.strokeStyle = 'rgba(255,255,255,.48)'; x.lineWidth = 1; rr(cx + width - ratingW - 12, cy + 13, ratingW, 30, 8); x.stroke();
+            x.textBaseline = 'middle'; x.textAlign = 'center'; x.fillStyle = '#FFFFFF'; x.font = F('900', 12);
+            x.fillText(`⭐ Rating ${teamRating}`, cx + width - ratingW / 2 - 12, cy + 28); x.textBaseline = 'alphabetic';
+            fillRound(cx + width - countW - 12, cy + 51, countW, 27, 8, 'rgba(255,255,255,.20)');
+            x.strokeStyle = 'rgba(255,255,255,.48)'; rr(cx + width - countW - 12, cy + 51, countW, 27, 8); x.stroke();
+            x.textBaseline = 'middle'; x.textAlign = 'center'; x.fillStyle = '#FFFFFF'; x.font = F('850', 11);
+            x.fillText(`👥 ${countText}`, cx + width - countW / 2 - 12, cy + 64); x.textBaseline = 'alphabetic';
+            const nameFont = F('900', 25);
+            const maxTeamNameW = width - 56 - 56 - ratingW - 35;
+            x.textAlign = 'left'; x.fillStyle = '#FFFFFF'; x.font = nameFont;
+            x.fillText(fitText(`${teamNumber}. ${team.name || 'Unnamed team'}`, maxTeamNameW, nameFont), cx + 84, cy + 42);
+            // Roster rows: strict grid, numbered in roster order, with crisp dividers.
+            const listTop = cy + headerH;
+            const rowCount = rowsFor(entry, fullWidth);
+            for (let r = 0; r < rowCount; r++) {
+                const yy = listTop + r * rowH;
+                x.fillStyle = r % 2 === 0 ? '#F3F4F6' : '#FFFFFF';
+                x.fillRect(cx + 1, yy, width - 2, rowH);
+                if (fullWidth && !names.length && r === 0) {
+                    x.textAlign = 'left'; x.fillStyle = '#71849A'; x.font = F('650', 19);
+                    x.fillText('👤  No players assigned yet', cx + 24, yy + 30);
+                } else if (fullWidth) {
+                    const halfGap = 28, innerPad = 24, nameColW = (width - innerPad * 2 - halfGap) / 2;
+                    [r * 2, r * 2 + 1].forEach((idx, column) => {
+                        if (idx >= names.length) return;
+                        const ix = cx + innerPad + column * (nameColW + halfGap);
+                        if (column === 1) { x.strokeStyle = '#D1D5DB'; x.lineWidth = 1; x.beginPath(); x.moveTo(cx + width / 2, yy + 9); x.lineTo(cx + width / 2, yy + rowH - 9); x.stroke(); }
+                        fillRound(ix, yy + 8, 34, 32, 10, '#E4F5F8');
+                        x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillStyle = '#087E8B'; x.font = F('900', 12);
+                        x.fillText(String(idx + 1), ix + 17, yy + 24); x.textBaseline = 'alphabetic';
+                        x.textAlign = 'center'; x.font = F('800', 18); x.fillText('👤', ix + 50, yy + 28);
+                        x.textAlign = 'left'; x.fillStyle = '#17324B'; x.font = F('750', 20);
+                        const member = (Array.isArray(entry.team.players) ? entry.team.players : [])[idx];
+                        const player = playersData.find(p => String(p.id) === String(member && member.id));
+                        const rating = player && Number.isFinite(Number(player.rating)) ? formatRating(Number(player.rating)) : '—';
+                        x.fillText(fitText(names[idx], nameColW - 120, F('750', 20)), ix + 72, yy + 27);
+                        x.textAlign = 'left'; x.fillStyle = '#B45309'; x.font = F('850', 15); x.fillText(`⭐ ${rating}`, ix + 72, yy + 51);
+                    });
+                } else if (r < names.length) {
+                    fillRound(cx + 20, yy + 8, 34, 32, 10, '#E4F5F8');
+                    x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillStyle = '#087E8B'; x.font = F('900', 12);
+                    x.fillText(String(r + 1), cx + 37, yy + 24); x.textBaseline = 'alphabetic';
+                    x.textAlign = 'center'; x.font = F('800', 18); x.fillText('👤', cx + 72, yy + 28);
+                    x.textAlign = 'left'; x.fillStyle = '#17324B'; x.font = F('750', 20);
+                    const member = (Array.isArray(entry.team.players) ? entry.team.players : [])[r];
+                    const player = playersData.find(p => String(p.id) === String(member && member.id));
+                    const rating = player && Number.isFinite(Number(player.rating)) ? formatRating(Number(player.rating)) : '—';
+                    x.fillText(fitText(names[r], width - 126, F('750', 20)), cx + 94, yy + 27);
+                    x.textAlign = 'left'; x.fillStyle = '#B45309'; x.font = F('850', 15); x.fillText(`⭐ ${rating}`, cx + 94, yy + 51);
+                } else if (!names.length && r === 0) {
+                    x.textAlign = 'left'; x.fillStyle = '#71849A'; x.font = F('650', 19);
+                    x.fillText('👤  No players assigned yet', cx + 24, yy + 30);
                 }
-                x.fillStyle = '#1a202c'; x.font = F('900', 32); x.textAlign = 'left';
-                let tn = String(e.t.name);
-                x.font = F('900', 32);
-                while (tn.length > 3 && x.measureText(tn).width > colW - cardPad * 2 - 140) tn = tn.slice(0, -2);
-                x.fillText(tn, cx + cardPad + 122, y + cardPad + 36);
-                x.fillStyle = '#718096'; x.font = F('700', 20); x.textAlign = 'right';
-                x.fillText(`${e.names.length} players`, cx + colW - cardPad, y + cardPad + 34);
-                if (!e.names.length) {
-                    x.fillStyle = '#a0aec0'; x.font = F('700', 26); x.textAlign = 'left';
-                    x.fillText('—', cx + cardPad + 20, y + cardPad + headH + 24);
-                }
-                e.names.forEach((n, k) => {
-                    const ry = y + cardPad + headH + k * rowH, cy = ry + rowH / 2;
-                    if (k % 2 === 1) { x.fillStyle = '#f7fafc'; x.fillRect(cx + 8, ry, colW - 16, rowH); }
-                    x.fillStyle = '#4a5568'; x.font = F('800', 22); x.textAlign = 'center';
-                    x.fillText(String(k + 1), cx + cardPad + 16, cy + 8);
-                    x.fillStyle = '#1a202c'; x.font = F('800', 26); x.textAlign = 'left';
-                    x.fillText(n, cx + cardPad + 44, cy + 9);
-                });
-                y += h + gap;
-            });
-        });
-
-        x.textAlign = 'center'; x.fillStyle = 'rgba(255,255,255,0.7)'; x.font = F('700', 26);
-        x.fillText('Sport Time 10A · Izgi_Zhan', W / 2, H - 36);
-        return await new Promise(res => c.toBlob(res, 'image/png'));
+                x.strokeStyle = '#D1D5DB'; x.lineWidth = 1.25;
+                x.beginPath(); x.moveTo(cx + 16, yy + rowH); x.lineTo(cx + width - 16, yy + rowH); x.stroke();
+            }
+            // Accent rail at the base makes each card finish at the same clean edge.
+            fillRound(cx + 20, cy + h - 5, width - 40, 3, 2, color);
+        };
+        if (!teams.length) {
+            fillRound(pad, top, W - pad * 2, 170, 22, '#FFFFFF');
+            x.textAlign = 'center'; x.fillStyle = '#17324B'; x.font = F('850', 30);
+            x.fillText('No teams yet', W / 2, top + 70);
+            x.fillStyle = '#71849A'; x.font = F('600', 20); x.fillText('Start a tournament to display the squads.', W / 2, top + 108);
+        } else {
+            layout.forEach(drawCard);
+        }
+        // Fine footer divider and signature.
+        const fy = H - 42;
+        x.strokeStyle = '#CBD5E1'; x.lineWidth = 1;
+        x.beginPath(); x.moveTo(pad, fy - 16); x.lineTo(W - pad, fy - 16); x.stroke();
+        x.textAlign = 'left'; x.fillStyle = '#64748B'; x.font = F('700', 15);
+        x.fillText('SPORT TIME 10A  ·  TEAM LINE-UPS', pad, fy + 7);
+        x.textAlign = 'right'; x.fillStyle = '#2563EB'; x.font = F('850', 15);
+        x.fillText('PLAY AS ONE', W - pad, fy + 7);
+        return await new Promise(resolve => c.toBlob(resolve, 'image/png'));
     }
 
     async function shareRosters() {
-        if (!activeTeams.length) { alert("No tournament yet."); return; }
-        let blob;
-        try { blob = await buildRostersImage(); } catch (e) { console.error(e); }
-        if (!blob) { alert("Could not create the image."); return; }
-        await shareBlob(blob, 'sport-time-rosters.png');
+        if (!Array.isArray(activeTeams) || !activeTeams.length) {
+            alert('No teams to share yet.');
+            return;
+        }
+        const button = document.getElementById('teamsShareBtn');
+        const originalHtml = button ? button.innerHTML : '';
+        if (button) { button.disabled = true; button.innerHTML = '⏳ Preparing…'; }
+        try {
+            const blob = await buildRostersImage();
+            if (!blob) throw new Error('Could not create roster image');
+            await shareBlob(blob, 'sport-time-10a-team-rosters.png');
+        } catch (error) {
+            console.error(error);
+            alert('Could not create the teams image. Please try again.');
+        } finally {
+            if (button) { button.disabled = false; button.innerHTML = originalHtml || '⚽ Teams <span aria-hidden="true">📤</span>'; }
+        }
     }
 
     async function buildRatingsImage() {
@@ -5295,6 +5569,24 @@ function syncAllGoalRows(saved) {
             <button type="button" class="pw-ok" id="pwOk">Unlock</button>
         </div>
     </div>
+</div>
+<div id="teamsRosterModal" class="teams-roster-overlay" onclick="if(event.target===this)closeTeamsModal()">
+    <section class="teams-roster-dialog" role="dialog" aria-modal="true" aria-labelledby="teamsRosterTitle">
+        <header class="teams-roster-head">
+            <div class="teams-roster-head-main">
+                <div class="teams-roster-head-icon" aria-hidden="true">👥</div>
+                <div>
+                    <div class="teams-roster-title" id="teamsRosterTitle">Team Rosters</div>
+                    <div class="teams-roster-subtitle" id="teamsRosterSubtitle">Every squad, clearly organized in one place</div>
+                </div>
+            </div>
+            <button type="button" class="teams-roster-close" onclick="closeTeamsModal()" aria-label="Close teams">✕</button>
+        </header>
+        <div class="teams-roster-body">
+            <div class="teams-roster-summary" id="teamsRosterSummary"></div>
+            <div class="teams-roster-grid" id="teamsRosterGrid"></div>
+        </div>
+    </section>
 </div>
 <div id="playerModal" class="dlg-overlay">
     <div class="dlg-card pm-card" role="dialog" aria-modal="true">
