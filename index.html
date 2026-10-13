@@ -811,7 +811,10 @@
 
         <div class="section-header">
             <span class="section-title">📊 League Standings</span>
-            <button onclick="shareResults()" style="background:none;border:none;color:var(--primary-blue);font-size:13px;font-weight:900;cursor:pointer;">📤 Share</button>
+            <span style="display:flex;gap:14px;">
+                <button onclick="shareRosters()" style="background:none;border:none;color:var(--primary-blue);font-size:13px;font-weight:900;cursor:pointer;">📋 Rosters</button>
+                <button onclick="shareResults()" style="background:none;border:none;color:var(--primary-blue);font-size:13px;font-weight:900;cursor:pointer;">📤 Share</button>
+            </span>
         </div>
         <div class="table-wrapper">
             <table class="league-table">
@@ -4196,6 +4199,103 @@ function syncAllGoalRows(saved) {
         x.fillText('Sport Time 10A · Izgi_Zhan', W / 2, H - 36);
 
         return await new Promise(res => c.toBlob(res, 'image/png'));
+    }
+
+    async function buildRostersImage() {
+        const teams = getSortedTeams();
+        const logos = await Promise.all(teams.map(t => loadLogo(t.logo || defaultLogo)));
+        const F = (w, s) => `${w} ${s}px Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif`;
+        const W = 1200, pad = 40, gap = 24, colW = (W - pad * 2 - gap) / 2, top = 230;
+        const nameOf = p => (playersData.find(x => x.id === p.id) || p).name;
+        const probe = document.createElement('canvas').getContext('2d');
+        probe.font = F('800', 26);
+        const fitW = colW - 60 - 130;
+        const fitName = t => { let s = String(t); while (s.length > 3 && probe.measureText(s).width > fitW) s = s.slice(0, -2); return s; };
+        const colLists = [[], []];
+        teams.forEach((t, i) => colLists[i % 2].push({ t, logo: logos[i], names: (t.players || []).map(p => fitName(nameOf(p))) }));
+        const rowH = 46, cardPad = 22, headH = 74;
+        const cardH = e => cardPad * 2 + headH + Math.max(e.names.length, 1) * rowH;
+        const colH = ci => colLists[ci].reduce((s, e) => s + cardH(e), 0) + Math.max(colLists[ci].length - 1, 0) * gap;
+        const H = top + Math.max(colH(0), colH(1)) + 90;
+
+        const c = document.createElement('canvas');
+        c.width = W; c.height = H;
+        const x = c.getContext('2d');
+        const rr = (X, Y, w, h, r) => {
+            x.beginPath();
+            x.moveTo(X + r, Y); x.arcTo(X + w, Y, X + w, Y + h, r);
+            x.arcTo(X + w, Y + h, X, Y + h, r); x.arcTo(X, Y + h, X, Y, r);
+            x.arcTo(X, Y, X + w, Y, r); x.closePath();
+        };
+
+        const g = x.createLinearGradient(0, 0, W, H);
+        g.addColorStop(0, '#0f2742'); g.addColorStop(1, '#2b6cb0');
+        x.fillStyle = g; x.fillRect(0, 0, W, H);
+        x.fillStyle = 'rgba(255,255,255,0.05)';
+        for (let i = -H; i < W; i += 60) { x.save(); x.translate(i, 0); x.rotate(Math.PI / 4); x.fillRect(0, 0, 18, H * 2); x.restore(); }
+
+        x.textAlign = 'left'; x.fillStyle = '#fff'; x.font = F('900', 60);
+        x.fillText('SPORT TIME 10A', pad, 100);
+        x.fillStyle = '#90cdf4'; x.font = F('700', 32);
+        x.fillText(`📋 Team rosters  ·  Round ${currentDisplayedRound} of ${totalRounds}  ·  ${new Date().toLocaleDateString()}`, pad, 155);
+        x.fillStyle = '#f6e05e'; x.fillRect(pad, 180, 120, 6);
+
+        const medal = ['#d69e2e', '#a0aec0', '#dd6b20'];
+        colLists.forEach((list, ci) => {
+            let y = top;
+            list.forEach(e => {
+                const h = cardH(e), cx = pad + ci * (colW + gap);
+                x.fillStyle = '#fff'; rr(cx, y, colW, h, 24); x.fill();
+                const place = teams.indexOf(e.t);
+                x.fillStyle = medal[place] || '#e2e8f0';
+                x.beginPath(); x.arc(cx + cardPad + 24, y + cardPad + 26, 22, 0, Math.PI * 2); x.fill();
+                x.fillStyle = place < 3 ? '#fff' : '#4a5568'; x.font = F('900', 24); x.textAlign = 'center';
+                x.fillText(String(place + 1), cx + cardPad + 24, y + cardPad + 35);
+                if (e.logo) {
+                    const lx = cx + cardPad + 84, lcy = y + cardPad + 26;
+                    x.save(); x.beginPath(); x.arc(lx, lcy, 26, 0, Math.PI * 2); x.clip();
+                    x.fillStyle = '#fff'; x.fillRect(lx - 26, lcy - 26, 52, 52);
+                    const r = Math.min(46 / (e.logo.width || 46), 46 / (e.logo.height || 46));
+                    const w = (e.logo.width || 46) * r, hh = (e.logo.height || 46) * r;
+                    x.drawImage(e.logo, lx - w / 2, lcy - hh / 2, w, hh);
+                    x.restore();
+                    x.strokeStyle = '#e2e8f0'; x.lineWidth = 2;
+                    x.beginPath(); x.arc(lx, lcy, 26, 0, Math.PI * 2); x.stroke();
+                }
+                x.fillStyle = '#1a202c'; x.font = F('900', 32); x.textAlign = 'left';
+                let tn = String(e.t.name);
+                x.font = F('900', 32);
+                while (tn.length > 3 && x.measureText(tn).width > colW - cardPad * 2 - 140) tn = tn.slice(0, -2);
+                x.fillText(tn, cx + cardPad + 122, y + cardPad + 36);
+                x.fillStyle = '#718096'; x.font = F('700', 20); x.textAlign = 'right';
+                x.fillText(`${e.names.length} players`, cx + colW - cardPad, y + cardPad + 34);
+                if (!e.names.length) {
+                    x.fillStyle = '#a0aec0'; x.font = F('700', 26); x.textAlign = 'left';
+                    x.fillText('—', cx + cardPad + 20, y + cardPad + headH + 24);
+                }
+                e.names.forEach((n, k) => {
+                    const ry = y + cardPad + headH + k * rowH, cy = ry + rowH / 2;
+                    if (k % 2 === 1) { x.fillStyle = '#f7fafc'; x.fillRect(cx + 8, ry, colW - 16, rowH); }
+                    x.fillStyle = '#4a5568'; x.font = F('800', 22); x.textAlign = 'center';
+                    x.fillText(String(k + 1), cx + cardPad + 16, cy + 8);
+                    x.fillStyle = '#1a202c'; x.font = F('800', 26); x.textAlign = 'left';
+                    x.fillText(n, cx + cardPad + 44, cy + 9);
+                });
+                y += h + gap;
+            });
+        });
+
+        x.textAlign = 'center'; x.fillStyle = 'rgba(255,255,255,0.7)'; x.font = F('700', 26);
+        x.fillText('Sport Time 10A · Izgi_Zhan', W / 2, H - 36);
+        return await new Promise(res => c.toBlob(res, 'image/png'));
+    }
+
+    async function shareRosters() {
+        if (!activeTeams.length) { alert("No tournament yet."); return; }
+        let blob;
+        try { blob = await buildRostersImage(); } catch (e) { console.error(e); }
+        if (!blob) { alert("Could not create the image."); return; }
+        await shareBlob(blob, 'sport-time-rosters.png');
     }
 
     async function buildRatingsImage() {
