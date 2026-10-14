@@ -735,6 +735,26 @@
         .rating-rule b { font-weight: 900; }
         .rating-rule.plus b { color: var(--primary-green); }
         .rating-rule.minus b { color: var(--primary-red); }
+        .rating-rules-subtitle { font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: .5px; color: var(--text-sub); margin: 14px 0 8px; }
+        .rating-rules-grid.rating-awards-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .award-rule { padding: 10px 12px; background: linear-gradient(135deg, rgba(214,158,46,.18), rgba(214,158,46,.04)); border: 1px solid rgba(214,158,46,.45); border-radius: 10px; }
+        .award-rule-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 13px; font-weight: 900; color: var(--text-main); }
+        .award-rule-name { display: inline-flex; align-items: center; gap: 8px; }
+        .award-icon { width: 30px; height: 30px; object-fit: contain; flex: none; }
+        .award-icon-sm { width: 18px; height: 18px; object-fit: contain; vertical-align: -4px; margin-right: 2px; }
+        .award-rule-desc { font-size: 12px !important; font-weight: 800 !important; color: var(--text-main) !important; }
+        .award-rule-list { margin-top: 6px; display: flex; flex-direction: column; gap: 3px; font-size: 12px; font-weight: 800; color: var(--text-main); }
+        .award-rule-top b { color: var(--primary-green); font-weight: 900; }
+        .award-rule-desc { margin-top: 4px; font-size: 11px; font-weight: 700; color: var(--text-sub); line-height: 1.35; }
+        .rating-awards-note { margin-top: 8px; font-size: 11px; font-weight: 700; color: var(--text-sub); line-height: 1.4; }
+        @media(max-width:480px) { .rating-rules-grid.rating-awards-grid { grid-template-columns: 1fr; } }
+        .hist-awards { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; padding: 14px 14px 0; }
+        .hist-award { padding: 10px 12px; border-radius: 12px; background: linear-gradient(135deg, rgba(214,158,46,.20), rgba(214,158,46,.04)); border: 1px solid rgba(214,158,46,.5); min-width: 0; }
+        .hist-award small { display: block; font-size: 10px; font-weight: 900; letter-spacing: .6px; color: var(--primary-gold); }
+        .hist-award-main { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
+        .hist-award-main b { font-size: 15px; font-weight: 900; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .hist-award-stats { margin-top: 3px; font-size: 11px; font-weight: 800; color: var(--text-sub); }
+        .hist-award-bonus { color: var(--primary-green); }
 
         /* ===== Скрыто, пока не введён пароль ===== */
         body:not(.is-admin) #startTournamentBtn,
@@ -837,6 +857,9 @@
         <div class="rating-rules">
             <div class="rating-rules-title">⭐ How rating works</div>
             <div class="rating-rules-grid" id="ratingRulesGrid"></div>
+            <div class="rating-rules-subtitle">🏆 Tournament awards</div>
+            <div class="rating-rules-grid rating-awards-grid" id="ratingAwardsGrid"></div>
+            <div class="rating-awards-note" id="ratingAwardsNote"></div>
         </div>
         <div class="section-header">
             <span class="section-title">Class Squad (<span id="selectedCount">0</span>)</span>
@@ -1054,6 +1077,146 @@
         grid.innerHTML = items.map(i =>
             `<div class="rating-rule ${i[3]}"><span>${i[0]} ${i[1]}</span><b>${i[2]}</b></div>`
         ).join('');
+
+        const aGrid = document.getElementById('ratingAwardsGrid');
+        if (aGrid) {
+            aGrid.innerHTML = AWARD_DEFS.map(d =>
+                `<div class="award-rule">
+                    <div class="award-rule-top"><span class="award-rule-name"><img class="award-icon" src="${awardImgSrc(d.key)}" onerror="this.onerror=null;this.src=AWARD_ICON_SRC['${d.key}']" alt="">${d.title}</span><b>+${AWARD_RULES[d.key]}</b></div>
+                    <div class="award-rule-desc">${d.desc}</div>
+                    <div class="award-rule-list">${d.lines.map(l => `<div>${l}</div>`).join('')}</div>
+                </div>`
+            ).join('');
+        }
+        const aNote = document.getElementById('ratingAwardsNote');
+        if (aNote) {
+            const W = GOLDEN_BALL_WEIGHTS;
+            aNote.textContent = `Golden Ball score: goal ×${W.goal}, assist ×${W.assist}, MVP ×${W.mvp}, place 🥇 +${W.place[0]} · 🥈 +${W.place[1]} · 🥉 +${W.place[2]}. Awards are given when the tournament is finished.`;
+        }
+    }
+
+    // ---------- Tournament awards ----------
+    const AWARD_RULES = { goldenBall: 0.20, goldenBoot: 0.10, goldenAssist: 0.10 };
+    const GOLDEN_BALL_WEIGHTS = { goal: 2, assist: 2, mvp: 3, place: [5, 3, 1] };
+    const AWARD_DEFS = [
+        { key: 'goldenBall',   title: 'Golden Ball',   label: 'GOLDEN BALL',   color: '#d69e2e', desc: 'Best player of the tournament',
+          lines: ['⚽ Goal + 🅰️ Assist', '🏆 MVP + 🥇 Place'] },
+        { key: 'goldenBoot',   title: 'Golden Boot',   label: 'GOLDEN BOOT',   color: '#dd6b20', desc: 'Top scorer of the tournament',
+          lines: ['⚽ Most goals'] },
+        { key: 'goldenAssist', title: 'Golden Assist', label: 'GOLDEN ASSIST', color: '#38a169', desc: 'Best assist provider',
+          lines: ['🅰️ Most assists'] }
+    ];
+
+    // Award icons drawn as SVG (data URIs work both in <img> and on the share canvas)
+    const AWARD_ICON_SRC = (() => {
+        const uri = body => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(
+            `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">${body}</svg>`);
+        const goldDefs = `<defs>
+            <radialGradient id="g1" cx="35%" cy="30%" r="80%"><stop offset="0" stop-color="#fff6b8"/><stop offset=".45" stop-color="#f6c945"/><stop offset="1" stop-color="#9a6208"/></radialGradient>
+            <linearGradient id="g2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff0a0"/><stop offset=".5" stop-color="#e9b730"/><stop offset="1" stop-color="#8a5a0f"/></linearGradient>
+            <linearGradient id="g3" x1="0" x2="1"><stop offset="0" stop-color="#9a6208"/><stop offset=".5" stop-color="#f6e05e"/><stop offset="1" stop-color="#8a5a0f"/></linearGradient></defs>`;
+        return {
+            goldenBall: uri(`${goldDefs}
+                <path d="M19 60h26l-3-8H22z" fill="url(#g3)" stroke="#7a4d0a" stroke-width="1"/>
+                <rect x="26" y="46" width="12" height="7" rx="2" fill="url(#g3)" stroke="#7a4d0a" stroke-width="1"/>
+                <circle cx="32" cy="27" r="22" fill="url(#g1)" stroke="#7a4d0a" stroke-width="1.6"/>
+                <path d="M32 17l9 6.5-3.4 10.5H26.4L23 23.5z" fill="#7a4d0a" opacity=".78"/>
+                <g stroke="#7a4d0a" stroke-width="1.6" opacity=".7" stroke-linecap="round"><path d="M32 17V7M41 23.5l9-4M37.6 34l6 8M26.4 34l-6 8M23 23.5l-9-4"/></g>
+                <ellipse cx="23" cy="15" rx="6" ry="3.5" fill="#fff" opacity=".35" transform="rotate(-35 23 15)"/>`),
+            goldenBoot: uri(`${goldDefs}
+                <path d="M12 6h20v22c0 4 3 6 8 8l14 5c5 2 7 5 7 9v3H12z" fill="url(#g2)" stroke="#7a4d0a" stroke-width="1.6" stroke-linejoin="round"/>
+                <path d="M12 51h49v5H12z" fill="#7a4d0a"/>
+                <g fill="#7a4d0a"><rect x="16" y="56" width="5" height="5" rx="1.5"/><rect x="27" y="56" width="5" height="5" rx="1.5"/><rect x="43" y="56" width="5" height="5" rx="1.5"/><rect x="54" y="56" width="5" height="5" rx="1.5"/></g>
+                <g stroke="#7a4d0a" stroke-width="1.8" stroke-linecap="round"><path d="M34 33l5 2M37 37l5 2M40 41l5 2"/></g>
+                <path d="M16 10h6v14h-6z" fill="#fff" opacity=".3"/>`),
+            goldenAssist: uri(`${goldDefs}
+                <path d="M18 2h12l6 18H24z" fill="#2f855a"/><path d="M46 2H34l-6 18h12z" fill="#38a169"/>
+                <circle cx="32" cy="40" r="20" fill="url(#g1)" stroke="#7a4d0a" stroke-width="1.6"/>
+                <circle cx="32" cy="40" r="14.5" fill="none" stroke="#7a4d0a" stroke-width="1.2" opacity=".55"/>
+                <path d="M20 37h14v-6l12 9-12 9v-6H20z" fill="#7a4d0a" opacity=".85"/>
+                <ellipse cx="22" cy="28" rx="6" ry="3" fill="#fff" opacity=".35" transform="rotate(-35 22 28)"/>`)
+        };
+    })();
+    // Optional: paste direct image links (e.g. Wikimedia Commons, upload.wikimedia.org/...) here to use real
+    // award photos instead of the drawn icons. If a link is empty or fails to load, the drawn icon is used.
+    const AWARD_IMAGE_URLS = { goldenBall: '', goldenBoot: '', goldenAssist: '' };
+    function awardImgSrc(key) { return AWARD_IMAGE_URLS[key] || AWARD_ICON_SRC[key]; }
+
+    const awardIconCache = {};
+    function loadAwardIcon(key) {
+        if (!awardIconCache[key]) awardIconCache[key] = (async () => {
+            let img = AWARD_IMAGE_URLS[key] ? await loadImg(AWARD_IMAGE_URLS[key]) : null;
+            if (!img) img = await new Promise(res => {
+                const i = new Image();
+                i.onload = () => res(i);
+                i.onerror = () => res(null);
+                i.src = AWARD_ICON_SRC[key];
+            });
+            return img;
+        })();
+        return awardIconCache[key];
+    }
+
+    function ordinalPlace(n) {
+        const v = n % 100;
+        if (v >= 11 && v <= 13) return n + 'th';
+        return n + (['th', 'st', 'nd', 'rd'][n % 10] || 'th');
+    }
+
+    // players: [{id,name,goals,assists,mvp,logo}]; placeOf(player) -> 0-based team place or -1
+    function computeAwards(players, placeOf) {
+        const num = v => Number(v) || 0;
+        const W = GOLDEN_BALL_WEIGHTS;
+        const rows = (players || []).map(p => {
+            const place = placeOf(p);
+            const goals = num(p.goals), assists = num(p.assists), mvp = num(p.mvp);
+            const score = goals * W.goal + assists * W.assist + mvp * W.mvp + (place >= 0 ? (W.place[place] || 0) : 0);
+            return { id: p.id, name: p.name, logo: p.logo || null, goals, assists, mvp, place: place >= 0 ? place + 1 : null, score };
+        });
+        const byName = (a, b) => String(a.name).localeCompare(String(b.name));
+        const pick = (filter, cmp) => rows.filter(filter).sort(cmp)[0] || null;
+        return {
+            goldenBall: pick(r => r.goals + r.assists + r.mvp > 0, (a, b) =>
+                (b.score - a.score) || (b.mvp - a.mvp) || ((b.goals + b.assists) - (a.goals + a.assists)) || ((a.place || 99) - (b.place || 99)) || byName(a, b)),
+            goldenBoot: pick(r => r.goals > 0, (a, b) =>
+                (b.goals - a.goals) || (b.assists - a.assists) || (b.mvp - a.mvp) || byName(a, b)),
+            goldenAssist: pick(r => r.assists > 0, (a, b) =>
+                (b.assists - a.assists) || (b.goals - a.goals) || (b.mvp - a.mvp) || byName(a, b))
+        };
+    }
+
+    function computeLiveAwards() {
+        const sorted = getSortedTeams();
+        const placeOfId = id => sorted.findIndex(t => (t.players || []).some(tp => String(tp.id) === String(id)));
+        const players = playersData.map(p => {
+            const i = placeOfId(p.id);
+            return { id: p.id, name: p.name, goals: p.goals, assists: p.assists, mvp: p.mvp, logo: i >= 0 ? sorted[i].logo : null };
+        });
+        return computeAwards(players, p => placeOfId(p.id));
+    }
+
+    function getHistoryAwards(h) {
+        if (!h) return null;
+        if (h.awards) return h.awards;
+        if (!Array.isArray(h.playerStats) || !h.playerStats.length) return null;
+        const teams = h.teams || [];
+        return computeAwards(h.playerStats, p => teams.findIndex(t => (t.players || []).includes(p.name)));
+    }
+
+    function placeEmoji(n) { return n === 1 ? '🥇' : n === 2 ? '🥈' : n === 3 ? '🥉' : '#' + n; }
+
+    function awardStatsText(key, w) {
+        if (!w) return '';
+        if (key === 'goldenBall') return `⚽ ${w.goals} · 🅰️ ${w.assists} · 🏆 ${w.mvp}` + (w.place ? ` · ${placeEmoji(w.place)}` : '');
+        if (key === 'goldenBoot') return `⚽ ${w.goals} goal${w.goals === 1 ? '' : 's'}` + (w.assists ? ` · 🅰️ ${w.assists}` : '');
+        return `🅰️ ${w.assists} assist${w.assists === 1 ? '' : 's'}` + (w.goals ? ` · ⚽ ${w.goals}` : '');
+    }
+
+    function awardsSummaryText(awards) {
+        if (!awards) return '';
+        return AWARD_DEFS.map(d => awards[d.key]
+            ? `${d.title}: ${awards[d.key].name} (+${AWARD_RULES[d.key]} ⭐)`
+            : null).filter(Boolean).join('\n');
     }
 
     const initialPlayers = [
@@ -4462,7 +4625,8 @@ function syncAllGoalRows(saved) {
         const roleTxt = { FWD: '⚽ FWD', DEF: '🛡️ DEF', GK: '🧤 GK' };
         const W = 1200, pad = 40, gap = 24, colW = (W - pad * 2 - gap) / 2, rowH = 84;
         const half = Math.ceil(list.length / 2), top = 230, cardH = 20 + half * rowH;
-        const H = top + cardH + 90;
+        const rulesTop = top + cardH + 30, rulesH = 620;
+        const H = rulesTop + rulesH + 90;
 
         const c = document.createElement('canvas');
         c.width = W; c.height = H;
@@ -4510,6 +4674,55 @@ function syncAllGoalRows(saved) {
                 x.fillText(`⭐ ${formatRating(p.rating)}`, cx + colW - 70, cy + 9);
             });
         });
+
+        // How rating works (rules + tournament awards)
+        const rIcons = await Promise.all(AWARD_DEFS.map(d => loadAwardIcon(d.key)));
+        x.fillStyle = '#fff'; rr(pad, rulesTop, W - pad * 2, rulesH, 28); x.fill();
+        x.fillStyle = '#1a202c'; x.font = F('900', 34); x.textAlign = 'left';
+        x.fillText('⭐ How rating works', pad + 30, rulesTop + 56);
+        const R = RATING_RULES, WB = GOLDEN_BALL_WEIGHTS;
+        const groups = [
+            ['MATCH EVENTS', [['⚽ Goal', '+' + R.goal, '#38a169'], ['🅰️ Assist', '+' + R.assist, '#38a169'], ['🥅 Own goal', '−' + R.ownGoal, '#e53e3e'], ['🏆 MVP', '+' + R.mvp, '#38a169'], ['✅ Win', '+' + R.win, '#38a169']]],
+            ['FINAL PLACE', [['🥇 1st place', '+0.15', '#38a169'], ['🥈 2nd place', '+0.1', '#38a169'], ['🥉 3rd place', '+0.05', '#38a169']]]
+        ];
+        let gy = rulesTop + 92;
+        groups.forEach(([cap, chips]) => {
+            x.fillStyle = '#718096'; x.font = F('800', 20); x.textAlign = 'left';
+            x.fillText(cap, pad + 30, gy + 14);
+            const n = chips.length, cwid = (W - pad * 2 - 60 - (n - 1) * 14) / n;
+            chips.forEach(([label, val, col], i) => {
+                const cx = pad + 30 + i * (cwid + 14), cy = gy + 28;
+                x.fillStyle = '#edf2f7'; rr(cx, cy, cwid, 78, 16); x.fill();
+                x.fillStyle = '#2d3748'; x.font = F('800', 20); x.textAlign = 'center';
+                x.fillText(fit(label, cwid - 16), cx + cwid / 2, cy + 30);
+                x.fillStyle = col; x.font = F('900', 28);
+                x.fillText(val, cx + cwid / 2, cy + 63);
+            });
+            gy += 128;
+        });
+
+        // tournament awards
+        x.fillStyle = '#718096'; x.font = F('800', 20); x.textAlign = 'left';
+        x.fillText('TOURNAMENT AWARDS', pad + 30, gy + 14);
+        const awW = (W - pad * 2 - 60 - 28) / 3, awY = gy + 28, awH = 190;
+        AWARD_DEFS.forEach((d, k) => {
+            const cx = pad + 30 + k * (awW + 14);
+            x.fillStyle = '#fdf6e3'; rr(cx, awY, awW, awH, 18); x.fill();
+            x.strokeStyle = 'rgba(214,158,46,0.6)'; x.lineWidth = 2; rr(cx, awY, awW, awH, 18); x.stroke();
+            x.fillStyle = d.color; rr(cx, awY, awW, 58, 18); x.fill(); x.fillRect(cx, awY + 30, awW, 28);
+            x.fillStyle = '#fff'; x.beginPath(); x.arc(cx + 34, awY + 29, 22, 0, Math.PI * 2); x.fill();
+            if (rIcons[k]) x.drawImage(rIcons[k], cx + 14, awY + 9, 40, 40);
+            x.fillStyle = '#fff'; x.font = F('900', 21); x.textAlign = 'left';
+            x.fillText(d.title, cx + 64, awY + 36);
+            x.font = F('900', 18); x.textAlign = 'right'; x.fillText(`+${AWARD_RULES[d.key]} ⭐`, cx + awW - 12, awY + 36);
+            x.textAlign = 'left';
+            x.fillStyle = '#1a202c'; x.font = F('900', 18);
+            x.fillText(fit(d.desc, awW - 28), cx + 16, awY + 94);
+            x.fillStyle = '#4a5568'; x.font = F('800', 21);
+            d.lines.forEach((ln, i) => x.fillText(fit(ln, awW - 32), cx + 16, awY + 128 + i * 32));
+        });
+        x.fillStyle = '#718096'; x.font = F('700', 18); x.textAlign = 'left';
+        x.fillText(`Golden Ball score: goal ×${WB.goal}, assist ×${WB.assist}, MVP ×${WB.mvp}, place 🥇 +${WB.place[0]} · 🥈 +${WB.place[1]} · 🥉 +${WB.place[2]}`, pad + 30, rulesTop + rulesH - 24);
 
         x.textAlign = 'center'; x.fillStyle = 'rgba(255,255,255,0.7)'; x.font = F('700', 26);
         x.fillText('Sport Time 10A · Izgi_Zhan', W / 2, H - 36);
@@ -4727,6 +4940,10 @@ function syncAllGoalRows(saved) {
     async function buildHistoryImage(h, num) {
         const teams = h.teams;
         const logos = await Promise.all(teams.map(t => loadLogo(t.logo || defaultLogo)));
+        const imgAwards = getHistoryAwards(h);
+        const hasAwards = !!(imgAwards && AWARD_DEFS.some(d => imgAwards[d.key]));
+        const awardIcons = await Promise.all(AWARD_DEFS.map(d => loadAwardIcon(d.key)));
+        const awardLogos = await Promise.all(AWARD_DEFS.map(d => (imgAwards && imgAwards[d.key] && imgAwards[d.key].logo) ? loadLogo(imgAwards[d.key].logo) : Promise.resolve(null)));
         const W = 1440, pad = 40;
         const F = (w, sz) => `${w} ${sz}px Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif`;
         const probe = document.createElement('canvas').getContext('2d');
@@ -4757,7 +4974,8 @@ function syncAllGoalRows(saved) {
         };
         const teamLines = teams.map(t => wrapRoster(t.players));
         const rowHs = teamLines.map(l => Math.max(84, 62 + l.length * 24));
-        const tableTop = champTop + champH + 30, tableH = 70 + rowHs.reduce((a2, b2) => a2 + b2, 0) + 20;
+        const awardsTop = champTop + champH + 30, awardsH = hasAwards ? 200 : 0;
+        const tableTop = awardsTop + (hasAwards ? awardsH + 30 : 0), tableH = 70 + rowHs.reduce((a2, b2) => a2 + b2, 0) + 20;
         const statsTop = tableTop + tableH + 30, statsH = 96 + 3 * 62 + 24;
         const H = statsTop + statsH + 90;
 
@@ -4810,6 +5028,30 @@ function syncAllGoalRows(saved) {
         x.fillText(`${teams[0].pts} pts`, W - pad - 40, champTop + 95);
         x.fillStyle = '#4a5568'; x.font = F('700', 24); x.textAlign = 'left';
         lines.forEach((ln, k) => x.fillText(ln, pad + 40, champTop + 160 + k * 34));
+
+        // tournament awards
+        if (hasAwards) {
+            const aw = (W - pad * 2 - 48) / 3;
+            AWARD_DEFS.forEach((d, k) => {
+                const cx = pad + k * (aw + 24), w = imgAwards[d.key];
+                x.fillStyle = '#fff'; rr(cx, awardsTop, aw, awardsH, 24); x.fill();
+                x.fillStyle = d.color; rr(cx, awardsTop, aw, 46, 24); x.fill(); x.fillRect(cx, awardsTop + 24, aw, 22);
+                x.fillStyle = '#fff'; x.beginPath(); x.arc(cx + 34, awardsTop + 23, 21, 0, Math.PI * 2); x.fill();
+                if (awardIcons[k]) x.drawImage(awardIcons[k], cx + 14, awardsTop + 3, 40, 40);
+                x.fillStyle = '#fff'; x.font = F('900', 22); x.textAlign = 'left';
+                x.fillText(d.label, cx + 66, awardsTop + 32);
+                x.textAlign = 'right'; x.fillText(`+${AWARD_RULES[d.key]} ⭐`, cx + aw - 20, awardsTop + 32);
+                x.textAlign = 'left';
+                if (!w) { x.fillStyle = '#a0aec0'; x.font = F('800', 30); x.fillText('—', cx + 20, awardsTop + 118); return; }
+                const lg = awardLogos[k];
+                if (lg) drawEmblem(lg, cx + 56, awardsTop + 112, 72);
+                const tx = lg ? 108 : 24;
+                x.fillStyle = '#1a202c'; x.font = F('900', 32);
+                x.fillText(fit(w.name, aw - tx - 20), cx + tx, awardsTop + 110);
+                x.fillStyle = '#718096'; x.font = F('800', 22);
+                x.fillText(fit(awardStatsText(d.key, w), aw - tx - 20), cx + tx, awardsTop + 150);
+            });
+        }
 
         // table
         x.fillStyle = '#fff'; rr(pad, tableTop, W - pad * 2, tableH, 28); x.fill();
@@ -4930,6 +5172,7 @@ function syncAllGoalRows(saved) {
             rounds: totalRounds,
             teams: sorted.map(t => ({ name: t.name, logo: t.logo, pts: t.pts, gf: t.gf, ga: t.ga, mp: t.played, w: t.win, d: t.draw, l: t.loss, form: getFormLetters(t.id), players: (t.players || []).map(p => (playersData.find(x => x.id === p.id) || p).name) })),
             topScorer: best('goals'),
+            awards: computeLiveAwards(),
             ratingChanges: computeActiveTournamentRatingDeltas(),
             playerStats: playersData.map(p => {
                 const team = activeTeams.find(t => (t.players || []).some(tp => String(tp.id) === String(p.id)));
@@ -4972,6 +5215,14 @@ function syncAllGoalRows(saved) {
                     <div class="hist-sc-row"><span class="hist-sc-rank">${k + 1}</span>${p.logo ? `<img class="hist-chip-logo" src="${esc(p.logo)}" alt="" onerror="logoFallback(this)">` : ''}<b>${esc(p.name)}</b><span>${p.value} ${unit}</span></div>`).join('')}
                 </div>` : '';
             };
+            const hAwards = getHistoryAwards(h);
+            const awardsHtml = (hAwards && AWARD_DEFS.some(d => hAwards[d.key])) ? `<div class="hist-awards">${AWARD_DEFS.map(d => {
+                const w = hAwards[d.key];
+                if (!w) return `<div class="hist-award"><small><img class="award-icon-sm" src="${awardImgSrc(d.key)}" onerror="this.onerror=null;this.src=AWARD_ICON_SRC['${d.key}']" alt=""> ${d.label}</small><div class="hist-award-main"><b>—</b></div></div>`;
+                return `<div class="hist-award"><small><img class="award-icon-sm" src="${awardImgSrc(d.key)}" onerror="this.onerror=null;this.src=AWARD_ICON_SRC['${d.key}']" alt=""> ${d.label}</small>
+                    <div class="hist-award-main">${w.logo ? `<img class="hist-chip-logo" src="${esc(w.logo)}" alt="" onerror="logoFallback(this)">` : ''}<b>${esc(w.name)}</b></div>
+                    <div class="hist-award-stats">${esc(awardStatsText(d.key, w))}</div></div>`;
+            }).join('')}</div>` : '';
             const scorersHtml = topBlock('⚽ TOP SCORERS', 'goals', 'goals') + topBlock('🅰️ TOP ASSISTS', 'assists', 'assists') + topBlock('🏆 MOST MVP', 'mvp', 'MVP');
             return `
                 <div class="hist-card">
@@ -4986,6 +5237,7 @@ function syncAllGoalRows(saved) {
                         <div><small>🏆 CHAMPION</small><b>${esc(w.name)}</b></div>
                         <div class="hist-winner-pts">${w.pts}<small>pts</small></div>
                     </div>
+                    ${awardsHtml}
                     <div style="overflow-x:auto;">
                     <table class="hist-table">
                         <thead><tr><th>#</th><th style="text-align:left;">Team</th><th>MP</th><th>W</th><th>D</th><th>L</th><th>GF-GA</th><th>Pts</th><th>Form</th></tr></thead>
@@ -5031,7 +5283,8 @@ function syncAllGoalRows(saved) {
         showUndoToast("Tournament deleted", snap);
     }
 
-    // Bonus rating for final tournament placement: 1st +0.15, 2nd +0.10, 3rd +0.05.
+    // Bonus rating for final tournament placement (1st +0.15, 2nd +0.10, 3rd +0.05) and for the
+    // tournament awards (Golden Ball, Golden Boot, Golden Assist).
     // Applied only when Finish Tournament is confirmed, and saved in history so deleting
     // that history entry can also take the bonus back.
     function applyTournamentPlacementBonuses() {
@@ -5050,6 +5303,20 @@ function syncAllGoalRows(saved) {
                 const applied = roundRating(player.rating - before);
                 if (applied) changes[String(player.id)] = (changes[String(player.id)] || 0) + applied;
             });
+        });
+
+        // Tournament awards: Golden Ball, Golden Boot, Golden Assist
+        const awards = computeLiveAwards();
+        AWARD_DEFS.forEach(d => {
+            const w = awards[d.key];
+            const bonus = AWARD_RULES[d.key];
+            if (!w || !bonus) return;
+            const player = playersData.find(p => String(p.id) === String(w.id));
+            if (!player) return;
+            const before = Number(player.rating) || 0;
+            player.rating = roundRating(Math.min(10, before + bonus));
+            const applied = roundRating(player.rating - before);
+            if (applied) changes[String(player.id)] = (changes[String(player.id)] || 0) + applied;
         });
         return changes;
     }
@@ -5185,8 +5452,10 @@ function syncAllGoalRows(saved) {
 
         const champion = getSortedTeams()[0];
         const championName = champion ? champion.name : "the tournament";
+        const awardsText = awardsSummaryText(computeLiveAwards());
+        const awardsBlock = awardsText ? `\n\n${awardsText}` : '';
 
-        if (!await askConfirm(`Finish this tournament?\n\n🏆 Champion: ${championName}\n\nThe results will be saved to History and All Time, and the current tournament will be cleared.`, { confirmText: "Finish", icon: "🏁", type: "success" })) {
+        if (!await askConfirm(`Finish this tournament?\n\n🏆 Champion: ${championName}${awardsBlock}\n\nThe results will be saved to History and All Time, and the current tournament will be cleared.`, { confirmText: "Finish", icon: "🏁", type: "success" })) {
             return;
         }
 
@@ -5218,7 +5487,7 @@ function syncAllGoalRows(saved) {
 
         updateAccessUI();
         switchTab('playersTab', document.getElementById('playersTabBtn'));
-        alert(`🏁 Tournament finished!\n\n🏆 ${championName} won.\nThe tournament has been saved to History and All Time.`);
+        alert(`🏁 Tournament finished!\n\n🏆 ${championName} won.${awardsBlock}\n\nThe tournament has been saved to History and All Time.`);
     }
 
     // Puts every player's rating back to the starting value (names, speeds, positions and stats stay)
