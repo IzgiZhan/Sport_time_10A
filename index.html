@@ -934,16 +934,16 @@
         </div>
 
         <div class="round-nav" id="roundNavControls" style="display:none;">
-            <button id="prevRoundBtn" onclick="changeRound(-1)">← Prev Round</button>
+            <button id="prevRoundBtn" onclick="changeRound(-1)">← Prev Match</button>
             <select id="roundSelect" onchange="selectRound(this.value)"></select>
-            <button id="nextRoundBtn" onclick="changeRound(1)">Next Round →</button>
+            <button id="nextRoundBtn" onclick="changeRound(1)">Next Match →</button>
         </div>
 
         <div id="matchesList">
             <p style="text-align:center; color:var(--text-sub); padding:10px; font-weight:700;">Start the tournament to create matches.</p>
         </div>
 
-        <button class="btn btn-green" id="addNextRoundBtn" style="display:none; margin-top: 10px;" onclick="generateNextRoundManual()">Next round</button>
+        <button class="btn btn-green" id="addNextRoundBtn" style="display:none; margin-top: 10px;" onclick="generateNextRoundManual()">Next match</button>
         <button class="finish-tournament-btn" id="finishTournamentBtn" style="display:none;" onclick="finishTournament()">🏁 Finish Tournament</button>
     </div>
 
@@ -2235,6 +2235,7 @@ function shareCard(ctx, x, y, w, h, r = 28, fill = '#fff') {
     let activeTeams = [];
     let activeMatches = [];
     let currentDisplayedRound = 1;
+    let currentDisplayedMatchId = null;
     let lastRemoteRound = null;
     let totalRounds = 0;
     let baseCycleRounds = [];
@@ -2309,6 +2310,7 @@ function shareCard(ctx, x, y, w, h, r = 28, fill = '#fff') {
             activeTeams = Array.isArray(data.teams) ? data.teams : [];
             repairTeamLogos();
             activeMatches = Array.isArray(data.matches) ? data.matches : [];
+            activeMatches.forEach((match, index) => { if (!Number.isFinite(Number(match.matchNumber))) match.matchNumber = index + 1; });
             currentDisplayedRound = Number(data.current_round) || 1;
             lastRemoteRound = currentDisplayedRound;
             totalRounds = Number(data.total_rounds) || 0;
@@ -2892,6 +2894,7 @@ function shareCard(ctx, x, y, w, h, r = 28, fill = '#fff') {
         appendRoundToSchedule();
 
         currentDisplayedRound = 1;
+        currentDisplayedMatchId = activeMatches.length ? activeMatches[0].id : null;
 
         document.getElementById('addNextRoundBtn').style.display = 'block';
         document.getElementById('finishTournamentBtn').style.display = 'block';
@@ -2959,7 +2962,8 @@ function shareCard(ctx, x, y, w, h, r = 28, fill = '#fff') {
     function appendRoundToSchedule() {
         totalRounds++;
 
-        let matchIdStart = activeMatches.length + 1;
+        // Use a unique ID even when earlier matches were skipped.
+        let matchIdStart = activeMatches.reduce((max, match) => Math.max(max, Number(match.id) || 0), 0) + 1;
 
         let cycleIndex =
             (totalRounds - 1) % baseCycleRounds.length;
@@ -2972,12 +2976,14 @@ function shareCard(ctx, x, y, w, h, r = 28, fill = '#fff') {
                 (totalRounds - 1) / baseCycleRounds.length
             ) % 2 === 1;
 
+        const nextMatchNumber = activeMatches.reduce((max, match) => Math.max(max, Number(match.matchNumber) || 0), 0) + 1;
         templateMatches.forEach((m, idx) => {
             let t1 = isReverseCycle ? m.t2 : m.t1;
             let t2 = isReverseCycle ? m.t1 : m.t2;
 
             activeMatches.push({
                 id: matchIdStart + idx,
+                matchNumber: nextMatchNumber + idx,
                 tour: totalRounds,
                 t1,
                 t2,
@@ -2992,46 +2998,80 @@ function shareCard(ctx, x, y, w, h, r = 28, fill = '#fff') {
         saveData();
     }
 
+    function getOrderedActiveMatches() {
+        return [...activeMatches].sort((a, b) => {
+            const an = Number(a.matchNumber) || Number(a.id) || 0;
+            const bn = Number(b.matchNumber) || Number(b.id) || 0;
+            return an - bn;
+        });
+    }
+
     function generateNextRoundManual() {
         if (!requireAdmin("add a new round")) return;
         currentDisplayedRound = totalRounds + 1;   // set BEFORE the first save so the old round is never sent
         appendRoundToSchedule();
+        const firstNewMatch = getOrderedActiveMatches().find(m => Number(m.tour) === Number(totalRounds));
+        if (firstNewMatch) {
+            currentDisplayedMatchId = firstNewMatch.id;
+            currentDisplayedRound = firstNewMatch.tour;
+        }
         setupRoundSelectOptions();
-        selectRound(totalRounds);
+        renderCurrentRoundMatches();
     }
 
     function setupRoundSelectOptions() {
         const select = document.getElementById('roundSelect');
         const nav = document.getElementById('roundNavControls');
+        const matches = getOrderedActiveMatches();
 
         select.innerHTML = '';
-        nav.style.display = 'flex';
+        nav.style.display = matches.length ? 'flex' : 'none';
 
-        for (let i = 1; i <= totalRounds; i++) {
-            select.innerHTML +=
-                `<option value="${i}">Round ${i}</option>`;
-        }
+        matches.forEach(m => {
+            select.innerHTML += `<option value="${String(m.id)}">Match ${getVisibleMatchNumber(m.id)}</option>`;
+        });
 
-        select.value = currentDisplayedRound;
+        let selected = matches.find(m => String(m.id) === String(currentDisplayedMatchId));
+        if (!selected) selected = matches.find(m => Number(m.tour) === Number(currentDisplayedRound)) || matches[0] || null;
+        currentDisplayedMatchId = selected ? selected.id : null;
+        if (selected) currentDisplayedRound = Number(selected.tour) || 1;
+        if (selected) select.value = String(selected.id);
     }
 
-    function selectRound(tourNum) {
-        currentDisplayedRound = parseInt(tourNum);
+    function selectRound(matchId) {
+        const selected = activeMatches.find(m => String(m.id) === String(matchId));
+        if (!selected) return;
+        currentDisplayedMatchId = selected.id;
+        currentDisplayedRound = Number(selected.tour) || 1;
         if (isAdminAuthenticated) saveData();
         renderCurrentRoundMatches();
     }
 
     function changeRound(delta) {
-        let newRound = currentDisplayedRound + delta;
-
-        if (newRound >= 1 && newRound <= totalRounds) {
-            currentDisplayedRound = newRound;
-            document.getElementById('roundSelect').value =
-                currentDisplayedRound;
-
+        const matches = getOrderedActiveMatches();
+        if (!matches.length) return;
+        let index = matches.findIndex(m => String(m.id) === String(currentDisplayedMatchId));
+        if (index < 0) index = Math.max(0, matches.findIndex(m => Number(m.tour) === Number(currentDisplayedRound)));
+        const nextIndex = index + delta;
+        if (nextIndex >= 0 && nextIndex < matches.length) {
+            const selected = matches[nextIndex];
+            currentDisplayedMatchId = selected.id;
+            currentDisplayedRound = Number(selected.tour) || 1;
+            document.getElementById('roundSelect').value = String(selected.id);
             if (isAdminAuthenticated) saveData();
             renderCurrentRoundMatches();
         }
+    }
+
+    function removeMatchFromSchedule(matchId) {
+        const before = getOrderedActiveMatches();
+        let index = before.findIndex(m => String(m.id) === String(matchId));
+        if (index < 0) index = 0;
+        activeMatches = activeMatches.filter(m => String(m.id) !== String(matchId));
+        const after = getOrderedActiveMatches();
+        const selected = after.length ? after[Math.min(index, after.length - 1)] : null;
+        currentDisplayedMatchId = selected ? selected.id : null;
+        if (selected) currentDisplayedRound = Number(selected.tour) || 1;
     }
 
     function changeTeamPreset(teamId, selectedName) {
@@ -3135,8 +3175,8 @@ function shareCard(ctx, x, y, w, h, r = 28, fill = '#fff') {
     }
 
     function getVisibleMatchNumber(matchId) {
-        const index = activeMatches.findIndex(match => String(match.id) === String(matchId));
-        return index >= 0 ? index + 1 : '';
+        const match = activeMatches.find(match => String(match.id) === String(matchId));
+        return match && Number.isFinite(Number(match.matchNumber)) ? Number(match.matchNumber) : '';
     }
 
     function renderCurrentRoundMatches() {
@@ -3150,12 +3190,17 @@ function shareCard(ctx, x, y, w, h, r = 28, fill = '#fff') {
 
         container.innerHTML = '';
 
-        let roundMatches =
-            activeMatches.filter(m => m.tour === currentDisplayedRound);
+        let selectedMatch = activeMatches.find(m => String(m.id) === String(currentDisplayedMatchId));
+        if (!selectedMatch) {
+            const ordered = getOrderedActiveMatches();
+            selectedMatch = ordered.find(m => Number(m.tour) === Number(currentDisplayedRound)) || ordered[0] || null;
+            currentDisplayedMatchId = selectedMatch ? selectedMatch.id : null;
+        }
+        const roundMatches = selectedMatch ? [selectedMatch] : [];
 
         if (roundMatches.length === 0) {
             container.innerHTML =
-                `<p style="text-align:center; color:var(--text-sub);">No matches in this round.</p>`;
+                `<p style="text-align:center; color:var(--text-sub);">No matches available here.</p>`;
             return;
         }
 
@@ -4053,12 +4098,7 @@ function syncAllGoalRows(saved) {
 
         // 3) either remove the match from the schedule (Skip) or make it unplayed again
         if (skip) {
-            const skippedTour = match.tour;
-            activeMatches = activeMatches.filter(m => m.id !== matchId);
-            if (skippedTour === currentDisplayedRound && !activeMatches.some(m => m.tour === currentDisplayedRound)) {
-                const nextTour = activeMatches.filter(m => m.tour > currentDisplayedRound).reduce((min, m) => Math.min(min, m.tour), Infinity);
-                if (Number.isFinite(nextTour)) currentDisplayedRound = nextTour;
-            }
+            removeMatchFromSchedule(matchId);
             pendingDrafts = {};
         } else {
             match.played = false;
@@ -4072,10 +4112,10 @@ function syncAllGoalRows(saved) {
 
         recalculateStandings();
         renderLeagueTable();
+        setupRoundSelectOptions();
         renderCurrentRoundMatches();
         renderTeamsCards();
         renderPlayers();
-        setupRoundSelectOptions();
         await saveData();
 
         if (document.getElementById('leadersTab').classList.contains('active')) {
@@ -4092,14 +4132,9 @@ function syncAllGoalRows(saved) {
         }
         if (!requireAdmin("skip a match")) return;
         if (!await askConfirm(`Skip match #${getVisibleMatchNumber(match.id)}?\n\nThis match will be removed from the schedule and the tournament will continue with the next match.`, { confirmText: "Skip match", cancelText: "Keep", danger: true })) return;
-        const skippedTour = match.tour;
-        activeMatches = activeMatches.filter(m => m.id !== matchId);
-        if (skippedTour === currentDisplayedRound && !activeMatches.some(m => m.tour === currentDisplayedRound)) {
-            const nextTour = activeMatches.filter(m => m.tour > currentDisplayedRound).reduce((min, m) => Math.min(min, m.tour), Infinity);
-            if (Number.isFinite(nextTour)) currentDisplayedRound = nextTour;
-        }
-        renderCurrentRoundMatches();
+        removeMatchFromSchedule(matchId);
         setupRoundSelectOptions();
+        renderCurrentRoundMatches();
         recalculateStandings();
         renderLeagueTable();
         renderTeamsCards();
@@ -4516,7 +4551,8 @@ function syncAllGoalRows(saved) {
         x.fillStyle = '#fff'; x.font = F('900', 64);
         x.fillText('SPORT TIME 10A', pad, 100);
         x.fillStyle = '#90cdf4'; x.font = F('700', 34);
-        x.fillText(`Round ${currentDisplayedRound} of ${totalRounds}  ·  ${new Date().toLocaleDateString()}`, pad, 155);
+        const selectedMatchNumber = getVisibleMatchNumber(currentDisplayedMatchId) || 1;
+        x.fillText(`Match ${selectedMatchNumber} of ${activeMatches.length}  ·  ${new Date().toLocaleDateString()}`, pad, 155);
         x.fillStyle = '#f6e05e'; x.fillRect(pad, 180, 120, 6);
 
         // table card + header
@@ -4699,7 +4735,7 @@ function syncAllGoalRows(saved) {
         const W = 1080, pad = 48, gap = 28;
         const columns = entries.length === 1 ? 1 : 2;
         const colW = (W - pad * 2 - gap * (columns - 1)) / columns;
-        const top = 196, headerH = 108, rowH = 62, cardGap = 28, bottom = 28;
+        const top = 196, headerH = 108, rowH = 68, cardGap = 28, bottom = 28;
         const pairHeights = [];
         for (let i = 0; i < entries.length; i += columns) {
             const count = Math.max(1, ...entries.slice(i, i + columns).map(team => team.players.length));
@@ -4710,8 +4746,8 @@ function syncAllGoalRows(saved) {
         const x = c.getContext('2d'); if (!x) throw new Error('Canvas is not supported');
         x.fillStyle = colors.bg; x.fillRect(0, 0, W, H);
         x.textBaseline = 'middle'; x.textAlign = 'left';
-        x.fillStyle = colors.brand; x.font = SF('900', 22); x.fillText('SPORT TIME 10A', pad, 48);
-        x.fillStyle = colors.ink; x.font = SF('900', 52); x.fillText('TEAM LINE-UPS', pad, 103);
+        x.fillStyle = colors.brand; x.font = SF('900', 24); x.fillText('SPORT TIME 10A', pad, 48);
+        x.fillStyle = colors.ink; x.font = SF('900', 54); x.fillText('TEAM LINE-UPS', pad, 103);
         x.textAlign = 'right'; x.fillStyle = colors.muted; x.font = SF('650', 20);
         x.fillText(new Date().toLocaleDateString(), W - pad, 49);
         x.fillStyle = colors.accent; x.fillRect(pad, 151, 64, 4);
@@ -4728,28 +4764,28 @@ function syncAllGoalRows(saved) {
             } else shareDrawEmoji(x, '⚽', lx + size / 2, ly + size / 2, 38);
             // Fit long team names without colliding with the logo or the rating column.
             x.textAlign = 'left'; x.fillStyle = colors.ink;
-            let fontSize = 26; x.font = SF('850', fontSize);
-            while (fontSize > 18 && x.measureText(team.name).width > colW - 116) x.font = SF('850', --fontSize);
+            let fontSize = 30; x.font = SF('900', fontSize);
+            while (fontSize > 19 && x.measureText(team.name).width > colW - 116) x.font = SF('900', --fontSize);
             x.fillText(shareFit(x, team.name, colW - 116), cx + 94, cy + 44);
-            x.fillStyle = colors.muted; x.font = SF('650', 14);
+            x.fillStyle = colors.muted; x.font = SF('750', 16);
             x.fillText(`${team.players.length} ${team.players.length === 1 ? 'PLAYER' : 'PLAYERS'}`, cx + 94, cy + 72);
-            x.textAlign = 'right'; x.font = SF('750', 12); x.fillText('RATING', cx + colW - 24, cy + 96);
+            x.textAlign = 'right'; x.font = SF('850', 15); x.fillText('RATING', cx + colW - 24, cy + 96);
             x.fillStyle = colors.line; x.fillRect(cx + 24, cy + headerH, colW - 48, 1);
             const listTop = cy + headerH;
             if (!team.players.length) {
-                x.textAlign = 'left'; x.fillStyle = colors.muted; x.font = SF('650', 18);
+                x.textAlign = 'left'; x.fillStyle = colors.muted; x.font = SF('750', 20);
                 x.fillText('No players assigned yet', cx + 24, listTop + rowH / 2);
             }
             team.players.forEach((player, j) => {
                 const yy = listTop + j * rowH, mid = yy + rowH / 2;
-                x.textAlign = 'left'; x.fillStyle = colors.muted; x.font = SF('600', 15);
+                x.textAlign = 'left'; x.fillStyle = colors.muted; x.font = SF('800', 18);
                 x.fillText(String(j + 1).padStart(2, '0'), cx + 24, mid);
                 x.fillStyle = colors.ink;
-                let fontSize = 21; x.font = SF('750', fontSize);
-                while (fontSize > 16 && x.measureText(player.name).width > colW - 158) x.font = SF('750', --fontSize);
+                let fontSize = 25; x.font = SF('850', fontSize);
+                while (fontSize > 18 && x.measureText(player.name).width > colW - 158) x.font = SF('850', --fontSize);
                 x.fillText(shareFit(x, player.name, colW - 158), cx + 62, mid);
-                x.fillStyle = colors['accent-soft']; shareRR(x, cx + colW - 80, mid - 17, 56, 34, 6); x.fill();
-                x.textAlign = 'center'; x.fillStyle = colors.accent; x.font = SF('850', 18);
+                x.fillStyle = colors['accent-soft']; shareRR(x, cx + colW - 82, mid - 19, 60, 38, 6); x.fill();
+                x.textAlign = 'center'; x.fillStyle = colors.accent; x.font = SF('900', 20);
                 x.fillText(player.rating, cx + colW - 52, mid);
                 if (j < team.players.length - 1) {
                     x.fillStyle = colors.line; x.fillRect(cx + 24, yy + rowH, colW - 48, 1);
@@ -4762,7 +4798,7 @@ function syncAllGoalRows(saved) {
             for (let col = 0; col < columns && entries[i + col]; col++) drawTeam(entries[i + col], i + col, cy, height);
             cy += height + cardGap;
         }
-        x.textAlign = 'center'; x.fillStyle = colors.muted; x.font = SF('650', 18);
+        x.textAlign = 'center'; x.fillStyle = colors.muted; x.font = SF('750', 18);
         x.fillText('Sport Time 10A · Izgi_Zhan', W / 2, H - 40);
         return await new Promise(resolve => c.toBlob(resolve, 'image/png'));
     }
