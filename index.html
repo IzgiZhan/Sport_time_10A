@@ -3131,6 +3131,11 @@ function shareCard(ctx, x, y, w, h, r = 28, fill = '#fff') {
         });
     }
 
+    function getVisibleMatchNumber(matchId) {
+        const index = activeMatches.findIndex(match => String(match.id) === String(matchId));
+        return index >= 0 ? index + 1 : '';
+    }
+
     function renderCurrentRoundMatches() {
         const container = document.getElementById('matchesList');
 
@@ -3205,7 +3210,7 @@ function shareCard(ctx, x, y, w, h, r = 28, fill = '#fff') {
 
                 container.innerHTML += `
                     <div class="match-card">
-                        <div class="match-badge">Match #${m.id} - Round ${m.tour}</div>
+                        <div class="match-badge">Match #${getVisibleMatchNumber(m.id)} - Round ${m.tour}</div>
 
                         <div class="match-main">
                             <div class="match-team">
@@ -3366,7 +3371,7 @@ function shareCard(ctx, x, y, w, h, r = 28, fill = '#fff') {
 
                 container.innerHTML += `
                     <div class="match-card">
-                        <div class="match-badge">Match #${m.id} - Round ${m.tour}</div>
+                        <div class="match-badge">Match #${getVisibleMatchNumber(m.id)} - Round ${m.tour}</div>
 
                         <div class="match-main">
                             <div class="match-team">
@@ -3413,13 +3418,16 @@ function shareCard(ctx, x, y, w, h, r = 28, fill = '#fff') {
                             ${eventsHtml}
                         </div>
 
-                        <button
-                            class="match-btn"
-                            onclick="saveMatchResult(${m.id})"
-                            ${isAdminAuthenticated ? '' : 'disabled'}
-                        >
-                            End match
-                        </button>
+                        <div class="match-actions" style="margin-top:10px;">
+                            <button
+                                class="match-btn"
+                                onclick="saveMatchResult(${m.id})"
+                                ${isAdminAuthenticated ? '' : 'disabled'}
+                            >
+                                End match
+                            </button>
+                            <button class="match-cancel-btn" style="background:#263c50;color:#fff;border-color:#263c50" onclick="skipMatch(${m.id})" ${isAdminAuthenticated ? '' : 'disabled'}>⏭ Skip</button>
+                        </div>
                     </div>
                 `;
             }
@@ -4079,7 +4087,7 @@ function syncAllGoalRows(saved) {
             return;
         }
         if (!requireAdmin("skip a match")) return;
-        if (!await askConfirm(`Skip match #${match.id}?\n\nThis match will be removed from the schedule and the tournament will continue with the next match.`, { confirmText: "Skip match", cancelText: "Keep", danger: true })) return;
+        if (!await askConfirm(`Skip match #${getVisibleMatchNumber(match.id)}?\n\nThis match will be removed from the schedule and the tournament will continue with the next match.`, { confirmText: "Skip match", cancelText: "Keep", danger: true })) return;
         const skippedTour = match.tour;
         activeMatches = activeMatches.filter(m => m.id !== matchId);
         if (skippedTour === currentDisplayedRound && !activeMatches.some(m => m.tour === currentDisplayedRound)) {
