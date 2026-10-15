@@ -2570,11 +2570,11 @@ function shareCard(ctx, x, y, w, h, r = 28, fill = '#fff') {
         const container = document.getElementById('playersList');
         container.innerHTML = '';
 
-        // Always show the player list from highest rating to lowest.
+        // Main page: show the lowest rating at the top and the highest at the bottom.
         // Sorting a copy keeps the underlying data order unchanged while every render
         // immediately reflects rating changes.
         [...playersData]
-            .sort((a, b) => (Number(b.rating) || 0) - (Number(a.rating) || 0) || String(a.name || '').localeCompare(String(b.name || '')))
+            .sort((a, b) => (Number(a.rating) || 0) - (Number(b.rating) || 0) || String(a.name || '').localeCompare(String(b.name || '')))
             .forEach(p => {
             if (!Array.isArray(p.roles)) p.roles = [];
 
