@@ -4778,8 +4778,8 @@ function syncAllGoalRows(saved) {
             }
             team.players.forEach((player, j) => {
                 const yy = listTop + j * rowH, mid = yy + rowH / 2;
-                x.textAlign = 'left'; x.fillStyle = colors.muted; x.font = SF('800', 18);
-                x.fillText(String(j + 1).padStart(2, '0'), cx + 24, mid);
+                x.textAlign = 'left'; x.fillStyle = '#000000'; x.font = SF('900', 20);
+                x.fillText(String(j + 1), cx + 24, mid);
                 x.fillStyle = colors.ink;
                 let fontSize = 25; x.font = SF('850', fontSize);
                 while (fontSize > 18 && x.measureText(player.name).width > colW - 158) x.font = SF('850', --fontSize);
