@@ -30,7 +30,7 @@
             --roster-photo-surface: #ffffff;
             --roster-photo-ink: #18252b;
             --roster-photo-muted: #73818a;
-            --roster-photo-line: #e5ebee;
+            --roster-photo-line: #263c50;
             --roster-photo-accent: #218568;
             --roster-photo-accent-soft: #e8f4ee;
             --roster-photo-brand: #3182ce;
@@ -1211,13 +1211,22 @@
             return { id: p.id, name: p.name, logo: p.logo || null, goals, assists, mvp, place: place >= 0 ? place + 1 : null, score };
         });
         const byName = (a, b) => String(a.name).localeCompare(String(b.name));
-        const pick = (filter, cmp) => rows.filter(filter).sort(cmp)[0] || null;
+        const usedPlayerIds = new Set();
+        const pickUnique = (filter, cmp) => {
+            const winner = rows
+                .filter(r => filter(r) && !usedPlayerIds.has(String(r.id)))
+                .sort(cmp)[0] || null;
+            if (winner) usedPlayerIds.add(String(winner.id));
+            return winner;
+        };
+        // Each player can receive only one tournament award. Ballon d'Or has priority,
+        // then the next eligible player receives Golden Boot and Best Playmaker.
         return {
-            goldenBall: pick(r => r.goals + r.assists + r.mvp > 0, (a, b) =>
+            goldenBall: pickUnique(r => r.goals + r.assists + r.mvp > 0, (a, b) =>
                 (b.score - a.score) || (b.mvp - a.mvp) || ((b.goals + b.assists) - (a.goals + a.assists)) || ((a.place || 99) - (b.place || 99)) || byName(a, b)),
-            goldenBoot: pick(r => r.goals > 0, (a, b) =>
+            goldenBoot: pickUnique(r => r.goals > 0, (a, b) =>
                 (b.goals - a.goals) || (b.assists - a.assists) || (b.mvp - a.mvp) || byName(a, b)),
-            goldenAssist: pick(r => r.assists > 0, (a, b) =>
+            goldenAssist: pickUnique(r => r.assists > 0, (a, b) =>
                 (b.assists - a.assists) || (b.goals - a.goals) || (b.mvp - a.mvp) || byName(a, b))
         };
     }
@@ -2561,7 +2570,12 @@ function shareCard(ctx, x, y, w, h, r = 28, fill = '#fff') {
         const container = document.getElementById('playersList');
         container.innerHTML = '';
 
-        playersData.forEach(p => {
+        // Always show the player list from highest rating to lowest.
+        // Sorting a copy keeps the underlying data order unchanged while every render
+        // immediately reflects rating changes.
+        [...playersData]
+            .sort((a, b) => (Number(b.rating) || 0) - (Number(a.rating) || 0) || String(a.name || '').localeCompare(String(b.name || '')))
+            .forEach(p => {
             if (!Array.isArray(p.roles)) p.roles = [];
 
             const isNap = p.roles.includes('FWD');
@@ -3228,6 +3242,7 @@ function shareCard(ctx, x, y, w, h, r = 28, fill = '#fff') {
                         <div class="match-actions">
                             <button class="match-cancel-btn match-edit-btn" onclick="cancelMatchResult(${m.id}, true)">✏️ Edit</button>
                             <button class="match-cancel-btn" onclick="cancelMatchResult(${m.id})">↩ Cancel</button>
+                            <button class="match-cancel-btn" style="background:#263c50;color:#fff;border-color:#263c50" onclick="skipMatch(${m.id})">⏭ Skip</button>
                         </div>
                     </div>
                 `;
@@ -3944,19 +3959,21 @@ function syncAllGoalRows(saved) {
 
     let pendingDrafts = {};
 
-    async function cancelMatchResult(matchId, edit = false) {
-        if (!requireAdmin(edit ? "edit a match result" : "cancel a match result")) return;
+    async function cancelMatchResult(matchId, edit = false, skip = false) {
+        if (!requireAdmin(edit ? "edit a match result" : (skip ? "skip a match" : "cancel a match result"))) return;
         const match = activeMatches.find(m => m.id === matchId);
         if (!match || !match.played) return;
 
-        const msg = edit
-            ? `Edit match #${match.id}? Its stats and rating changes are taken back, and you can change the score and goals, then press End match.`
-            : `Cancel the result of match #${match.id}? Goals, assists, MVP and rating changes from this match will be removed.`;
-        if (!await askConfirm(
-            edit ? `Edit match #${match.id}?\n\nIts stats and rating changes are taken back. Change the score and goals, then press End match.`
-                 : `Cancel the result of match #${match.id}?\n\nGoals, assists, MVP and rating changes from this match will be removed.`,
-            { confirmText: edit ? "Edit" : "Cancel result", cancelText: edit ? "Cancel" : "Keep", danger: !edit }
-        )) return;
+        const confirmMessage = edit
+            ? `Edit match #${match.id}?\n\nIts stats and rating changes are taken back. Change the score and goals, then press End match.`
+            : skip
+                ? `Skip match #${match.id}?\n\nThis match will be removed from the schedule. Its goals, assists, MVP and rating changes will be undone, and the tournament will continue with the next match.`
+                : `Cancel the result of match #${match.id}?\n\nGoals, assists, MVP and rating changes from this match will be removed.`;
+        if (!await askConfirm(confirmMessage, {
+            confirmText: edit ? "Edit" : (skip ? "Skip match" : "Cancel result"),
+            cancelText: edit ? "Cancel" : "Keep",
+            danger: !edit
+        })) return;
 
         // for Edit: remember the old score and goal events to pre-fill the form
         const oldS1 = match.s1, oldS2 = match.s2;
@@ -4022,24 +4039,59 @@ function syncAllGoalRows(saved) {
             });
         });
 
-        // 3) make the match unplayed again
-        match.played = false;
-        match.s1 = edit ? oldS1 : null;
-        match.s2 = edit ? oldS2 : null;
-        match.goalsDetails = [];
-        match.mvpId = null;
-        delete match.ratingDeltas;
-        pendingDrafts = edit ? draft : {};
+        // 3) either remove the match from the schedule (Skip) or make it unplayed again
+        if (skip) {
+            const skippedTour = match.tour;
+            activeMatches = activeMatches.filter(m => m.id !== matchId);
+            if (skippedTour === currentDisplayedRound && !activeMatches.some(m => m.tour === currentDisplayedRound)) {
+                const nextTour = activeMatches.filter(m => m.tour > currentDisplayedRound).reduce((min, m) => Math.min(min, m.tour), Infinity);
+                if (Number.isFinite(nextTour)) currentDisplayedRound = nextTour;
+            }
+            pendingDrafts = {};
+        } else {
+            match.played = false;
+            match.s1 = edit ? oldS1 : null;
+            match.s2 = edit ? oldS2 : null;
+            match.goalsDetails = [];
+            match.mvpId = null;
+            delete match.ratingDeltas;
+            pendingDrafts = edit ? draft : {};
+        }
 
         recalculateStandings();
         renderLeagueTable();
         renderCurrentRoundMatches();
         renderTeamsCards();
         renderPlayers();
+        setupRoundSelectOptions();
+        await saveData();
 
         if (document.getElementById('leadersTab').classList.contains('active')) {
             renderLeaderboard(leaderboardMetric);
         }
+    }
+
+    async function skipMatch(matchId) {
+        const match = activeMatches.find(m => m.id === matchId);
+        if (!match) return;
+        if (match.played) {
+            await cancelMatchResult(matchId, false, true);
+            return;
+        }
+        if (!requireAdmin("skip a match")) return;
+        if (!await askConfirm(`Skip match #${match.id}?\n\nThis match will be removed from the schedule and the tournament will continue with the next match.`, { confirmText: "Skip match", cancelText: "Keep", danger: true })) return;
+        const skippedTour = match.tour;
+        activeMatches = activeMatches.filter(m => m.id !== matchId);
+        if (skippedTour === currentDisplayedRound && !activeMatches.some(m => m.tour === currentDisplayedRound)) {
+            const nextTour = activeMatches.filter(m => m.tour > currentDisplayedRound).reduce((min, m) => Math.min(min, m.tour), Infinity);
+            if (Number.isFinite(nextTour)) currentDisplayedRound = nextTour;
+        }
+        renderCurrentRoundMatches();
+        setupRoundSelectOptions();
+        recalculateStandings();
+        renderLeagueTable();
+        renderTeamsCards();
+        await saveData();
     }
 
     function recalculateStandings() {
@@ -4655,6 +4707,7 @@ function syncAllGoalRows(saved) {
         const drawTeam = (team, index, cy, height) => {
             const cx = pad + (index % columns) * (colW + gap);
             x.fillStyle = colors.surface; shareRR(x, cx, cy, colW, height, 8); x.fill();
+            x.strokeStyle = colors.line; x.lineWidth = 2; shareRR(x, cx, cy, colW, height, 8); x.stroke();
             x.fillStyle = colors.accent; x.fillRect(cx, cy + 20, 4, 54);
             const logo = logos[index], size = 54, lx = cx + 22, ly = cy + 26;
             if (logo) {
