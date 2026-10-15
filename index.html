@@ -555,7 +555,10 @@
         .match-team.right span.country-code { margin-left: 0; margin-right: -4px; }
         .match-score-inputs { display: flex; align-items: center; gap: 8px; }
         .match-score-inputs input { width: 44px; height: 44px; text-align: center; font-size: 20px; font-weight: 900; background: var(--input-bg); border: 2px solid var(--card-border); color: var(--text-main); border-radius: 10px; outline: none; }
-        .match-btn { background: var(--primary-green); color: #fff; border: none; padding: 12px 16px; border-radius: 10px; font-size: 13px; font-weight: 900; cursor: pointer; }
+        .match-btn { background: var(--primary-green); color: #fff; border: none; padding: 12px 16px; border-radius: 10px; font-size: 13px; font-weight: 900; cursor: pointer; min-width: 120px; }
+        .skip-match-btn { background: #263c50; border: 1px solid #263c50; }
+        .skip-match-btn:hover { background: #172b3d; }
+        .match-actions .match-btn { align-self: auto; }
 
         .goal-events-container { background: var(--input-bg); border: 1px dashed var(--card-border); padding: 12px; border-radius: 12px; margin-top: 6px; }
         .goal-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; background: var(--card-bg); padding: 8px 10px; border-radius: 10px; border: 1px solid var(--card-border); }
@@ -3247,7 +3250,7 @@ function shareCard(ctx, x, y, w, h, r = 28, fill = '#fff') {
                         <div class="match-actions">
                             <button class="match-cancel-btn match-edit-btn" onclick="cancelMatchResult(${m.id}, true)">✏️ Edit</button>
                             <button class="match-cancel-btn" onclick="cancelMatchResult(${m.id})">↩ Cancel</button>
-                            <button class="match-cancel-btn" style="background:#263c50;color:#fff;border-color:#263c50" onclick="skipMatch(${m.id})">⏭ Skip</button>
+                            <button type="button" class="match-btn skip-match-btn" onclick="skipMatch(${m.id})" ${isAdminAuthenticated ? '' : 'disabled'}>⏭ Skip</button>
                         </div>
                     </div>
                 `;
@@ -3420,13 +3423,14 @@ function shareCard(ctx, x, y, w, h, r = 28, fill = '#fff') {
 
                         <div class="match-actions" style="margin-top:10px;">
                             <button
+                                type="button"
                                 class="match-btn"
                                 onclick="saveMatchResult(${m.id})"
                                 ${isAdminAuthenticated ? '' : 'disabled'}
                             >
                                 End match
                             </button>
-                            <button class="match-cancel-btn" style="background:#263c50;color:#fff;border-color:#263c50" onclick="skipMatch(${m.id})" ${isAdminAuthenticated ? '' : 'disabled'}>⏭ Skip</button>
+                            <button type="button" class="match-btn skip-match-btn" onclick="skipMatch(${m.id})" ${isAdminAuthenticated ? '' : 'disabled'}>⏭ Skip</button>
                         </div>
                     </div>
                 `;
