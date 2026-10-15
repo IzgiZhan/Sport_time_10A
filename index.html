@@ -659,7 +659,11 @@
         .pm-head { display: flex; align-items: center; gap: 14px; padding-right: 34px; }
         .pm-avatar { flex-shrink: 0; width: 56px; height: 56px; border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 900; color: #fff; background: linear-gradient(135deg, #4299e1, #2b6cb0); box-shadow: 0 6px 16px rgba(49,130,206,.35); text-transform: uppercase; }
         .pm-head-text { min-width: 0; }
+        .pm-name-row { display:flex; align-items:center; gap:7px; flex-wrap:wrap; min-width:0; }
         .pm-name { font-size: 21px; font-weight: 900; line-height: 1.2; overflow-wrap: anywhere; }
+        .pm-awards, .compare-personal-awards { display:inline-flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:3px; vertical-align:middle; }
+        .personal-award-icon { width:22px; height:22px; object-fit:contain; flex:0 0 auto; vertical-align:middle; }
+        .compare-personal-awards .personal-award-icon { width:20px; height:20px; }
         .pm-roles { margin-top: 6px; display: flex; gap: 6px; flex-wrap: wrap; }
         .pm-role { font-size: 11px; font-weight: 800; padding: 3px 9px; border-radius: 20px; background: var(--input-bg); border: 1px solid var(--card-border); color: var(--text-sub); }
         .pm-rating { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 18px; border-radius: 18px; background: var(--input-bg); border: 1px solid var(--card-border); overflow: hidden; }
@@ -740,10 +744,13 @@
         .award-rule { padding: 10px 12px; background: linear-gradient(135deg, rgba(214,158,46,.18), rgba(214,158,46,.04)); border: 1px solid rgba(214,158,46,.45); border-radius: 10px; }
         .award-rule-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 13px; font-weight: 900; color: var(--text-main); }
         .award-rule-name { display: inline-flex; align-items: center; gap: 8px; }
-        .award-icon { width: 30px; height: 30px; object-fit: contain; flex: none; }
-        .award-icon-sm { width: 18px; height: 18px; object-fit: contain; vertical-align: -4px; margin-right: 2px; }
+        .award-icon { width: 38px; height: 38px; object-fit: contain; flex: none; }
+        .award-icon-sm { width: 22px; height: 22px; object-fit: contain; vertical-align: -4px; margin-right: 2px; }
         .award-rule-desc { font-size: 12px !important; font-weight: 800 !important; color: var(--text-main) !important; }
         .award-rule-list { margin-top: 6px; display: flex; flex-direction: column; gap: 3px; font-size: 12px; font-weight: 800; color: var(--text-main); }
+        .award-rule-goldenBall .award-rule-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 8px; font-size: 11px; }
+        .award-rule-goldenBall .award-rule-desc { font-size: 10px !important; margin-top: 2px; }
+        .award-rule-goldenBall { padding: 8px 10px; }
         .award-rule-top b { color: var(--primary-green); font-weight: 900; }
         .award-rule-desc { margin-top: 4px; font-size: 11px; font-weight: 700; color: var(--text-sub); line-height: 1.35; }
         .rating-awards-note { margin-top: 8px; font-size: 11px; font-weight: 700; color: var(--text-sub); line-height: 1.4; }
@@ -859,7 +866,6 @@
             <div class="rating-rules-grid" id="ratingRulesGrid"></div>
             <div class="rating-rules-subtitle">🏆 Tournament awards</div>
             <div class="rating-rules-grid rating-awards-grid" id="ratingAwardsGrid"></div>
-            <div class="rating-awards-note" id="ratingAwardsNote"></div>
         </div>
         <div class="section-header">
             <span class="section-title">Class Squad (<span id="selectedCount">0</span>)</span>
@@ -1081,29 +1087,24 @@
         const aGrid = document.getElementById('ratingAwardsGrid');
         if (aGrid) {
             aGrid.innerHTML = AWARD_DEFS.map(d =>
-                `<div class="award-rule">
+                `<div class="award-rule award-rule-${d.key}">
                     <div class="award-rule-top"><span class="award-rule-name"><img class="award-icon" src="${awardImgSrc(d.key)}" onerror="this.onerror=null;this.src=AWARD_ICON_SRC['${d.key}']" alt="">${d.title}</span><b>+${AWARD_RULES[d.key]}</b></div>
                     <div class="award-rule-desc">${d.desc}</div>
                     <div class="award-rule-list">${d.lines.map(l => `<div>${l}</div>`).join('')}</div>
                 </div>`
             ).join('');
         }
-        const aNote = document.getElementById('ratingAwardsNote');
-        if (aNote) {
-            const W = GOLDEN_BALL_WEIGHTS;
-            aNote.textContent = `Golden Ball score: goal ×${W.goal}, assist ×${W.assist}, MVP ×${W.mvp}, place 🥇 +${W.place[0]} · 🥈 +${W.place[1]} · 🥉 +${W.place[2]}. Awards are given when the tournament is finished.`;
-        }
     }
 
     // ---------- Tournament awards ----------
     const AWARD_RULES = { goldenBall: 0.20, goldenBoot: 0.10, goldenAssist: 0.10 };
-    const GOLDEN_BALL_WEIGHTS = { goal: 2, assist: 2, mvp: 3, place: [5, 3, 1] };
+    const GOLDEN_BALL_WEIGHTS = { goal: 1, assist: 1, mvp: 1, place: [1.5, 1, 0.5] };
     const AWARD_DEFS = [
         { key: 'goldenBall',   title: 'Golden Ball',   label: 'GOLDEN BALL',   color: '#d69e2e', desc: 'Best player of the tournament',
-          lines: ['⚽ Goal + 🅰️ Assist', '🏆 MVP + 🥇 Place'] },
+          lines: [`⚽ Goal +${GOLDEN_BALL_WEIGHTS.goal}`, `🅰️ Assist +${GOLDEN_BALL_WEIGHTS.assist}`, `🏆 MVP +${GOLDEN_BALL_WEIGHTS.mvp}`, `🥇 +${GOLDEN_BALL_WEIGHTS.place[0]}  🥈 +${GOLDEN_BALL_WEIGHTS.place[1]}  🥉 +${GOLDEN_BALL_WEIGHTS.place[2]}`] },
         { key: 'goldenBoot',   title: 'Golden Boot',   label: 'GOLDEN BOOT',   color: '#dd6b20', desc: 'Top scorer of the tournament',
           lines: ['⚽ Most goals'] },
-        { key: 'goldenAssist', title: 'Golden Assist', label: 'GOLDEN ASSIST', color: '#38a169', desc: 'Best assist provider',
+        { key: 'goldenAssist', title: 'Best Assistant', label: 'BEST ASSISTANT', color: '#38a169', desc: 'Most assists in the tournament',
           lines: ['🅰️ Most assists'] }
     ];
 
@@ -1115,26 +1116,52 @@
             <radialGradient id="g1" cx="35%" cy="30%" r="80%"><stop offset="0" stop-color="#fff6b8"/><stop offset=".45" stop-color="#f6c945"/><stop offset="1" stop-color="#9a6208"/></radialGradient>
             <linearGradient id="g2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff0a0"/><stop offset=".5" stop-color="#e9b730"/><stop offset="1" stop-color="#8a5a0f"/></linearGradient>
             <linearGradient id="g3" x1="0" x2="1"><stop offset="0" stop-color="#9a6208"/><stop offset=".5" stop-color="#f6e05e"/><stop offset="1" stop-color="#8a5a0f"/></linearGradient></defs>`;
+        const defs = `<defs>
+            <radialGradient id="gb" cx="34%" cy="28%" r="85%"><stop offset="0" stop-color="#fffbd0"/><stop offset=".35" stop-color="#f9d54a"/><stop offset=".75" stop-color="#d9a01c"/><stop offset="1" stop-color="#8a5a0f"/></radialGradient>
+            <linearGradient id="gm" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff3a6"/><stop offset=".45" stop-color="#f0bf2c"/><stop offset="1" stop-color="#9a6208"/></linearGradient>
+            <linearGradient id="gh" x1="0" x2="1"><stop offset="0" stop-color="#9a6208"/><stop offset=".35" stop-color="#fbe27a"/><stop offset=".7" stop-color="#e0a820"/><stop offset="1" stop-color="#8a5a0f"/></linearGradient>
+            <linearGradient id="gd" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7a4d0a"/><stop offset="1" stop-color="#4d2f04"/></linearGradient>
+            <clipPath id="cb"><circle cx="32" cy="27" r="22"/></clipPath></defs>`;
+        const ink = '#6b4208';
         return {
-            goldenBall: uri(`${goldDefs}
-                <path d="M19 60h26l-3-8H22z" fill="url(#g3)" stroke="#7a4d0a" stroke-width="1"/>
-                <rect x="26" y="46" width="12" height="7" rx="2" fill="url(#g3)" stroke="#7a4d0a" stroke-width="1"/>
-                <circle cx="32" cy="27" r="22" fill="url(#g1)" stroke="#7a4d0a" stroke-width="1.6"/>
-                <path d="M32 17l9 6.5-3.4 10.5H26.4L23 23.5z" fill="#7a4d0a" opacity=".78"/>
-                <g stroke="#7a4d0a" stroke-width="1.6" opacity=".7" stroke-linecap="round"><path d="M32 17V7M41 23.5l9-4M37.6 34l6 8M26.4 34l-6 8M23 23.5l-9-4"/></g>
-                <ellipse cx="23" cy="15" rx="6" ry="3.5" fill="#fff" opacity=".35" transform="rotate(-35 23 15)"/>`),
-            goldenBoot: uri(`${goldDefs}
-                <path d="M12 6h20v22c0 4 3 6 8 8l14 5c5 2 7 5 7 9v3H12z" fill="url(#g2)" stroke="#7a4d0a" stroke-width="1.6" stroke-linejoin="round"/>
-                <path d="M12 51h49v5H12z" fill="#7a4d0a"/>
-                <g fill="#7a4d0a"><rect x="16" y="56" width="5" height="5" rx="1.5"/><rect x="27" y="56" width="5" height="5" rx="1.5"/><rect x="43" y="56" width="5" height="5" rx="1.5"/><rect x="54" y="56" width="5" height="5" rx="1.5"/></g>
-                <g stroke="#7a4d0a" stroke-width="1.8" stroke-linecap="round"><path d="M34 33l5 2M37 37l5 2M40 41l5 2"/></g>
-                <path d="M16 10h6v14h-6z" fill="#fff" opacity=".3"/>`),
-            goldenAssist: uri(`${goldDefs}
-                <path d="M18 2h12l6 18H24z" fill="#2f855a"/><path d="M46 2H34l-6 18h12z" fill="#38a169"/>
-                <circle cx="32" cy="40" r="20" fill="url(#g1)" stroke="#7a4d0a" stroke-width="1.6"/>
-                <circle cx="32" cy="40" r="14.5" fill="none" stroke="#7a4d0a" stroke-width="1.2" opacity=".55"/>
-                <path d="M20 37h14v-6l12 9-12 9v-6H20z" fill="#7a4d0a" opacity=".85"/>
-                <ellipse cx="22" cy="28" rx="6" ry="3" fill="#fff" opacity=".35" transform="rotate(-35 22 28)"/>`)
+            // Golden Ball: football on a two-step pedestal
+            goldenBall: uri(`${defs}
+                <rect x="17" y="58" width="30" height="5" rx="1.5" fill="url(#gd)"/>
+                <path d="M21 58l3-6h16l3 6z" fill="url(#gh)" stroke="${ink}" stroke-width="1"/>
+                <rect x="27" y="48" width="10" height="5" rx="1.5" fill="url(#gh)" stroke="${ink}" stroke-width="1"/>
+                <circle cx="32" cy="27" r="22" fill="url(#gb)"/>
+                <g clip-path="url(#cb)" fill="${ink}" opacity=".8">
+                  <path d="M32 17.5l8.5 6.2-3.2 10H26.7l-3.2-10z"/>
+                  <path d="M32 1l9 4.5-3 7.5h-12l-3-7.5z"/>
+                  <path d="M54 14l5 9-6 6-7-4 1-9z"/>
+                  <path d="M10 14l-5 9 6 6 7-4-1-9z"/>
+                  <path d="M20 52l-3-9 7-3 5 7-3 6z"/>
+                  <path d="M44 52l3-9-7-3-5 7 3 6z"/>
+                </g>
+                <g stroke="${ink}" stroke-width="1.3" stroke-linecap="round" opacity=".55" fill="none">
+                  <path d="M32 17.5V12.5M40.5 23.7l5-3M37.3 33.7l4 6M26.7 33.7l-4 6M23.5 23.7l-5-3"/></g>
+                <circle cx="32" cy="27" r="22" fill="none" stroke="${ink}" stroke-width="1.6"/>
+                <ellipse cx="23" cy="15" rx="7" ry="3.8" fill="#fff" opacity=".45" transform="rotate(-35 23 15)"/>`),
+            // Golden Boot: same boot silhouette, with a shorter upper shaft
+            goldenBoot: uri(`${defs}
+                <path d="M9 15c0-1.7 1.3-3 3-3h15c1.7 0 3 1.3 3 3v10c0 3.5 2.6 5.6 6.5 7l15 5.3C57 39.6 61 42.5 61 47.5V50H9z" fill="url(#gm)" stroke="${ink}" stroke-width="1.6" stroke-linejoin="round"/>
+                <path d="M9 15c0-1.7 1.3-3 3-3h15c1.7 0 3 1.3 3 3v3H9z" fill="url(#gd)"/>
+                <path d="M9 50h52v3.5c0 1.4-1 2.5-2.5 2.5H11.5C10 56 9 54.9 9 53.5z" fill="url(#gd)"/>
+                <g fill="${ink}"><path d="M14 56h5l-1 5h-3z"/><path d="M26 56h5l-1 5h-3z"/><path d="M43 56h5l-1 5h-3z"/><path d="M54 56h4l-1 4h-3z"/></g>
+                <path d="M34 28l9 3.2" stroke="${ink}" stroke-width="2" stroke-linecap="round"/>
+                <path d="M32 33l10.5 3.7M36 38.5l9.5 3.3" stroke="${ink}" stroke-width="2" stroke-linecap="round"/>
+                <path d="M30 23c4 2 7 5 13 7.5" stroke="#fff" stroke-width="1.5" opacity=".5" fill="none" stroke-linecap="round"/>
+                <path d="M13 19h5v16h-5z" fill="#fff" opacity=".3"/>`),
+            // Golden Assist (playmaker): trophy cup with a pass arrow
+            goldenAssist: uri(`${defs}
+                <circle cx="12" cy="43" r="7" fill="#38a169" stroke="#176b3a" stroke-width="1.5"/>
+                <path d="M4 60v-5c0-6 3-9 8-9s8 3 8 9v5z" fill="#38a169" stroke="#176b3a" stroke-width="1.5" stroke-linejoin="round"/>
+                <circle cx="52" cy="17" r="7" fill="#38a169" stroke="#176b3a" stroke-width="1.5"/>
+                <path d="M44 34v-5c0-6 3-9 8-9s8 3 8 9v5z" fill="#38a169" stroke="#176b3a" stroke-width="1.5" stroke-linejoin="round"/>
+                <path d="M19 37Q31 20 42 23" fill="none" stroke="#d69e2e" stroke-width="3.5" stroke-linecap="round"/>
+                <path d="M35 17l8 6-7 6" fill="none" stroke="#d69e2e" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="29" cy="34" r="7" fill="url(#gb)" stroke="${ink}" stroke-width="1.3"/>
+                <path d="M29 30l3 2-1 4h-4l-1-4z M29 27l3 1.5 M22 33h3 M25 40l2-3 M36 39l-3-2" fill="${ink}" stroke="${ink}" stroke-width=".7" stroke-linejoin="round"/>`)
         };
     })();
     // Optional: paste direct image links (e.g. Wikimedia Commons, upload.wikimedia.org/...) here to use real
@@ -1201,6 +1228,31 @@
         if (!Array.isArray(h.playerStats) || !h.playerStats.length) return null;
         const teams = h.teams || [];
         return computeAwards(h.playerStats, p => teams.findIndex(t => (t.players || []).includes(p.name)));
+    }
+
+    // Personal awards are shown beside a player's name, not as extra statistic tiles.
+    // Keep one icon per award type even if it was won in multiple tournaments.
+    function getPlayerPersonalAwards(player) {
+        if (!player) return [];
+        const won = new Set();
+        const inspect = awards => {
+            if (!awards) return;
+            AWARD_DEFS.forEach(def => {
+                const winner = awards[def.key];
+                if (winner && ((winner.id != null && String(winner.id) === String(player.id)) ||
+                    (winner.name && String(winner.name) === String(player.name)))) won.add(def.key);
+            });
+        };
+        (allTimeStats.__history || []).forEach(h => inspect(getHistoryAwards(h)));
+        inspect(computeLiveAwards());
+        return AWARD_DEFS.filter(def => won.has(def.key)).map(def => def.key);
+    }
+
+    function personalAwardsHtml(player) {
+        return getPlayerPersonalAwards(player).map(key => {
+            const def = AWARD_DEFS.find(d => d.key === key);
+            return `<img class="personal-award-icon" src="${awardImgSrc(key)}" alt="${esc(def ? def.title : key)}" title="${esc(def ? def.title : key)}" onerror="this.onerror=null;this.src=AWARD_ICON_SRC['${key}']">`;
+        }).join('');
     }
 
     function placeEmoji(n) { return n === 1 ? '🥇' : n === 2 ? '🥈' : n === 3 ? '🥉' : '#' + n; }
@@ -1409,6 +1461,7 @@
         const growth = base ? roundRating(p.rating - base.rating) : 0;
 
         document.getElementById('pmName').textContent = p.name;
+        document.getElementById('pmAwards').innerHTML = personalAwardsHtml(p);
         document.getElementById('pmAvatar').textContent = (String(p.name).trim().charAt(0) || '?');
         const roleNames = { FWD: '⚽ FWD', DEF: '🛡️ DEF', GK: '🧤 GK' };
         document.getElementById('pmRoles').innerHTML = (p.roles || []).map(r => `<span class="pm-role">${roleNames[r] || esc(r)}</span>`).join('');
@@ -1490,14 +1543,14 @@
             document.body.appendChild(overlay);
             overlay.addEventListener('click', e => { if (e.target === overlay) closeCompare(); });
         }
-        document.getElementById('compareFirstName').innerHTML = `<span class="compare-name-group"><span class="compare-name-emoji">${getComparePlayerEmoji(first)}</span><span>${esc(first.name)}</span></span><span class="compare-player-details"><span>⭐ ${formatRating(first.rating)}</span><span>⚡ ${esc(first.speed || 3)}</span></span><span class="compare-player-roles">${esc(getComparePlayerPositions(first))}</span>`;
+        document.getElementById('compareFirstName').innerHTML = `<span class="compare-name-group"><span class="compare-name-emoji">${getComparePlayerEmoji(first)}</span><span>${esc(first.name)}</span><span class="compare-personal-awards">${personalAwardsHtml(first)}</span></span><span class="compare-player-details"><span>⭐ ${formatRating(first.rating)}</span><span>⚡ ${esc(first.speed || 3)}</span></span><span class="compare-player-roles">${esc(getComparePlayerPositions(first))}</span>`;
         const select = document.getElementById('comparePlayerSelect');
         const others = playersData.filter(p => String(p.id) !== String(first.id));
         select.innerHTML = others.map(p => `<option value="${String(p.id).replace(/"/g, '&quot;')}">${getComparePlayerEmoji(p)} ${esc(p.name)}</option>`).join('');
         const render = () => {
             const second = playersData.find(p => String(p.id) === select.value);
             if (!second) { document.getElementById('compareSecondName').textContent = 'Choose player'; document.getElementById('compareResults').innerHTML = '<p>No other players to compare.</p>'; return; }
-            document.getElementById('compareSecondName').innerHTML = `<span class="compare-name-group"><span class="compare-name-emoji">${getComparePlayerEmoji(second)}</span><span>${esc(second.name)}</span></span><span class="compare-player-details"><span>⭐ ${formatRating(second.rating)}</span><span>⚡ ${esc(second.speed || 3)}</span></span><span class="compare-player-roles">${esc(getComparePlayerPositions(second))}</span>`;
+            document.getElementById('compareSecondName').innerHTML = `<span class="compare-name-group"><span class="compare-name-emoji">${getComparePlayerEmoji(second)}</span><span>${esc(second.name)}</span><span class="compare-personal-awards">${personalAwardsHtml(second)}</span></span><span class="compare-player-details"><span>⭐ ${formatRating(second.rating)}</span><span>⚡ ${esc(second.speed || 3)}</span></span><span class="compare-player-roles">${esc(getComparePlayerPositions(second))}</span>`;
             const a = getPlayerCompareStats(first), b = getPlayerCompareStats(second);
             const rows = [
                 ['📈 Growth', a.growth, b.growth, true],
@@ -1505,7 +1558,7 @@
                 ['🅰️ Assists', a.assists, b.assists], ['🏅 MVP', a.mvp, b.mvp], ['🥇 1st place', a.first, b.first],
                 ['🥈 2nd place', a.second, b.second], ['🥉 3rd place', a.third, b.third]
             ];
-            document.getElementById('compareResults').innerHTML = `<div class="compare-results-wrap"><table class="compare-table"><thead><tr><th>Statistics</th><th><span class="compare-name-group"><span class="compare-name-emoji">${getComparePlayerEmoji(first)}</span><span>${esc(first.name)}</span></span></th><th><span class="compare-name-group"><span class="compare-name-emoji">${getComparePlayerEmoji(second)}</span><span>${esc(second.name)}</span></span></th></tr></thead><tbody>${rows.map(([label,av,bv,higher=true,compareAv=av,compareBv=bv]) => { const an=Number(compareAv)||0,bn=Number(compareBv)||0; const ac=an===bn?'':((higher ? an>bn : an<bn)?'compare-better':''); const bc=an===bn?'':((higher ? bn>an : bn<an)?'compare-better':''); return `<tr><td>${label}</td><td class="${ac}">${label.includes('Rating') ? formatRating(av) : label.includes('Growth') ? fmtGrowth(av) : esc(String(av))}</td><td class="${bc}">${label.includes('Rating') ? formatRating(bv) : label.includes('Growth') ? fmtGrowth(bv) : esc(String(bv))}</td></tr>`; }).join('')}</tbody></table></div>`;
+            document.getElementById('compareResults').innerHTML = `<div class="compare-results-wrap"><table class="compare-table"><thead><tr><th>Statistics</th><th><span class="compare-name-group"><span class="compare-name-emoji">${getComparePlayerEmoji(first)}</span><span>${esc(first.name)}</span><span class="compare-personal-awards">${personalAwardsHtml(first)}</span></span></th><th><span class="compare-name-group"><span class="compare-name-emoji">${getComparePlayerEmoji(second)}</span><span>${esc(second.name)}</span><span class="compare-personal-awards">${personalAwardsHtml(second)}</span></span></th></tr></thead><tbody>${rows.map(([label,av,bv,higher=true,compareAv=av,compareBv=bv]) => { const an=Number(compareAv)||0,bn=Number(compareBv)||0; const ac=an===bn?'':((higher ? an>bn : an<bn)?'compare-better':''); const bc=an===bn?'':((higher ? bn>an : bn<an)?'compare-better':''); return `<tr><td>${label}</td><td class="${ac}">${label.includes('Rating') ? formatRating(av) : label.includes('Growth') ? fmtGrowth(av) : esc(String(av))}</td><td class="${bc}">${label.includes('Rating') ? formatRating(bv) : label.includes('Growth') ? fmtGrowth(bv) : esc(String(bv))}</td></tr>`; }).join('')}</tbody></table></div>`;
         };
         select.onchange = render;
         render();
@@ -1560,6 +1613,9 @@
 
     const A = { main: '#6366f1', soft: '#4338ca', g: ['#818cf8', '#4f46e5'] };
     const B = { main: '#0ea5e9', soft: '#0284c7', g: ['#38bdf8', '#0369a1'] };
+    const allPersonalAwardKeys = [...new Set([...getPlayerPersonalAwards(first), ...getPlayerPersonalAwards(second)])];
+    const personalAwardImages = {};
+    await Promise.all(allPersonalAwardKeys.map(async key => { personalAwardImages[key] = await loadAwardIcon(key); }));
 
     // ---------- две карточки игроков ----------
     const drawPlayer = (p, cx0, col) => {
@@ -1574,8 +1630,22 @@
         x.fillStyle = g; x.beginPath(); x.arc(cx, ay, r, 0, Math.PI * 2); x.fill();
         x.fillStyle = '#fff'; x.font = SF('900', 44); x.textAlign = 'center'; x.textBaseline = 'middle';
         x.fillText(String(p.name || '?').trim().charAt(0).toUpperCase(), cx, ay + 2);
-        x.fillStyle = '#1a202c'; x.font = SF('900', 36);
-        x.fillText(shareFit(x, p.name, cw - 110), cx, cardTop + 156);
+        const personalKeys = getPlayerPersonalAwards(p).filter(key => personalAwardImages[key]);
+        x.font = SF('900', 36);
+        const awardSize = 27, awardGap = 5;
+        const awardsWidth = personalKeys.length ? personalKeys.length * awardSize + (personalKeys.length - 1) * awardGap + 12 : 0;
+        const shownName = shareFit(x, p.name, cw - 110 - awardsWidth);
+        const nameWidth = x.measureText(shownName).width;
+        const groupWidth = nameWidth + awardsWidth;
+        let nameX = cx - groupWidth / 2;
+        x.fillStyle = '#1a202c'; x.textAlign = 'left'; x.textBaseline = 'middle';
+        x.fillText(shownName, nameX, cardTop + 156);
+        let awardX = nameX + nameWidth + (personalKeys.length ? 12 : 0);
+        personalKeys.forEach(key => {
+            const img = personalAwardImages[key];
+            x.drawImage(img, awardX, cardTop + 156 - awardSize / 2, awardSize, awardSize);
+            awardX += awardSize + awardGap;
+        });
         shareInline(x, [
             { e: '⭐', size: 26 }, { t: formatRating(st.rating), font: SF('800', 24), color: '#4a5568' },
             { e: '⚡', size: 26 }, { t: String(st.speed), font: SF('800', 24), color: '#4a5568' }
@@ -1775,6 +1845,7 @@ function shareCard(ctx, x, y, w, h, r = 28, fill = '#fff') {
         const text = id => document.getElementById(id)?.textContent || '';
         return {
             name: text('pmName'), avatar: text('pmAvatar'),
+            awards: getPlayerPersonalAwards(playersData.find(p => String(p.id) === String(currentPlayerModalId))),
             roles: Array.from(modal.querySelectorAll('.pm-role'), el => el.textContent || ''),
             ratings: [
                 { icon: '⭐', value: text('pmRating'), label: 'Rating' },
@@ -1806,6 +1877,7 @@ function shareCard(ctx, x, y, w, h, r = 28, fill = '#fff') {
     const tileW = (W - pad * 2 - gap * 3) / 4, tileH = 190;
     const rows = Math.ceil(data.stats.length / 4);
     const H = gridTop + rows * tileH + (rows - 1) * gap + 110;
+    const awardImages = await Promise.all((data.awards || []).map(key => loadAwardIcon(key)));
 
     const c = document.createElement('canvas');
     c.width = W; c.height = H;
@@ -1826,10 +1898,20 @@ function shareCard(ctx, x, y, w, h, r = 28, fill = '#fff') {
 
     const tx = avX + av + 32, maxW = W - pad - 36 - tx;
     let nameSize = 58;
+    const awardGap = 7, awardSize = 30;
+    const awardsWidth = awardImages.reduce((sum, img) => sum + (img ? awardSize + awardGap : 0), 0);
+    const nameLimit = Math.max(120, maxW - awardsWidth);
     x.font = SF('900', nameSize);
-    while (x.measureText(data.name).width > maxW && nameSize > 34) { nameSize -= 2; x.font = SF('900', nameSize); }
+    while (x.measureText(data.name).width > nameLimit && nameSize > 30) { nameSize -= 2; x.font = SF('900', nameSize); }
+    const shownName = shareFit(x, data.name, nameLimit);
     x.fillStyle = '#1a202c'; x.textAlign = 'left'; x.textBaseline = 'middle';
-    x.fillText(shareFit(x, data.name, maxW), tx, cardTop + 76);
+    x.fillText(shownName, tx, cardTop + 76);
+    let awardX = tx + x.measureText(shownName).width + 12;
+    awardImages.forEach(img => {
+        if (!img) return;
+        x.drawImage(img, awardX, cardTop + 76 - awardSize / 2, awardSize, awardSize);
+        awardX += awardSize + awardGap;
+    });
 
     // позиции — аккуратные "таблетки"
     let chipX = tx;
@@ -4625,7 +4707,7 @@ function syncAllGoalRows(saved) {
         const roleTxt = { FWD: '⚽ FWD', DEF: '🛡️ DEF', GK: '🧤 GK' };
         const W = 1200, pad = 40, gap = 24, colW = (W - pad * 2 - gap) / 2, rowH = 84;
         const half = Math.ceil(list.length / 2), top = 230, cardH = 20 + half * rowH;
-        const rulesTop = top + cardH + 30, rulesH = 620;
+        const rulesTop = top + cardH + 30, rulesH = 654;
         const H = rulesTop + rulesH + 90;
 
         const c = document.createElement('canvas');
@@ -4704,14 +4786,14 @@ function syncAllGoalRows(saved) {
         // tournament awards
         x.fillStyle = '#718096'; x.font = F('800', 20); x.textAlign = 'left';
         x.fillText('TOURNAMENT AWARDS', pad + 30, gy + 14);
-        const awW = (W - pad * 2 - 60 - 28) / 3, awY = gy + 28, awH = 190;
+        const awW = (W - pad * 2 - 60 - 28) / 3, awY = gy + 28, awH = 248;
         AWARD_DEFS.forEach((d, k) => {
             const cx = pad + 30 + k * (awW + 14);
             x.fillStyle = '#fdf6e3'; rr(cx, awY, awW, awH, 18); x.fill();
             x.strokeStyle = 'rgba(214,158,46,0.6)'; x.lineWidth = 2; rr(cx, awY, awW, awH, 18); x.stroke();
             x.fillStyle = d.color; rr(cx, awY, awW, 58, 18); x.fill(); x.fillRect(cx, awY + 30, awW, 28);
             x.fillStyle = '#fff'; x.beginPath(); x.arc(cx + 34, awY + 29, 22, 0, Math.PI * 2); x.fill();
-            if (rIcons[k]) x.drawImage(rIcons[k], cx + 14, awY + 9, 40, 40);
+            if (rIcons[k]) x.drawImage(rIcons[k], cx + 11, awY + 6, 46, 46);
             x.fillStyle = '#fff'; x.font = F('900', 21); x.textAlign = 'left';
             x.fillText(d.title, cx + 64, awY + 36);
             x.font = F('900', 18); x.textAlign = 'right'; x.fillText(`+${AWARD_RULES[d.key]} ⭐`, cx + awW - 12, awY + 36);
@@ -4721,8 +4803,6 @@ function syncAllGoalRows(saved) {
             x.fillStyle = '#4a5568'; x.font = F('800', 21);
             d.lines.forEach((ln, i) => x.fillText(fit(ln, awW - 32), cx + 16, awY + 128 + i * 32));
         });
-        x.fillStyle = '#718096'; x.font = F('700', 18); x.textAlign = 'left';
-        x.fillText(`Golden Ball score: goal ×${WB.goal}, assist ×${WB.assist}, MVP ×${WB.mvp}, place 🥇 +${WB.place[0]} · 🥈 +${WB.place[1]} · 🥉 +${WB.place[2]}`, pad + 30, rulesTop + rulesH - 24);
 
         x.textAlign = 'center'; x.fillStyle = 'rgba(255,255,255,0.7)'; x.font = F('700', 26);
         x.fillText('Sport Time 10A · Izgi_Zhan', W / 2, H - 36);
@@ -5037,7 +5117,7 @@ function syncAllGoalRows(saved) {
                 x.fillStyle = '#fff'; rr(cx, awardsTop, aw, awardsH, 24); x.fill();
                 x.fillStyle = d.color; rr(cx, awardsTop, aw, 46, 24); x.fill(); x.fillRect(cx, awardsTop + 24, aw, 22);
                 x.fillStyle = '#fff'; x.beginPath(); x.arc(cx + 34, awardsTop + 23, 21, 0, Math.PI * 2); x.fill();
-                if (awardIcons[k]) x.drawImage(awardIcons[k], cx + 14, awardsTop + 3, 40, 40);
+                if (awardIcons[k]) x.drawImage(awardIcons[k], cx + 11, awardsTop + 1, 44, 44);
                 x.fillStyle = '#fff'; x.font = F('900', 22); x.textAlign = 'left';
                 x.fillText(d.label, cx + 66, awardsTop + 32);
                 x.textAlign = 'right'; x.fillText(`+${AWARD_RULES[d.key]} ⭐`, cx + aw - 20, awardsTop + 32);
@@ -5746,7 +5826,7 @@ function syncAllGoalRows(saved) {
         <div class="pm-head">
             <div class="pm-avatar" id="pmAvatar"></div>
             <div class="pm-head-text">
-                <div class="pm-name" id="pmName"></div>
+                <div class="pm-name-row"><div class="pm-name" id="pmName"></div><div class="pm-awards" id="pmAwards" aria-label="Personal awards"></div></div>
                 <div class="pm-roles" id="pmRoles"></div>
             </div>
         </div>
