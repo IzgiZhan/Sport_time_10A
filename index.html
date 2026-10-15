@@ -2926,20 +2926,50 @@ function shareCard(ctx, x, y, w, h, r = 28, fill = '#fff') {
         });
 
         let numTeams = activeTeams.length;
-
-        if (allActivePlayers.length % numTeams !== 0) {
-            alert(
-                `Cannot make ${numTeams} teams perfectly equal. Select/remove players so the total is divisible by ${numTeams}.`
-            );
+        if (numTeams < 2 || allActivePlayers.length < numTeams) {
+            alert("At least two teams with players are needed to balance teams.");
             return;
         }
 
+        // Uneven team sizes are allowed. distributeEquallyFlexible already
+        // distributes extra players across teams rather than requiring an exact division.
         let distributed =
             distributeEquallyFlexible(allActivePlayers, numTeams);
 
         if (!distributed) {
             alert("Could not rebalance the teams.");
             return;
+        }
+
+        // Always make a real change in membership. Prefer swapping players
+        // with the same (or closest) rating, including players from the last team.
+        // Randomly choose among equally close pairs so repeated clicks do not
+        // put the exact same players back into the same team every time.
+        if (numTeams >= 2) {
+            const lastTeamIndex = numTeams - 1;
+            let candidates = [];
+            let bestGap = Infinity;
+            for (let a = 0; a < numTeams - 1; a++) {
+                for (let ia = 0; ia < distributed[a].length; ia++) {
+                    for (let ib = 0; ib < distributed[lastTeamIndex].length; ib++) {
+                        const ra = Number(distributed[a][ia].rating) || 0;
+                        const rb = Number(distributed[lastTeamIndex][ib].rating) || 0;
+                        const gap = Math.abs(ra - rb);
+                        if (gap < bestGap - 1e-9) {
+                            bestGap = gap;
+                            candidates = [[a, ia, lastTeamIndex, ib]];
+                        } else if (Math.abs(gap - bestGap) < 1e-9) {
+                            candidates.push([a, ia, lastTeamIndex, ib]);
+                        }
+                    }
+                }
+            }
+            if (candidates.length) {
+                const [a, ia, b, ib] = candidates[Math.floor(Math.random() * candidates.length)];
+                const temp = distributed[a][ia];
+                distributed[a][ia] = distributed[b][ib];
+                distributed[b][ib] = temp;
+            }
         }
 
         activeTeams.forEach((t, idx) => {
@@ -4721,11 +4751,13 @@ function syncAllGoalRows(saved) {
             logo: team.logo || defaultLogo,
             players: (Array.isArray(team.players) ? team.players : []).map(member => {
                 const player = playerById.get(String(member && member.id));
+                const ratingValue = player && Number.isFinite(Number(player.rating)) ? Number(player.rating) : -Infinity;
                 return {
                     name: String((player && player.name) || (member && member.name) || 'Unknown player'),
-                    rating: player && Number.isFinite(Number(player.rating)) ? formatRating(Number(player.rating)) : '—'
+                    ratingValue,
+                    rating: Number.isFinite(ratingValue) ? formatRating(ratingValue) : '—'
                 };
-            })
+            }).sort((a, b) => (b.ratingValue - a.ratingValue) || a.name.localeCompare(b.name))
         }));
         const logos = await Promise.all(entries.map(team => loadLogo(team.logo)));
         await document.fonts.ready;
