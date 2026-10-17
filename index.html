@@ -687,6 +687,20 @@
         .pm-awards, .compare-personal-awards { display:inline-flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:3px; vertical-align:middle; }
         .personal-award-icon { width:22px; height:22px; object-fit:contain; flex:0 0 auto; vertical-align:middle; }
         .compare-personal-awards .personal-award-icon { width:20px; height:20px; }
+        .pm-award-btn { display:inline-flex; align-items:center; gap:2px; padding:2px 7px 2px 3px; border-radius:20px; border:1px solid var(--card-border); background:var(--input-bg); cursor:pointer; color:var(--text-main); font-family:inherit; }
+        .pm-award-btn:hover { border-color:var(--primary-gold); }
+        .pm-award-count { font-size:12px; font-weight:900; color:var(--primary-gold); }
+        .award-info-card { max-width:380px; text-align:left; padding:22px 16px 18px; position:relative; max-height:86vh; overflow:auto; }
+        .award-info-head { display:flex; align-items:center; gap:12px; padding-right:34px; }
+        .award-info-head img { width:52px; height:52px; object-fit:contain; flex:0 0 auto; }
+        .award-info-title { font-size:18px; font-weight:900; line-height:1.2; }
+        .award-info-sub { margin-top:3px; font-size:12px; font-weight:800; color:var(--text-sub); }
+        .award-info-list { margin-top:14px; display:flex; flex-direction:column; gap:8px; }
+        .award-info-row { padding:10px 12px; border-radius:12px; background:var(--input-bg); border:1px solid var(--card-border); }
+        .award-info-row-top { display:flex; justify-content:space-between; gap:8px; font-size:13px; font-weight:900; }
+        .award-info-row-top span { color:var(--primary-green); }
+        .award-info-date { margin-top:2px; font-size:11px; font-weight:700; color:var(--text-sub); }
+        .award-info-stats { margin-top:6px; font-size:13px; font-weight:800; }
         .pm-roles { margin-top: 6px; display: flex; gap: 6px; flex-wrap: wrap; }
         .pm-role { font-size: 11px; font-weight: 800; padding: 3px 9px; border-radius: 20px; background: var(--input-bg); border: 1px solid var(--card-border); color: var(--text-sub); }
         .pm-rating { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 18px; border-radius: 18px; background: var(--input-bg); border: 1px solid var(--card-border); overflow: hidden; }
@@ -877,6 +891,17 @@
         .swapstat-actions .swapstat-ok { background: linear-gradient(135deg, #6366f1, #4f46e5); color: #fff; }
         .swapstat-actions .swapstat-ok:disabled { opacity: .45; cursor: not-allowed; }
         .hist-share { background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.4); color: #fff; border-radius: 8px; padding: 3px 10px; font-size: 11px; font-weight: 900; cursor: pointer; }
+
+        /* ===== Admin: rating & awards rules editor ===== */
+        .rules-admin-title { font-size:12px; font-weight:900; text-transform:uppercase; letter-spacing:.5px; color:var(--text-sub); margin:16px 0 8px; }
+        .rules-admin-title:first-child { margin-top:0; }
+        .rules-admin-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(130px, 1fr)); gap:10px; }
+        .rules-admin-grid label { display:flex; flex-direction:column; gap:5px; font-size:12px; font-weight:800; color:var(--text-main); }
+        .rules-admin-grid input { padding:11px 12px; border-radius:10px; border:1px solid var(--card-border); background:var(--input-bg); color:var(--text-main); font-size:15px; font-weight:800; width:100%; box-sizing:border-box; }
+        .rules-admin-grid input:focus { outline:none; border-color:var(--primary-blue); }
+        .rules-admin-note { margin-top:12px; font-size:11px; font-weight:700; color:var(--text-sub); line-height:1.45; }
+        .rules-admin-actions { display:flex; gap:10px; flex-wrap:wrap; margin-top:14px; }
+        .rules-admin-actions .btn { margin:0; width:auto; flex:1 1 200px; }
     </style>
 </head>
 <body data-theme="light">
@@ -1038,6 +1063,30 @@
         </div>
       </div>
 
+<div class="admin-add-card" id="adminRulesCard" style="padding:18px;">
+  <div class="rules-admin-title">⭐ How rating works</div>
+  <div class="rules-admin-grid">
+    <label>⚽ Goal (+)<input id="ruleGoal" type="number" min="0" max="5" step="0.005"></label>
+    <label>🅰️ Assist (+)<input id="ruleAssist" type="number" min="0" max="5" step="0.005"></label>
+    <label>🥅 Own goal (−)<input id="ruleOwnGoal" type="number" min="0" max="5" step="0.005"></label>
+    <label>🏆 MVP (+)<input id="ruleMvp" type="number" min="0" max="5" step="0.005"></label>
+    <label>✅ Win (+)<input id="ruleWin" type="number" min="0" max="5" step="0.005"></label>
+  </div>
+  <div class="rules-admin-title">🏁 Final place</div>
+  <div class="rules-admin-grid">
+    <label>🥇 1st place (+)<input id="rulePlace1" type="number" min="0" max="5" step="0.005"></label>
+    <label>🥈 2nd place (+)<input id="rulePlace2" type="number" min="0" max="5" step="0.005"></label>
+    <label>🥉 3rd place (+)<input id="rulePlace3" type="number" min="0" max="5" step="0.005"></label>
+  </div>
+  <div class="rules-admin-title">🏆 Tournament awards</div>
+  <div class="rules-admin-grid">
+    <label>Ballon d'Or (+)<input id="ruleGoldenBall" type="number" min="0" max="5" step="0.005"></label>
+    <label>Golden Boot (+)<input id="ruleGoldenBoot" type="number" min="0" max="5" step="0.005"></label>
+    <label>Best playmaker (+)<input id="ruleGoldenAssist" type="number" min="0" max="5" step="0.005"></label>
+  </div>
+  <div class="rules-admin-note">After pressing Save, the "How rating works" cards, share images and every player's rating are updated: the difference between the old and new rules is applied to the current tournament and to all finished tournaments in History. Own goals from finished tournaments are not stored, so a change to the own-goal value only affects the current tournament and future ones.</div>
+</div>
+
 <div class="admin-add-card" style="padding:18px;">
   <button class="btn btn-dark" style="margin:0;" onclick="restoreStartingRatings()">⭐ Restore Starting Ratings</button>
 </div>
@@ -1115,6 +1164,9 @@
 
     // Rating changes (used both in the calculations and in the info card)
     const RATING_RULES = { goal: 0.10, assist: 0.10, ownGoal: 0.05, mvp: 0.10, win: 0.025 };
+    // Rating bonus for the final place of the team (1st, 2nd, 3rd)
+    const PLACE_BONUSES = [0.15, 0.10, 0.05];
+    const DEFAULT_RATING_RULES = { rating: { ...RATING_RULES }, place: [...PLACE_BONUSES], awards: { goldenBall: 0.20, goldenBoot: 0.10, goldenAssist: 0.10 } };
 
     function renderRatingRules() {
         const grid = document.getElementById('ratingRulesGrid');
@@ -1126,9 +1178,9 @@
             ['🥅', 'Own goal', '−' + R.ownGoal, 'minus'],
             ['🏆', 'MVP', '+' + R.mvp, 'plus'],
             ['✅', 'Win', '+' + R.win, 'plus'],
-            ['🥇', '1st place', '+0.15', 'plus'],
-            ['🥈', '2nd place', '+0.1', 'plus'],
-            ['🥉', '3rd place', '+0.05', 'plus']
+            ['🥇', '1st place', '+' + PLACE_BONUSES[0], 'plus'],
+            ['🥈', '2nd place', '+' + PLACE_BONUSES[1], 'plus'],
+            ['🥉', '3rd place', '+' + PLACE_BONUSES[2], 'plus']
         ];
         grid.innerHTML = items.map(i =>
             `<div class="rating-rule ${i[3]}"><span>${i[0]} ${i[1]}</span><b>${i[2]}</b></div>`
@@ -1255,22 +1307,14 @@
             return { id: p.id, name: p.name, logo: p.logo || null, goals, assists, mvp, place: place >= 0 ? place + 1 : null, score };
         });
         const byName = (a, b) => String(a.name).localeCompare(String(b.name));
-        const usedPlayerIds = new Set();
-        const pickUnique = (filter, cmp) => {
-            const winner = rows
-                .filter(r => filter(r) && !usedPlayerIds.has(String(r.id)))
-                .sort(cmp)[0] || null;
-            if (winner) usedPlayerIds.add(String(winner.id));
-            return winner;
-        };
-        // Each player can receive only one tournament award. Ballon d'Or has priority,
-        // then the next eligible player receives Golden Boot and Best Playmaker.
+        // The same player can win several awards: nobody is excluded, each award goes to the best player in it.
+        const best = (filter, cmp) => rows.filter(filter).sort(cmp)[0] || null;
         return {
-            goldenBall: pickUnique(r => r.goals + r.assists + r.mvp > 0, (a, b) =>
+            goldenBall: best(r => r.goals + r.assists + r.mvp > 0, (a, b) =>
                 (b.score - a.score) || (b.mvp - a.mvp) || ((b.goals + b.assists) - (a.goals + a.assists)) || ((a.place || 99) - (b.place || 99)) || byName(a, b)),
-            goldenBoot: pickUnique(r => r.goals > 0, (a, b) =>
+            goldenBoot: best(r => r.goals > 0, (a, b) =>
                 (b.goals - a.goals) || (b.assists - a.assists) || (b.mvp - a.mvp) || byName(a, b)),
-            goldenAssist: pickUnique(r => r.assists > 0, (a, b) =>
+            goldenAssist: best(r => r.assists > 0, (a, b) =>
                 (b.assists - a.assists) || (b.goals - a.goals) || (b.mvp - a.mvp) || byName(a, b))
         };
     }
@@ -1318,13 +1362,71 @@
         }).join('');
     }
 
+    // Every time this player won each award: [{ no, date, w, live }]
+    function getPlayerAwardWins(player) {
+        const out = {};
+        if (!player) return out;
+        const mine = w => w && ((w.id != null && String(w.id) === String(player.id)) || (w.name && String(w.name) === String(player.name)));
+        const push = (awards, info) => {
+            if (!awards) return;
+            AWARD_DEFS.forEach(def => {
+                if (mine(awards[def.key])) (out[def.key] = out[def.key] || []).push({ ...info, w: awards[def.key] });
+            });
+        };
+        (allTimeStats.__history || []).forEach((h, idx) => push(getHistoryAwards(h), { no: idx + 1, date: h && h.date, live: false }));
+        push(computeLiveAwards(), { no: null, date: null, live: true });
+        return out;
+    }
+
+    // Award icons in the player window: icon + "x count", tap for details
+    function playerModalAwardsHtml(player) {
+        const wins = getPlayerAwardWins(player);
+        return AWARD_DEFS.filter(d => wins[d.key] && wins[d.key].length).map(d => {
+            const n = wins[d.key].length;
+            return `<button type="button" class="pm-award-btn" onclick="openAwardInfo(${Number(player.id)}, '${d.key}')" title="${esc(d.title)}" aria-label="${esc(d.title)} x${n}"><img class="personal-award-icon" src="${awardImgSrc(d.key)}" alt="" onerror="this.onerror=null;this.src=AWARD_ICON_SRC['${d.key}']"><b class="pm-award-count">x${n}</b></button>`;
+        }).join('');
+    }
+
+    function openAwardInfo(playerId, key) {
+        const p = playersData.find(x => x.id === playerId);
+        const def = AWARD_DEFS.find(d => d.key === key);
+        if (!p || !def) return;
+        const list = ((getPlayerAwardWins(p)[key]) || []).slice().reverse();
+        if (!list.length) return;
+        const rows = list.map(e => {
+            const when = e.live ? 'Current tournament (in progress)' : `Tournament #${e.no}`;
+            const date = (!e.live && e.date && !isNaN(new Date(e.date))) ? new Date(e.date).toLocaleDateString() : '';
+            return `<div class="award-info-row">
+                <div class="award-info-row-top"><b>${when}</b><span>+${AWARD_RULES[key]} ⭐</span></div>
+                ${date ? `<div class="award-info-date">${date}</div>` : ''}
+                <div class="award-info-stats">${awardStatsText(key, e.w)}</div>
+            </div>`;
+        }).join('');
+        document.getElementById('awardInfoBody').innerHTML = `
+            <div class="award-info-head">
+                <img src="${awardImgSrc(key)}" alt="" onerror="this.onerror=null;this.src=AWARD_ICON_SRC['${key}']">
+                <div><div class="award-info-title">${esc(def.title)}</div>
+                <div class="award-info-sub">${esc(p.name)} · won ${list.length} time${list.length === 1 ? '' : 's'}</div></div>
+            </div>
+            <div class="award-info-list">${rows}</div>`;
+        const ov = document.getElementById('awardInfoModal');
+        ov.onclick = e => { if (e.target === ov) closeAwardInfo(); };
+        ov.classList.add('open');
+        requestAnimationFrame(() => ov.classList.add('show'));
+    }
+
+    function closeAwardInfo() {
+        const ov = document.getElementById('awardInfoModal');
+        if (!ov) return;
+        ov.classList.remove('show');
+        setTimeout(() => ov.classList.remove('open'), 190);
+    }
+
     function placeEmoji(n) { return n === 1 ? '🥇' : n === 2 ? '🥈' : n === 3 ? '🥉' : '#' + n; }
 
     function awardStatsText(key, w) {
         if (!w) return '';
-        if (key === 'goldenBall') return `⚽ ${w.goals} · 🅰️ ${w.assists} · 🏆 ${w.mvp}` + (w.place ? ` · ${placeEmoji(w.place)}` : '');
-        if (key === 'goldenBoot') return `⚽ ${w.goals} goal${w.goals === 1 ? '' : 's'}` + (w.assists ? ` · 🅰️ ${w.assists}` : '');
-        return `🅰️ ${w.assists} assist${w.assists === 1 ? '' : 's'}` + (w.goals ? ` · ⚽ ${w.goals}` : '');
+        return `⚽ ${w.goals} · 🅰️ ${w.assists} · 🏆 ${w.mvp}` + (w.place ? ` · ${placeEmoji(w.place)}` : '');
     }
 
     function awardsSummaryText(awards) {
@@ -1523,7 +1625,7 @@
         const growth = getPlayerGrowth(p);
 
         document.getElementById('pmName').textContent = p.name;
-        document.getElementById('pmAwards').innerHTML = personalAwardsHtml(p);
+        document.getElementById('pmAwards').innerHTML = playerModalAwardsHtml(p);
         document.getElementById('pmAvatar').textContent = (String(p.name).trim().charAt(0) || '?');
         const roleNames = { FWD: '⚽ FWD', DEF: '🛡️ DEF', GK: '🧤 GK' };
         document.getElementById('pmRoles').innerHTML = (p.roles || []).map(r => `<span class="pm-role">${roleNames[r] || esc(r)}</span>`).join('');
@@ -2062,12 +2164,18 @@ function shareCard(ctx, x, y, w, h, r = 28, fill = '#fff') {
     }
 
     function playerModalKey(e) {
-        if (e.key === 'Escape') { e.preventDefault(); closePlayerModal(); }
+        if (e.key === 'Escape') {
+            e.preventDefault();
+            const ai = document.getElementById('awardInfoModal');
+            if (ai && ai.classList.contains('open')) { closeAwardInfo(); return; }
+            closePlayerModal();
+        }
     }
 
     function closePlayerModal() {
         const ov = document.getElementById('playerModal');
         document.removeEventListener('keydown', playerModalKey, true);
+        closeAwardInfo();
         ov.classList.remove('show');
         setTimeout(() => ov.classList.remove('open'), 190);
     }
@@ -2226,6 +2334,7 @@ function shareCard(ctx, x, y, w, h, r = 28, fill = '#fff') {
 
         isAdminAuthenticated = true;
         updateAccessUI();
+        autoFixHistoryAwards();
     }
 
     async function openAdmin() {
@@ -2233,6 +2342,7 @@ function shareCard(ctx, x, y, w, h, r = 28, fill = '#fff') {
         if (isAdminAuthenticated) {
             switchTab('adminTab', adminTabBtn);
             renderAdminPlayers();
+            renderAdminRules();
             return;
         }
 
@@ -2247,8 +2357,10 @@ function shareCard(ctx, x, y, w, h, r = 28, fill = '#fff') {
 
         isAdminAuthenticated = true;
         updateAccessUI();
+        autoFixHistoryAwards();
         switchTab('adminTab', adminTabBtn);
         renderAdminPlayers();
+        renderAdminRules();
     }
 
     function lockAdmin() {
@@ -2356,6 +2468,7 @@ function shareCard(ctx, x, y, w, h, r = 28, fill = '#fff') {
             allTimeStats = (data.all_time_stats && typeof data.all_time_stats === 'object')
                 ? data.all_time_stats
                 : {};
+            applyRatingRulesFromState();
 
             playersData.forEach(p => {
                 if (!p.speed) p.speed = fixedSpeeds[p.name] || 3;
@@ -2393,6 +2506,7 @@ function shareCard(ctx, x, y, w, h, r = 28, fill = '#fff') {
                     allTimeStats = (payload.new.all_time_stats && typeof payload.new.all_time_stats === 'object')
                         ? payload.new.all_time_stats
                         : {};
+                    applyRatingRulesFromState();
                     baseCycleRounds = activeTeams.length ? buildBaseCycleSchedule(activeTeams) : [];
 
                     playersData.forEach(p => {
@@ -2441,6 +2555,11 @@ function shareCard(ctx, x, y, w, h, r = 28, fill = '#fff') {
 
     function saveAdminChanges() {
         if (!requireAdmin("save admin changes")) return;
+        if (!applyRatingRulesFromForm()) return;
+        if (recomputeHistoryAwards()) {
+            renderAdminPlayers();
+            if (leaderboardMode === 'history') renderHistory();
+        }
         saveData();
         renderPlayers();
         if (activeTeams.length > 0) {
@@ -2584,7 +2703,7 @@ function shareCard(ctx, x, y, w, h, r = 28, fill = '#fff') {
         updateResetButtonLabel();
         if(tabId === 'leadersTab') renderLeaderboard(leaderboardMetric);
         if(tabId === 'playersTab') renderPlayers();
-        if(tabId === 'adminTab') renderAdminPlayers();
+        if(tabId === 'adminTab') { renderAdminPlayers(); renderAdminRules(); }
     }
 
     function updateResetButtonLabel() {
@@ -5015,7 +5134,7 @@ function syncAllGoalRows(saved) {
         const R = RATING_RULES, WB = GOLDEN_BALL_WEIGHTS;
         const groups = [
             ['MATCH EVENTS', [['⚽ Goal', '+' + R.goal, '#38a169'], ['🅰️ Assist', '+' + R.assist, '#38a169'], ['🥅 Own goal', '−' + R.ownGoal, '#e53e3e'], ['🏆 MVP', '+' + R.mvp, '#38a169'], ['✅ Win', '+' + R.win, '#38a169']]],
-            ['FINAL PLACE', [['🥇 1st place', '+0.15', '#38a169'], ['🥈 2nd place', '+0.1', '#38a169'], ['🥉 3rd place', '+0.05', '#38a169']]]
+            ['FINAL PLACE', [['🥇 1st place', '+' + PLACE_BONUSES[0], '#38a169'], ['🥈 2nd place', '+' + PLACE_BONUSES[1], '#38a169'], ['🥉 3rd place', '+' + PLACE_BONUSES[2], '#38a169']]]
         ];
         let gy = rulesTop + 92;
         groups.forEach(([cap, chips]) => {
@@ -5716,7 +5835,7 @@ function syncAllGoalRows(saved) {
     // Applied only when Finish Tournament is confirmed, and saved in history so deleting
     // that history entry can also take the bonus back.
     function applyTournamentPlacementBonuses() {
-        const bonuses = [0.15, 0.10, 0.05];
+        const bonuses = PLACE_BONUSES;
         const changes = {};
         const sorted = getSortedTeams();
 
@@ -5958,6 +6077,203 @@ function syncAllGoalRows(saved) {
         showUndoToast("Starting ratings restored", snap);
     }
 
+
+    // ---------- Admin: editable rating & award rules ----------
+    // The rules live in allTimeStats.__rules (saved online with everything else), so every device uses the same values.
+    function currentRatingRules() {
+        return {
+            rating: { goal: RATING_RULES.goal, assist: RATING_RULES.assist, ownGoal: RATING_RULES.ownGoal, mvp: RATING_RULES.mvp, win: RATING_RULES.win },
+            place: [PLACE_BONUSES[0], PLACE_BONUSES[1], PLACE_BONUSES[2]],
+            awards: { goldenBall: AWARD_RULES.goldenBall, goldenBoot: AWARD_RULES.goldenBoot, goldenAssist: AWARD_RULES.goldenAssist }
+        };
+    }
+
+    function setRatingRules(r) {
+        const n = (v, d) => { v = Number(v); return Number.isFinite(v) && v >= 0 ? v : d; };
+        const D = DEFAULT_RATING_RULES;
+        Object.keys(D.rating).forEach(k => { RATING_RULES[k] = n(r && r.rating && r.rating[k], D.rating[k]); });
+        for (let i = 0; i < 3; i++) PLACE_BONUSES[i] = n(r && r.place && r.place[i], D.place[i]);
+        Object.keys(D.awards).forEach(k => { AWARD_RULES[k] = n(r && r.awards && r.awards[k], D.awards[k]); });
+    }
+
+    function applyRatingRulesFromState() {
+        if (allTimeStats && allTimeStats.__rules && typeof allTimeStats.__rules === 'object') setRatingRules(allTimeStats.__rules);
+        if (typeof renderRatingRules === 'function') renderRatingRules();
+        if (typeof currentOpenTab !== 'undefined' && currentOpenTab === 'adminTab' &&
+            !(document.activeElement && document.activeElement.closest && document.activeElement.closest('#adminRulesCard'))) renderAdminRules();
+    }
+
+    function fillRulesForm(r) {
+        const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
+        set('ruleGoal', r.rating.goal); set('ruleAssist', r.rating.assist); set('ruleOwnGoal', r.rating.ownGoal);
+        set('ruleMvp', r.rating.mvp); set('ruleWin', r.rating.win);
+        set('rulePlace1', r.place[0]); set('rulePlace2', r.place[1]); set('rulePlace3', r.place[2]);
+        set('ruleGoldenBall', r.awards.goldenBall); set('ruleGoldenBoot', r.awards.goldenBoot); set('ruleGoldenAssist', r.awards.goldenAssist);
+    }
+
+    function renderAdminRules() { fillRulesForm(currentRatingRules()); }
+    function resetRatingRulesForm() { fillRulesForm(DEFAULT_RATING_RULES); }
+
+    function readRulesForm() {
+        const get = id => { const v = parseFloat(document.getElementById(id).value); return Number.isFinite(v) ? Math.round(v * 10000) / 10000 : NaN; };
+        const r = {
+            rating: { goal: get('ruleGoal'), assist: get('ruleAssist'), ownGoal: get('ruleOwnGoal'), mvp: get('ruleMvp'), win: get('ruleWin') },
+            place: [get('rulePlace1'), get('rulePlace2'), get('rulePlace3')],
+            awards: { goldenBall: get('ruleGoldenBall'), goldenBoot: get('ruleGoldenBoot'), goldenAssist: get('ruleGoldenAssist') }
+        };
+        const all = [...Object.values(r.rating), ...r.place, ...Object.values(r.awards)];
+        return all.every(v => Number.isFinite(v) && v >= 0 && v <= 5) ? r : null;
+    }
+
+    // rating change of one played match of the current tournament under the given rules
+    function ratingDeltasOfMatch(m, rules) {
+        const R = rules.rating, d = {};
+        const add = (id, v) => { if (id === undefined || id === null || id === '') return; d[id] = (d[id] || 0) + v; };
+        (m.goalsDetails || []).forEach(e => {
+            if (e.isOg) add(e.scorerId, -R.ownGoal);
+            else { add(e.scorerId, R.goal); if (e.assistantId) add(e.assistantId, R.assist); }
+        });
+        if (m.mvpId) add(m.mvpId, R.mvp);
+        if (m.s1 !== m.s2) {
+            const wt = activeTeams.find(t => t.id === (m.s1 > m.s2 ? m.t1 : m.t2));
+            if (wt) (wt.players || []).forEach(tp => add(tp.id, R.win));
+        }
+        return d;
+    }
+
+    // what a finished tournament gave to players under the given rules (own goals are not stored in History)
+    function ratingContributionOfHistory(h, rules) {
+        const R = rules.rating, d = {};
+        const add = (id, v) => { if (id === undefined || id === null) return; d[id] = (d[id] || 0) + v; };
+        const idByName = {};
+        (h.playerStats || []).forEach(ps => {
+            idByName[ps.name] = ps.id;
+            add(ps.id, (Number(ps.goals) || 0) * R.goal + (Number(ps.assists) || 0) * R.assist + (Number(ps.mvp) || 0) * R.mvp);
+        });
+        (h.teams || []).forEach(t => (t.players || []).forEach(name => {
+            if (idByName[name] !== undefined) add(idByName[name], (Number(t.w) || 0) * R.win);
+        }));
+        // final place and award bonuses exist only for tournaments that were finished with them applied
+        if (h.placementRatingBonuses !== undefined) {
+            (h.teams || []).slice(0, 3).forEach((t, i) => (t.players || []).forEach(name => {
+                if (idByName[name] !== undefined) add(idByName[name], rules.place[i] || 0);
+            }));
+            const aw = getHistoryAwards(h);
+            if (aw) AWARD_DEFS.forEach(def => { const w = aw[def.key]; if (w) add(w.id, rules.awards[def.key] || 0); });
+        }
+        return d;
+    }
+
+    function diffMaps(a, b) {
+        const out = {};
+        new Set([...Object.keys(a), ...Object.keys(b)]).forEach(id => {
+            const v = Math.round(((b[id] || 0) - (a[id] || 0)) * 10000) / 10000;
+            if (v) out[id] = v;
+        });
+        return out;
+    }
+
+    function shiftPlayerRatings(diff) {
+        Object.keys(diff).forEach(id => {
+            const pl = playersData.find(p => String(p.id) === String(id));
+            if (pl) pl.rating = roundRating(Math.max(0, Math.min(10, (Number(pl.rating) || 0) + diff[id])));
+        });
+    }
+
+    // Applies (new rules − old rules) to the current tournament, to History and to every player's rating
+    function recalculateRatingsForRules(oldRules, newRules) {
+        // current tournament
+        activeMatches.forEach(m => {
+            if (!m.played) return;
+            const diff = diffMaps(ratingDeltasOfMatch(m, oldRules), ratingDeltasOfMatch(m, newRules));
+            if (!Object.keys(diff).length) return;
+            shiftPlayerRatings(diff);
+            if (m.ratingDeltas && typeof m.ratingDeltas === 'object') {
+                Object.keys(diff).forEach(id => { m.ratingDeltas[id] = roundRating((Number(m.ratingDeltas[id]) || 0) + diff[id]); });
+            }
+        });
+        // finished tournaments (the ones whose rating points are still in the players' ratings)
+        (allTimeStats.__history || []).forEach(h => {
+            if (!h || h.ratingTakenBack) return;
+            const diff = diffMaps(ratingContributionOfHistory(h, oldRules), ratingContributionOfHistory(h, newRules));
+            if (!Object.keys(diff).length) return;
+            shiftPlayerRatings(diff);
+            if (h.ratingChanges && typeof h.ratingChanges === 'object') {
+                Object.keys(diff).forEach(id => { h.ratingChanges[id] = roundRating((Number(h.ratingChanges[id]) || 0) + diff[id]); });
+            }
+        });
+        // teams keep a copy of the rating
+        activeTeams.forEach(t => (t.players || []).forEach(tp => {
+            const pl = playersData.find(x => String(x.id) === String(tp.id));
+            if (pl) tp.rating = pl.rating;
+        }));
+    }
+
+    // Re-picks the award winners of finished tournaments with the current award logic and fixes the rating bonuses.
+    // Safe to run many times: once a tournament matches the logic nothing changes any more.
+    function recomputeHistoryAwards() {
+        let changed = 0;
+        (allTimeStats.__history || []).forEach(h => {
+            if (!h || !Array.isArray(h.playerStats) || !h.playerStats.length || !h.awards) return;
+            const teams = h.teams || [];
+            const fresh = computeAwards(h.playerStats, p => teams.findIndex(t => (t.players || []).includes(p.name)));
+            const idOf = w => (w ? String(w.id) : '');
+            const diffIds = AWARD_DEFS.some(d => idOf(h.awards[d.key]) !== idOf(fresh[d.key]));
+            if (!diffIds) return;
+            // the bonuses were paid only if the tournament was finished with them (and not taken back later)
+            if (h.placementRatingBonuses !== undefined && !h.ratingTakenBack) {
+                const diff = {};
+                const add = (id, v) => { if (id === undefined || id === null || !v) return; diff[id] = (diff[id] || 0) + v; };
+                AWARD_DEFS.forEach(d => {
+                    if (idOf(h.awards[d.key]) === idOf(fresh[d.key])) return;
+                    if (h.awards[d.key]) add(h.awards[d.key].id, -AWARD_RULES[d.key]);
+                    if (fresh[d.key]) add(fresh[d.key].id, AWARD_RULES[d.key]);
+                });
+                shiftPlayerRatings(diff);
+                if (h.ratingChanges && typeof h.ratingChanges === 'object') {
+                    Object.keys(diff).forEach(id => { h.ratingChanges[id] = roundRating((Number(h.ratingChanges[id]) || 0) + diff[id]); });
+                }
+                if (h.placementRatingBonuses && typeof h.placementRatingBonuses === 'object') {
+                    Object.keys(diff).forEach(id => { h.placementRatingBonuses[id] = roundRating((Number(h.placementRatingBonuses[id]) || 0) + diff[id]); });
+                }
+            }
+            h.awards = fresh;
+            changed++;
+        });
+        if (changed) {
+            activeTeams.forEach(t => (t.players || []).forEach(tp => {
+                const pl = playersData.find(x => String(x.id) === String(tp.id));
+                if (pl) tp.rating = pl.rating;
+            }));
+        }
+        return changed;
+    }
+
+    // Runs right after the admin logs in: past tournaments are re-checked with the current award logic
+    function autoFixHistoryAwards() {
+        if (recomputeHistoryAwards()) {
+            renderPlayers();
+            if (leaderboardMode === 'history') renderHistory();
+            saveData();
+        }
+    }
+
+    // Called by the general Save button: applies the rules from the form and recalculates ratings if they changed
+    function applyRatingRulesFromForm() {
+        const next = readRulesForm();
+        if (!next) { alert("Enter valid numbers from 0 to 5 in every rating rule field."); return false; }
+        const old = currentRatingRules();
+        if (JSON.stringify(old) === JSON.stringify(next)) return true;
+        recalculateRatingsForRules(old, next);
+        setRatingRules(next);
+        allTimeStats.__rules = next;
+        renderRatingRules();
+        renderAdminRules();
+        renderAdminPlayers();
+        if (leaderboardMode === 'history') renderHistory();
+        return true;
+    }
+
     // ---------- Undo for resets (10 seconds) ----------
     let undoTimer = null;
 
@@ -6009,6 +6325,7 @@ function syncAllGoalRows(saved) {
         currentDisplayedRound = snap.currentRound;
         lastRemoteRound = snap.lastRemoteRound;
         allTimeStats = snap.allTime;
+        applyRatingRulesFromState();
         baseCycleRounds = activeTeams.length ? buildBaseCycleSchedule(activeTeams) : [];
 
         renderPlayers();
@@ -6204,6 +6521,12 @@ function syncAllGoalRows(saved) {
             <button type="button" class="dlg-btn primary" id="pmShareBtn" onclick="sharePlayerStats()">📤 Share</button>
             <button type="button" class="dlg-btn compare-open-btn" onclick="comparePlayer()">⚖️ Compare</button>
         </div>
+    </div>
+</div>
+<div id="awardInfoModal" class="dlg-overlay" style="z-index:10003;">
+    <div class="dlg-card award-info-card" role="dialog" aria-modal="true">
+        <button type="button" class="pm-close" onclick="closeAwardInfo()" aria-label="Close">✕</button>
+        <div id="awardInfoBody"></div>
     </div>
 </div>
 <div id="dlgOverlay" class="dlg-overlay">
