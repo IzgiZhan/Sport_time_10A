@@ -893,6 +893,11 @@
         .hist-share { background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.4); color: #fff; border-radius: 8px; padding: 3px 10px; font-size: 11px; font-weight: 900; cursor: pointer; }
 
         /* ===== Admin: rating & awards rules editor ===== */
+        .backup-row { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 12px; margin-top:8px; border-radius:12px; background:var(--input-bg); border:1px solid var(--card-border); }
+        .backup-row-main { min-width:0; }
+        .backup-row-date { font-size:13px; font-weight:900; }
+        .backup-row-info { margin-top:2px; font-size:11px; font-weight:700; color:var(--text-sub); }
+        .backup-row .btn { margin:0; width:auto; padding:8px 14px; font-size:12px; flex:0 0 auto; }
         .rules-admin-title { font-size:12px; font-weight:900; text-transform:uppercase; letter-spacing:.5px; color:var(--text-sub); margin:16px 0 8px; }
         .rules-admin-title:first-child { margin-top:0; }
         .rules-admin-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(130px, 1fr)); gap:10px; }
@@ -1085,6 +1090,15 @@
     <label>Best playmaker (+)<input id="ruleGoldenAssist" type="number" min="0" max="5" step="0.005"></label>
   </div>
   <div class="rules-admin-note">After pressing Save, the "How rating works" cards, share images and every player's rating are updated: the difference between the old and new rules is applied to the current tournament and to all finished tournaments in History. Own goals from finished tournaments are not stored, so a change to the own-goal value only affects the current tournament and future ones.</div>
+</div>
+
+<div class="admin-add-card" id="adminBackupsCard" style="padding:18px;">
+  <div class="rules-admin-title">🗂 Backups (drafts)</div>
+  <div id="backupList"><div class="rules-admin-note" style="margin-top:0;">Open the Admin tab to load backups…</div></div>
+  <div class="rules-admin-actions">
+    <button class="btn btn-green" onclick="createManualBackup()">💾 Create backup now</button>
+  </div>
+  <div class="rules-admin-note">A backup of the previous data is made automatically when you save (at most once every 20 minutes) and always before players or history are deleted. The newest 15 backups are kept. "Restore" brings back everything from that moment: players, ratings, teams, matches, history and rules. The current data is backed up first, so a restore can be undone.</div>
 </div>
 
 <div class="admin-add-card" style="padding:18px;">
@@ -2343,6 +2357,7 @@ function shareCard(ctx, x, y, w, h, r = 28, fill = '#fff') {
             switchTab('adminTab', adminTabBtn);
             renderAdminPlayers();
             renderAdminRules();
+            renderAdminBackups();
             return;
         }
 
@@ -2361,6 +2376,7 @@ function shareCard(ctx, x, y, w, h, r = 28, fill = '#fff') {
         switchTab('adminTab', adminTabBtn);
         renderAdminPlayers();
         renderAdminRules();
+        renderAdminBackups();
     }
 
     function lockAdmin() {
@@ -2415,6 +2431,8 @@ function shareCard(ctx, x, y, w, h, r = 28, fill = '#fff') {
         }
         if (isApplyingRemoteState) return;
 
+        await maybeAutoBackup();
+
         const { error } = await supabaseClient
             .from("tournament_state")
             .upsert(getOnlineState(), { onConflict: "id" });
@@ -2423,6 +2441,7 @@ function shareCard(ctx, x, y, w, h, r = 28, fill = '#fff') {
             console.error("Database save error:", error);
             showOnlineStatus("❌ Save error");
         } else {
+            rememberSavedState(getOnlineState());
             showOnlineStatus("🟢 Saved");
         }
     }
@@ -2455,6 +2474,7 @@ function shareCard(ctx, x, y, w, h, r = 28, fill = '#fff') {
         }
 
         if (data) {
+            rememberSavedState(data);
             playersData = (Array.isArray(data.players) && data.players.length > 0)
                 ? data.players
                 : JSON.parse(JSON.stringify(initialPlayers));
@@ -2486,9 +2506,10 @@ function shareCard(ctx, x, y, w, h, r = 28, fill = '#fff') {
             .channel("tournament-live")
             .on(
                 "postgres_changes",
-                { event: "*", schema: "public", table: "tournament_state", filter: "id=eq.1" },
+                { event: "*", schema: "public", table: "tournament_state", filter: `id=eq.${APP_STATE_ID}` },
                 async payload => {
                     if (!payload.new) return;
+                    rememberSavedState(payload.new);
 
                     isApplyingRemoteState = true;
 
@@ -2703,7 +2724,7 @@ function shareCard(ctx, x, y, w, h, r = 28, fill = '#fff') {
         updateResetButtonLabel();
         if(tabId === 'leadersTab') renderLeaderboard(leaderboardMetric);
         if(tabId === 'playersTab') renderPlayers();
-        if(tabId === 'adminTab') { renderAdminPlayers(); renderAdminRules(); }
+        if(tabId === 'adminTab') { renderAdminPlayers(); renderAdminRules(); renderAdminBackups(); }
     }
 
     function updateResetButtonLabel() {
@@ -6205,6 +6226,140 @@ function syncAllGoalRows(saved) {
             }));
         }
         return changed;
+    }
+
+
+    // ---------- Backups (drafts) ----------
+    // Backups are extra rows in the same table: ids APP_STATE_ID*1000 + 1 ... + BACKUP_SLOTS (a ring of the newest ones).
+    const BACKUP_SLOTS = 15;
+    const BACKUP_INTERVAL_MS = 20 * 60 * 1000;
+    const BACKUP_MIN_GAP_MS = 2 * 60 * 1000;
+    let lastSavedState = null;     // the last state known to be in the database (before the next save)
+    let lastBackupAt = 0;
+    let lastBackupJson = null;
+    let backupRowsCache = {};
+
+    function stateToJson(st) {
+        return JSON.stringify({
+            players: st.players, teams: st.teams, matches: st.matches,
+            current_round: st.current_round, total_rounds: st.total_rounds, all_time_stats: st.all_time_stats
+        });
+    }
+
+    function rememberSavedState(st) {
+        try {
+            const ats = (st.all_time_stats && typeof st.all_time_stats === 'object') ? st.all_time_stats : {};
+            lastSavedState = {
+                json: stateToJson(st),
+                players: Array.isArray(st.players) ? st.players.length : 0,
+                history: Array.isArray(ats.__history) ? ats.__history.length : 0
+            };
+        } catch (e) { console.error(e); }
+    }
+
+    async function writeBackup(json, reason) {
+        try {
+            const base = APP_STATE_ID * 1000;
+            const { data: ex, error: e1 } = await supabaseClient
+                .from("tournament_state").select("id, updated_at").gt("id", base).lte("id", base + BACKUP_SLOTS);
+            if (e1) throw e1;
+            const used = new Map((ex || []).map(r => [r.id, new Date(r.updated_at).getTime() || 0]));
+            let slot = null;
+            for (let i = 1; i <= BACKUP_SLOTS; i++) if (!used.has(base + i)) { slot = base + i; break; }
+            if (slot === null) slot = [...used.entries()].sort((a, b) => a[1] - b[1])[0][0];   // overwrite the oldest
+
+            const st = JSON.parse(json);
+            st.all_time_stats = { ...(st.all_time_stats || {}), __backupMeta: { reason, at: new Date().toISOString() } };
+            const { error } = await supabaseClient
+                .from("tournament_state").upsert({ id: slot, ...st, updated_at: new Date().toISOString() }, { onConflict: "id" });
+            if (error) throw error;
+            lastBackupAt = Date.now();
+            lastBackupJson = json;
+            return true;
+        } catch (err) {
+            console.error("Backup error:", err);
+            showOnlineStatus("⚠️ Backup failed");
+            return false;
+        }
+    }
+
+    // runs before every admin save: keeps a copy of what is in the database right now
+    async function maybeAutoBackup() {
+        if (!isAdminAuthenticated || !lastSavedState) return;
+        const prev = lastSavedState;
+        if (!prev.players && !prev.history) return;
+        if (prev.json === lastBackupJson) return;
+        const now = Date.now();
+        if (now - lastBackupAt < BACKUP_MIN_GAP_MS) return;
+        const destructive = playersData.length < prev.players ||
+            (Array.isArray(allTimeStats.__history) ? allTimeStats.__history.length : 0) < prev.history;
+        if (!destructive && now - lastBackupAt < BACKUP_INTERVAL_MS) return;
+        await writeBackup(prev.json, destructive ? 'before deleting data' : 'auto');
+    }
+
+    async function createManualBackup() {
+        if (!requireAdmin("create a backup")) return;
+        const ok = await writeBackup(stateToJson(getOnlineState()), 'manual');
+        if (ok) { showOnlineStatus("🟢 Backup created"); renderAdminBackups(); }
+        else alert("Could not create the backup. The database may not allow extra rows - see the console for details.");
+    }
+
+    async function renderAdminBackups() {
+        const box = document.getElementById('backupList');
+        if (!box || !isAdminAuthenticated) return;
+        box.innerHTML = '<div class="rules-admin-note" style="margin-top:0;">Loading backups…</div>';
+        const base = APP_STATE_ID * 1000;
+        const { data, error } = await supabaseClient
+            .from("tournament_state").select("*").gt("id", base).lte("id", base + BACKUP_SLOTS)
+            .order("updated_at", { ascending: false });
+        if (error) {
+            console.error(error);
+            box.innerHTML = '<div class="rules-admin-note" style="margin-top:0;">Could not load backups.</div>';
+            return;
+        }
+        backupRowsCache = {};
+        if (!data || !data.length) {
+            box.innerHTML = '<div class="rules-admin-note" style="margin-top:0;">No backups yet. One is created automatically the next time you save.</div>';
+            return;
+        }
+        box.innerHTML = data.map(r => {
+            backupRowsCache[r.id] = r;
+            const ats = (r.all_time_stats && typeof r.all_time_stats === 'object') ? r.all_time_stats : {};
+            const meta = ats.__backupMeta || {};
+            const reasons = { auto: 'automatic', manual: 'manual', 'before restore': 'before a restore', 'before deleting data': 'before data was deleted' };
+            const when = new Date(r.updated_at).toLocaleString();
+            const pc = Array.isArray(r.players) ? r.players.length : 0;
+            const hc = Array.isArray(ats.__history) ? ats.__history.length : 0;
+            return `<div class="backup-row">
+                <div class="backup-row-main">
+                    <div class="backup-row-date">${esc(when)}</div>
+                    <div class="backup-row-info">${pc} players · ${hc} tournaments in history · ${esc(reasons[meta.reason] || meta.reason || 'backup')}</div>
+                </div>
+                <button class="btn btn-dark" onclick="restoreBackup(${r.id})">↩ Restore</button>
+            </div>`;
+        }).join('');
+    }
+
+    async function restoreBackup(id) {
+        if (!requireAdmin("restore a backup")) return;
+        const row = backupRowsCache[id];
+        if (!row) return;
+        const when = new Date(row.updated_at).toLocaleString();
+        if (!await askConfirm(
+            `Restore the data from ${when}?\n\nEverything (players, ratings, teams, matches, history, rules) will be replaced by that backup. The current data is saved as a backup first.`,
+            { confirmText: "Restore", icon: "↩", type: "danger" })) return;
+
+        await writeBackup(stateToJson(getOnlineState()), 'before restore');
+        const ats = { ...((row.all_time_stats && typeof row.all_time_stats === 'object') ? row.all_time_stats : {}) };
+        delete ats.__backupMeta;
+        const { error } = await supabaseClient.from("tournament_state").upsert({
+            id: APP_STATE_ID, players: row.players, teams: row.teams, matches: row.matches,
+            current_round: row.current_round, total_rounds: row.total_rounds,
+            all_time_stats: ats, updated_at: new Date().toISOString()
+        }, { onConflict: "id" });
+        if (error) { console.error(error); alert("Could not restore the backup."); return; }
+        alert("Backup restored. The page will reload.");
+        location.reload();
     }
 
     // Runs right after the admin logs in: past tournaments are re-checked with the current award logic
