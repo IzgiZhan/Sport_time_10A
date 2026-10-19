@@ -5103,27 +5103,38 @@ function syncAllGoalRows(saved) {
         x.fillStyle = '#718096'; x.font = F('800', 20); x.textAlign = 'left';
         x.fillText('TOURNAMENT AWARDS', pad + 30, gy + 14);
         const awW = (W - pad * 2 - 60 - 28) / 3, awY = gy + 28, awH = 248;
+        const wrapText = (t, max) => {
+            const words = String(t).split(' '), out = []; let cur = '';
+            words.forEach(w => {
+                const test = cur ? cur + ' ' + w : w;
+                if (x.measureText(test).width > max && cur) { out.push(cur); cur = w; } else cur = test;
+            });
+            if (cur) out.push(cur);
+            return out;
+        };
         AWARD_DEFS.forEach((d, k) => {
             const cx = pad + 30 + k * (awW + 14);
-            x.fillStyle = '#fdf6e3'; rr(cx, awY, awW, awH, 18); x.fill();
-            x.strokeStyle = 'rgba(214,158,46,0.6)'; x.lineWidth = 2; rr(cx, awY, awW, awH, 18); x.stroke();
-            x.fillStyle = d.color; rr(cx, awY, awW, 58, 18); x.fill(); x.fillRect(cx, awY + 30, awW, 28);
-            x.fillStyle = '#fff'; x.beginPath(); x.arc(cx + 34, awY + 29, 22, 0, Math.PI * 2); x.fill();
-            if (rIcons[k]) x.drawImage(rIcons[k], cx + 11, awY + 6, 46, 46);
-            x.fillStyle = '#fff'; x.font = F('900', 20); x.textAlign = 'left';
-            x.fillText(fit(d.title, awW - 76), cx + 64, awY + 25);
-            x.font = F('800', 15); x.fillText(`+${AWARD_RULES[d.key]} ⭐`, cx + 64, awY + 47);
+            // card + coloured header with the title and the bonus (same look as the History image)
+            x.fillStyle = '#fdf6e3'; rr(cx, awY, awW, awH, 22); x.fill();
+            x.strokeStyle = 'rgba(214,158,46,0.6)'; x.lineWidth = 2; rr(cx, awY, awW, awH, 22); x.stroke();
+            x.fillStyle = d.color; rr(cx, awY, awW, 46, 22); x.fill(); x.fillRect(cx, awY + 24, awW, 22);
+            x.fillStyle = '#fff'; x.font = F('900', 22); x.textAlign = 'left';
+            x.fillText(d.label, cx + 20, awY + 32);
+            x.textAlign = 'right'; x.fillText(`+${AWARD_RULES[d.key]} ⭐`, cx + awW - 20, awY + 32);
             x.textAlign = 'left';
-            x.fillStyle = '#1a202c'; x.font = F('900', 18);
-            x.fillText(fit(d.desc, awW - 28), cx + 16, awY + 94);
+            // the emblem is drawn directly on the card, without a white circle behind it
+            const bigS = 92, ic = rIcons[k];
+            if (ic) {
+                const r0 = Math.min(bigS / (ic.width || bigS), bigS / (ic.height || bigS));
+                const iw = (ic.width || bigS) * r0, ih = (ic.height || bigS) * r0;
+                x.drawImage(ic, cx + awW - 16 - bigS / 2 - iw / 2, awY + 46 + 14 + bigS / 2 - ih / 2, iw, ih);
+            }
+            x.fillStyle = '#1a202c'; x.font = F('900', 19);
+            wrapText(d.desc, awW - 32 - bigS - 10).slice(0, 3).forEach((ln, i) => x.fillText(ln, cx + 16, awY + 46 + 40 + i * 26));
             x.fillStyle = '#4a5568'; x.font = F('800', 21);
             d.lines.forEach((ln, i) => {
-                if (d.key === 'goldenBall') {
-                    x.font = F('800', 21);
-                    x.fillText(ln, cx + 16 + i * 40, awY + 128);
-                    return;
-                }
-                x.fillText(fit(ln, awW - 32), cx + 16, awY + 128 + i * 32);
+                if (d.key === 'goldenBall') { x.fillText(ln, cx + 16 + i * 40, awY + 46 + 146); return; }
+                x.fillText(fit(ln, awW - 32), cx + 16, awY + 46 + 146 + i * 32);
             });
         });
 
