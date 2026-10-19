@@ -2826,115 +2826,62 @@ function shareCard(ctx, x, y, w, h, r = 28, fill = '#fff') {
         return ratingAbs * 1000000 + ratingVar * 10000 + speedAbs * 100 + speedVar;
     }
 
+    // Fair split by strength levels ("tiers"):
+    // players are sorted from the strongest to the weakest and cut into groups of numTeams.
+    // Every team gets exactly ONE player from every group, so the top players go to different teams,
+    // the next ones too, and so on. If the last group is incomplete, those players go to different teams.
+    // Inside a group the players are placed so the total rating / speed of the teams stays as equal as possible.
     function distributeEquallyFlexible(players, numTeams) {
         if (!players.length || numTeams < 2 || players.length < numTeams) return null;
 
-        const baseSize = Math.floor(players.length / numTeams);
-        const extraPlayers = players.length % numTeams;
-
-        const teamTargetSizes = Array.from(
-            { length: numTeams },
-            (_, i) => baseSize + (i < extraPlayers ? 1 : 0)
-        );
+        const tierCount = Math.ceil(players.length / numTeams);
+        const compact = slots => slots.map(row => row.filter(Boolean));
+        const sumRating = row => row.reduce((t, p) => t + (p ? p.rating : 0), 0);
 
         let bestTeams = null;
         let bestScore = Infinity;
 
-        for (let restart = 0; restart < 120; restart++) {
-            let order = [...players];
+        for (let restart = 0; restart < 150; restart++) {
+            // strongest first; equal players are mixed randomly (the first try has no randomness)
+            const order = [...players];
+            if (restart > 0) order.sort(() => Math.random() - 0.5);
+            order.sort((a, b) => (b.rating - a.rating) || ((b.speed || 3) - (a.speed || 3)));
 
-            if (restart === 0) {
-                order.sort((a, b) => {
-                    const aKey = a.rating;
-                    const bKey = b.rating;
-                    return bKey - aKey;
-                });
-            } else {
-                order.sort(() => Math.random() - 0.5);
+            // slots[team][tier] = player
+            const slots = Array.from({ length: numTeams }, () => new Array(tierCount).fill(null));
 
-                order.sort((a, b) => {
-                    const ratingDiff = b.rating - a.rating;
-
-                    if (Math.abs(ratingDiff) > 1e-9) return ratingDiff;
-
-                    return ((b.speed || 3) - (a.speed || 3))
-                        + (Math.random() - 0.5) * 0.01;
-                });
+            for (let k = 0; k < tierCount; k++) {
+                const tier = order.slice(k * numTeams, (k + 1) * numTeams);
+                // teams with the lowest total so far get the strongest player of this group
+                let teamOrder = Array.from({ length: numTeams }, (_, i) => i);
+                if (restart > 0) teamOrder.sort(() => Math.random() - 0.5);
+                teamOrder.sort((x, y) => sumRating(slots[x]) - sumRating(slots[y]));
+                tier.forEach((p, i) => { slots[teamOrder[i]][k] = p; });
             }
 
-            let teams = Array.from({ length: numTeams }, () => []);
-
-            let row = 0;
-            let position = 0;
-
-            order.forEach(player => {
-                let teamIndex =
-                    row % 2 === 0
-                        ? position
-                        : (numTeams - 1 - position);
-
-                while (teams[teamIndex].length >= teamTargetSizes[teamIndex]) {
-                    position++;
-
-                    if (position >= numTeams) {
-                        row++;
-                        position = 0;
-                    }
-
-                    teamIndex =
-                        row % 2 === 0
-                            ? position
-                            : (numTeams - 1 - position);
-                }
-
-                teams[teamIndex].push(player);
-
-                position++;
-
-                if (position >= numTeams) {
-                    row++;
-                    position = 0;
-                }
-            });
-
-            let currentScore = teamBalanceScore(teams);
+            // improve the balance only by swapping players of the SAME group between two teams
+            let currentScore = teamBalanceScore(compact(slots));
             let improved = true;
-
             while (improved) {
                 improved = false;
                 let bestSwap = null;
                 let bestSwapScore = currentScore;
 
-                for (let a = 0; a < numTeams; a++) {
-                    for (let b = a + 1; b < numTeams; b++) {
-                        for (let ia = 0; ia < teams[a].length; ia++) {
-                            for (let ib = 0; ib < teams[b].length; ib++) {
-
-                                const temp = teams[a][ia];
-                                teams[a][ia] = teams[b][ib];
-                                teams[b][ib] = temp;
-
-                                const score = teamBalanceScore(teams);
-
-                                if (score < bestSwapScore - 1e-9) {
-                                    bestSwapScore = score;
-                                    bestSwap = [a, ia, b, ib];
-                                }
-
-                                teams[b][ib] = teams[a][ia];
-                                teams[a][ia] = temp;
-                            }
+                for (let k = 0; k < tierCount; k++) {
+                    for (let a = 0; a < numTeams; a++) {
+                        for (let b = a + 1; b < numTeams; b++) {
+                            if (!slots[a][k] || !slots[b][k]) continue;
+                            const tmp = slots[a][k]; slots[a][k] = slots[b][k]; slots[b][k] = tmp;
+                            const score = teamBalanceScore(compact(slots));
+                            if (score < bestSwapScore - 1e-9) { bestSwapScore = score; bestSwap = [k, a, b]; }
+                            slots[b][k] = slots[a][k]; slots[a][k] = tmp;
                         }
                     }
                 }
 
                 if (bestSwap) {
-                    const [a, ia, b, ib] = bestSwap;
-
-                    const temp = teams[a][ia];
-                    teams[a][ia] = teams[b][ib];
-                    teams[b][ib] = temp;
-
+                    const [k, a, b] = bestSwap;
+                    const tmp = slots[a][k]; slots[a][k] = slots[b][k]; slots[b][k] = tmp;
                     currentScore = bestSwapScore;
                     improved = true;
                 }
@@ -2942,7 +2889,7 @@ function shareCard(ctx, x, y, w, h, r = 28, fill = '#fff') {
 
             if (currentScore < bestScore) {
                 bestScore = currentScore;
-                bestTeams = teams.map(team => [...team]);
+                bestTeams = compact(slots);
             }
         }
 
