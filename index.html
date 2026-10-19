@@ -897,6 +897,8 @@
         .backup-row-main { min-width:0; }
         .backup-row-date { font-size:13px; font-weight:900; }
         .backup-row-info { margin-top:2px; font-size:11px; font-weight:700; color:var(--text-sub); }
+        .backup-row .backup-del { background:#e53e3e; color:#fff; }
+        .backup-row-actions { display:flex; gap:6px; flex:0 0 auto; }
         .backup-row .btn { margin:0; width:auto; padding:8px 14px; font-size:12px; flex:0 0 auto; }
         .rules-admin-title { font-size:12px; font-weight:900; text-transform:uppercase; letter-spacing:.5px; color:var(--text-sub); margin:16px 0 8px; }
         .rules-admin-title:first-child { margin-top:0; }
@@ -6335,9 +6337,30 @@ function syncAllGoalRows(saved) {
                     <div class="backup-row-date">${esc(when)}</div>
                     <div class="backup-row-info">${pc} players · ${hc} tournaments in history · ${esc(reasons[meta.reason] || meta.reason || 'backup')}</div>
                 </div>
-                <button class="btn btn-dark" onclick="restoreBackup(${r.id})">↩ Restore</button>
+                <div class="backup-row-actions">
+                    <button class="btn btn-dark" onclick="restoreBackup(${r.id})">↩ Restore</button>
+                    <button class="btn btn-dark backup-del" onclick="deleteBackup(${r.id})">🗑 Delete</button>
+                </div>
             </div>`;
         }).join('');
+    }
+
+    async function deleteBackup(id) {
+        if (!requireAdmin("delete a backup")) return;
+        const row = backupRowsCache[id];
+        if (!row) return;
+        const when = new Date(row.updated_at).toLocaleString();
+        if (!await askConfirm(
+            `Delete the backup from ${when}?\n\nThis backup will be gone for good. Your current data is not changed.`,
+            { confirmText: "Delete", icon: "🗑", type: "danger" })) return;
+        const { data, error } = await supabaseClient.from("tournament_state").delete().eq("id", id).select("id");
+        if (error || !data || !data.length) {
+            console.error(error);
+            alert("Could not delete the backup. The database may not allow deleting backup rows yet.");
+            return;
+        }
+        showOnlineStatus("🟢 Backup deleted");
+        renderAdminBackups();
     }
 
     async function restoreBackup(id) {
