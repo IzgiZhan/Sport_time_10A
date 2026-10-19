@@ -5627,7 +5627,7 @@ function syncAllGoalRows(saved) {
         const box = document.getElementById('historyList');
         const list = Array.isArray(allTimeStats.__history) ? [...allTimeStats.__history].reverse() : [];
         if (!list.length) {
-            box.innerHTML = `<div class="hist-empty">📜<br>No finished tournaments yet.<br><small>A tournament is saved here when the next one is started.</small></div>`;
+            box.innerHTML = `<div class="hist-empty">📜<br>No finished tournaments yet.<br><small>A tournament is saved here when the next one is started.</small></div>` + trashHtml();
             return;
         }
         box.innerHTML = list.map((h, i) => {
@@ -5687,7 +5687,94 @@ function syncAllGoalRows(saved) {
                         ${scorersHtml}
                     </div>
                 </div>`;
+        }).join('') + trashHtml();
+    }
+
+    // ---------- Deleted tournaments (trash) ----------
+    async function restoreHistoryTournament(ti) {
+        if (!requireAdmin("restore a tournament")) return;
+        const trash = Array.isArray(allTimeStats.__trash) ? allTimeStats.__trash : [];
+        const item = trash[ti];
+        if (!item || !item.entry) return;
+        const h = JSON.parse(JSON.stringify(item.entry));
+        const d = new Date(h.date).toLocaleDateString();
+        if (!await askConfirm(
+            `Restore the tournament from ${d}?\n\nIt goes back to History, its goals, assists and MVP are added to All Time again, and the rating points players got in it are given back.`,
+            { confirmText: "Restore", icon: "↩", type: "success" })) return;
+
+        const snap = takeResetSnapshot();
+        if (!Array.isArray(allTimeStats.__history)) allTimeStats.__history = [];
+        const hist = allTimeStats.__history;
+
+        // All Time stats (only if they were taken out when the tournament was deleted)
+        (item.statsSubtracted === false ? [] : (h.playerStats || [])).forEach(ps => {
+            const id = String(ps.id);
+            if (!allTimeStats[id]) allTimeStats[id] = { name: ps.name, goals: 0, assists: 0, mvp: 0 };
+            allTimeStats[id].goals = (Number(allTimeStats[id].goals) || 0) + (Number(ps.goals) || 0);
+            allTimeStats[id].assists = (Number(allTimeStats[id].assists) || 0) + (Number(ps.assists) || 0);
+            allTimeStats[id].mvp = (Number(allTimeStats[id].mvp) || 0) + (Number(ps.mvp) || 0);
+        });
+
+        // rating points: give them back only if they were still counted when the tournament was deleted
+        if (!h.ratingTakenBack) {
+            const ch = (h.ratingChanges && typeof h.ratingChanges === 'object') ? h.ratingChanges : estimateHistoryRatingChanges(h);
+            Object.keys(ch).forEach(id => {
+                const v = Number(ch[id]) || 0;
+                const pl = playersData.find(p => String(p.id) === String(id));
+                if (v && pl) pl.rating = roundRating(Math.max(0, Math.min(10, (Number(pl.rating) || 0) + v)));
+            });
+        }
+        delete h.ratingTakenBack;
+
+        hist.splice(Math.min(Math.max(Number(item.index) || 0, 0), hist.length), 0, h);
+        trash.splice(ti, 1);
+
+        activeTeams.forEach(t => (t.players || []).forEach(tp => {
+            const pl = playersData.find(x => String(x.id) === String(tp.id));
+            if (pl) tp.rating = pl.rating;
+        }));
+        renderPlayers();
+        renderHistory();
+        if (document.getElementById('leadersTab').classList.contains('active')) renderLeaderboard(leaderboardMetric);
+        await saveData();
+        showUndoToast("Tournament restored", snap);
+    }
+
+    async function forgetTrashedTournament(ti) {
+        if (!requireAdmin("delete a tournament for good")) return;
+        const trash = Array.isArray(allTimeStats.__trash) ? allTimeStats.__trash : [];
+        const item = trash[ti];
+        if (!item) return;
+        if (!await askConfirm("Delete this tournament for good?\n\nIt can't be restored after that.", { confirmText: "Delete for good", danger: true })) return;
+        trash.splice(ti, 1);
+        renderHistory();
+        await saveData();
+    }
+
+    function trashHtml() {
+        if (!isAdminAuthenticated) return '';
+        const trash = Array.isArray(allTimeStats.__trash) ? allTimeStats.__trash : [];
+        if (!trash.length) return '';
+        const rows = trash.map((it, i) => ({ it, i })).reverse().map(({ it, i }) => {
+            const h = it.entry || {};
+            const champ = (h.teams && h.teams[0]) ? h.teams[0].name : '—';
+            const when = h.date && !isNaN(new Date(h.date)) ? new Date(h.date).toLocaleDateString() : '';
+            const del = it.deletedAt && !isNaN(new Date(it.deletedAt)) ? new Date(it.deletedAt).toLocaleString() : '';
+            return `<div class="backup-row">
+                <div class="backup-row-main">
+                    <div class="backup-row-date">Tournament of ${esc(when)} · 🏆 ${esc(champ)}</div>
+                    <div class="backup-row-info">${h.rounds || 0} rounds · deleted ${esc(del)}</div>
+                </div>
+                <div class="backup-row-actions">
+                    <button class="btn btn-dark" onclick="restoreHistoryTournament(${i})">↩ Restore</button>
+                    <button class="btn btn-dark backup-del" onclick="forgetTrashedTournament(${i})">✕</button>
+                </div>
+            </div>`;
         }).join('');
+        return `<div class="admin-add-card" style="padding:16px; margin-top:18px;">
+            <div class="rules-admin-title">🗑 Deleted tournaments</div>${rows}
+            <div class="rules-admin-note">Deleted tournaments stay here (the last 30). Restore puts the tournament back into History with its stats and rating points.</div>
+        </div>`;
     }
 
     async function deleteHistoryTournament(idx) {
@@ -5704,6 +5791,10 @@ function syncAllGoalRows(saved) {
             { confirmText: "Delete", danger: true })) return;
 
         const snap = takeResetSnapshot();
+        // keep a full copy (before anything is changed) so the tournament can be restored later
+        if (!Array.isArray(allTimeStats.__trash)) allTimeStats.__trash = [];
+        allTimeStats.__trash.push({ entry: JSON.parse(JSON.stringify(h)), index: idx, deletedAt: new Date().toISOString(), statsSubtracted: !!hasStats });
+        if (allTimeStats.__trash.length > 30) allTimeStats.__trash.splice(0, allTimeStats.__trash.length - 30);
         if (hasStats) {
             h.playerStats.forEach(ps => {
                 const rec = allTimeStats[String(ps.id)];
@@ -6389,9 +6480,9 @@ function syncAllGoalRows(saved) {
     function autoFixHistoryAwards() {
         if (recomputeHistoryAwards()) {
             renderPlayers();
-            if (leaderboardMode === 'history') renderHistory();
             saveData();
         }
+        if (leaderboardMode === 'history') renderHistory();
     }
 
     // Called by the general Save button: applies the rules from the form and recalculates ratings if they changed
@@ -6540,7 +6631,7 @@ function syncAllGoalRows(saved) {
             if (leaderboardMode === 'allTime') {
                 if (!await askConfirm("Reset All Time leaderboard?\n\nAll Time goals, assists and MVP totals will be cleared, and the rating points players got in all finished tournaments will be taken back. Tournament History stays.", { confirmText: "Reset", danger: true })) return;
                 Object.keys(allTimeStats).forEach(key => {
-                    if (key === '__history') return;
+                    if (key.startsWith('__')) return;   // __history, __rules, __trash are not player records
                     allTimeStats[key] = { name: allTimeStats[key].name, goals: 0, assists: 0, mvp: 0 };
                 });
                 takeBackHistoryRatings(allTimeStats.__history);
@@ -6552,6 +6643,10 @@ function syncAllGoalRows(saved) {
             }
             if (leaderboardMode === 'history') {
                 if (!await askConfirm("Delete all Tournament History?\n\nAll finished tournaments will be deleted and the rating points players got in them will be taken back. Current Tournament and All Time goals, assists and MVP stay.", { confirmText: "Delete", danger: true })) return;
+                if (!Array.isArray(allTimeStats.__trash)) allTimeStats.__trash = [];
+                (allTimeStats.__history || []).forEach((hh, hi) => allTimeStats.__trash.push({
+                    entry: JSON.parse(JSON.stringify(hh)), index: hi, deletedAt: new Date().toISOString(), statsSubtracted: false }));
+                if (allTimeStats.__trash.length > 30) allTimeStats.__trash.splice(0, allTimeStats.__trash.length - 30);
                 takeBackHistoryRatings(allTimeStats.__history);
                 allTimeStats.__history = [];
                 renderPlayers();
