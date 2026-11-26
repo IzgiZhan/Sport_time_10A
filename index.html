@@ -909,8 +909,20 @@
 
         /* ===== Captain badge + team formation ===== */
         /* captain armband */
-        .cap-band { position: relative; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; height: 1.05em; min-width: 1.75em; padding: 0 .5em; margin-left: .45em; border-radius: .22em; overflow: hidden; background: linear-gradient(180deg, #63b3ed 0%, #3182ce 52%, #2b6cb0 100%); color: #fff; font-size: inherit; font-weight: 900; line-height: 1; vertical-align: middle; box-shadow: 0 1px 2px rgba(0,0,0,.35), 0 0 0 1px rgba(255,255,255,.55); }
-        .cap-band::before, .cap-band::after { content: ""; position: absolute; top: 0; bottom: 0; width: .32em; background: linear-gradient(90deg, rgba(0,0,0,.35), rgba(0,0,0,.05)); }
+        .cap-band { position: relative; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; height: 1.2em; min-width: 2.3em; padding: 0 .78em; margin-left: .45em; border-radius: .2em; overflow: hidden; color: #14110a; font-size: inherit; font-weight: 900; line-height: 1; letter-spacing: 0; vertical-align: middle; text-shadow: 0 1px 0 rgba(255,255,255,.45);
+            background:
+                repeating-linear-gradient(90deg, rgba(70,42,0,.62) 0 2px, transparent 2px 4px) 0 .16em / 100% 1px no-repeat,
+                repeating-linear-gradient(90deg, rgba(70,42,0,.62) 0 2px, transparent 2px 4px) 0 calc(100% - .16em) / 100% 1px no-repeat,
+                linear-gradient(90deg, rgba(0,0,0,.42) 0%, rgba(0,0,0,0) 24%, rgba(255,255,255,.26) 50%, rgba(0,0,0,0) 76%, rgba(0,0,0,.42) 100%),
+                repeating-linear-gradient(0deg, rgba(0,0,0,.06) 0 1px, rgba(255,255,255,.06) 1px 2px),
+                linear-gradient(180deg, #ffe066 0%, #f7c600 55%, #d9a100 100%);
+            box-shadow: 0 1px 2px rgba(0,0,0,.5), 0 2px 5px rgba(0,0,0,.2), inset 0 1px 0 rgba(255,255,255,.55), inset 0 -1px 0 rgba(0,0,0,.3); }
+        .cap-band::before, .cap-band::after { content: ""; position: absolute; top: 0; bottom: 0; width: .5em;
+            background:
+                linear-gradient(90deg, rgba(0,0,0,.4), rgba(0,0,0,.04)),
+                repeating-linear-gradient(90deg, rgba(60,35,0,.34) 0 1px, rgba(255,255,255,.14) 1px 2px),
+                linear-gradient(180deg, #e8b400, #b98600);
+            box-shadow: inset -1px 0 0 rgba(60,35,0,.6); }
         .cap-band::before { left: 0; }
         .cap-band::after { right: 0; transform: scaleX(-1); }
         button.cap-band { border: none; cursor: pointer; }
@@ -925,9 +937,9 @@
         .formation-box { margin: 14px 0 10px; }
         .formation-seg { position: relative; display: grid; grid-template-columns: 1fr 1fr; gap: 0; padding: 5px; border-radius: 20px; background: var(--input-bg); border: 1px solid var(--card-border); box-shadow: inset 0 2px 6px rgba(0,0,0,.08); }
         .formation-pill { position: absolute; top: 5px; bottom: 5px; left: 5px; width: calc(50% - 5px); border-radius: 16px; background: linear-gradient(135deg, #3182ce, #6366f1); box-shadow: 0 6px 16px rgba(79,70,229,.42), inset 0 1px 0 rgba(255,255,255,.3); transition: transform .28s cubic-bezier(.4,1.3,.5,1), background .28s ease; }
-        .formation-seg[data-mode="manual"] .formation-pill { transform: translateX(100%); background: linear-gradient(135deg, #f59e0b, #ef6c1a); box-shadow: 0 6px 16px rgba(239,108,26,.42), inset 0 1px 0 rgba(255,255,255,.3); }
+        .formation-seg[data-mode="manual"] .formation-pill { transform: translateX(100%); background: linear-gradient(135deg, #10b981, #0d9488); box-shadow: 0 6px 16px rgba(13,148,136,.42), inset 0 1px 0 rgba(255,255,255,.3); }
         .formation-btn { position: relative; z-index: 1; display: flex; align-items: center; justify-content: center; gap: 9px; padding: 11px 8px; border: none; border-radius: 16px; background: transparent; color: var(--text-sub); cursor: pointer; transition: color .2s ease; -webkit-tap-highlight-color: transparent; }
-        .formation-btn .fm-ico { font-size: 22px; line-height: 1; transition: transform .25s ease; }
+        .formation-btn .fm-ico { display: inline-flex; font-size: 22px; line-height: 1; transition: transform .25s ease; }
         .formation-btn .fm-txt { display: flex; flex-direction: column; align-items: flex-start; text-align: left; line-height: 1.15; }
         .formation-btn .fm-txt b { font-size: 14px; font-weight: 900; }
         .formation-btn .fm-txt small { font-size: 10px; font-weight: 700; opacity: .8; }
@@ -1016,6 +1028,34 @@
         .ms-card.cap-pick { animation: msPulse 1.1s ease-in-out infinite; }
         .ms-card.cap-dim { opacity: .35; }
         @keyframes msPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(245,158,11,.55); } 50% { box-shadow: 0 0 0 6px rgba(245,158,11,0); } }
+
+
+        /* ===== Manual picker v3: colours, step 1, locked players ===== */
+        .ms-top { background: linear-gradient(135deg, #064e3b, #0f766e 55%, #14b8a6); }
+        .ms-progress i { background: linear-gradient(90deg, #99f6e4, #2dd4bf); }
+        .ms-intro { display: flex; align-items: center; gap: 10px; padding: 10px 12px; margin: 0 0 12px; border-radius: 14px; background: linear-gradient(135deg, rgba(13,148,136,.16), rgba(16,185,129,.05)); border: 1px solid rgba(13,148,136,.3); font-size: 13px; font-weight: 800; color: var(--text-main); }
+        .ms-intro b { font-size: 22px; font-weight: 900; color: #0d9488; line-height: 1; }
+        .ms-cc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .ms-cc { --c: #3182ce; --cs: #3182ce30; position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 20px 10px 14px; border-radius: 22px; border: 2px solid var(--card-border); background: radial-gradient(120% 90% at 50% 0%, var(--cs) 0%, transparent 65%), var(--card-bg); color: var(--text-main); cursor: pointer; overflow: hidden; animation: msCcIn .38s ease both; transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease; -webkit-tap-highlight-color: transparent; }
+        .ms-cc:hover { transform: translateY(-3px); border-color: var(--c); box-shadow: 0 12px 26px rgba(0,0,0,.16); }
+        .ms-cc:active { transform: scale(.97); }
+        .ms-cc.active { border-color: var(--c); box-shadow: 0 0 0 3px var(--cs); }
+        .ms-cc:disabled { opacity: .4; cursor: not-allowed; transform: none; box-shadow: none; }
+        .ms-cc-n { font-size: 58px; font-weight: 900; line-height: 1; letter-spacing: -2px; color: var(--c); }
+        .ms-cc-lbl { font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 1.3px; color: var(--text-sub); }
+        .ms-cc-shields { display: flex; justify-content: center; gap: 4px; margin: 6px 0 2px; }
+        .ms-cc-shields svg { width: 22px; height: 25px; filter: drop-shadow(0 2px 2px rgba(0,0,0,.25)); }
+        .ms-cc-each { font-size: 12px; font-weight: 800; color: var(--text-sub); padding: 4px 11px; border-radius: 999px; background: var(--input-bg); border: 1px solid var(--card-border); }
+        .ms-cc-rec { position: absolute; top: 10px; right: -24px; width: 84px; transform: rotate(35deg); text-align: center; padding: 2px 0; font-size: 9px; font-weight: 900; letter-spacing: .8px; text-transform: uppercase; color: #fff; background: linear-gradient(135deg, #f59e0b, #ef6c1a); box-shadow: 0 2px 6px rgba(0,0,0,.25); }
+        @keyframes msCcIn { from { opacity: 0; transform: translateY(10px) scale(.96); } to { opacity: 1; transform: none; } }
+        /* players that already belong to another team: locked, with that team's emblem */
+        .ms-card.other.locked { opacity: 1; border-style: solid; cursor: not-allowed; background: var(--input-bg); box-shadow: none; }
+        .ms-card.other.locked:active { transform: none; }
+        .ms-card.other.locked .ms-avatar, .ms-card.other.locked .ms-card-name { opacity: .42; filter: grayscale(1); }
+        .ms-lockwrap { position: relative; display: inline-flex; }
+        .ms-lockwrap .ms-team-badge { width: 38px; height: 38px; }
+        .ms-lock { position: absolute; right: -5px; bottom: -3px; width: 17px; height: 17px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: var(--tc, #4a5568); border: 2px solid var(--card-bg); }
+        .ms-lock svg { width: 9px; height: 9px; }
 
         /* ===== Match History modal ===== */
         .hm-overlay { position: fixed; inset: 0; z-index: 10040; display: flex; align-items: center; justify-content: center; padding: 12px; background: rgba(5,10,24,.75); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
@@ -1115,7 +1155,7 @@
                     <span class="fm-ico">🎲</span><span class="fm-txt"><b>Random</b><small>Auto teams</small></span>
                 </button>
                 <button type="button" id="formManualBtn" class="formation-btn" onclick="setFormationMode('manual')">
-                    <span class="fm-ico">✋</span><span class="fm-txt"><b>Manual</b><small>Pick yourself</small></span>
+                    <span class="fm-ico"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M12 4v16"/><circle cx="12" cy="12" r="2.6"/><path d="M6.2 8.2l2.6 2.6M8.8 8.2l-2.6 2.6"/><circle cx="17" cy="15.6" r="1.5"/></svg></span><span class="fm-txt"><b>Manual</b><small>Pick yourself</small></span>
                 </button>
             </div>
         </div>
@@ -3419,6 +3459,8 @@ function shareCard(ctx, x, y, w, h, r = 28, fill = '#fff') {
         if (!requireAdmin("change a team")) return;
         let team = activeTeams.find(t => t.id === teamId);
         if (!team) return;
+        // the same team can't be used twice
+        if (activeTeams.some(o => o !== team && o.name === selectedName)) { renderTeamsCards(); return; }
 
         let foundPreset =
             clubPresets.find(p => p.name === selectedName);
@@ -4648,13 +4690,15 @@ function syncAllGoalRows(saved) {
                 availablePresets.map(p => {
 
                     let cleanName = p.name;
+                    const takenBy = activeTeams.some(o => o !== t && o.name === cleanName);
 
                     return `
                         <option
                             value="${cleanName}"
                             ${cleanName === t.name ? 'selected' : ''}
+                            ${takenBy ? 'disabled' : ''}
                         >
-                            ${esc(p.name)}
+                            ${esc(p.name)}${takenBy ? ' 🔒' : ''}
                         </option>
                     `;
                 }).join('');
@@ -6015,24 +6059,37 @@ function syncAllGoalRows(saved) {
         return names;
     }
     function shareDrawCaptainBand(ctx, bx, cy, w, h) {
-        const top = cy - h / 2, e = Math.max(3, Math.round(w * 0.18)), r = Math.max(2, h * 0.22);
+        const top = cy - h / 2, r = Math.max(2, h * 0.2), e = Math.max(4, w * 0.2);
         ctx.save();
-        ctx.shadowColor = 'rgba(0,0,0,0.3)'; ctx.shadowBlur = 3; ctx.shadowOffsetY = 1;
+        ctx.shadowColor = 'rgba(0,0,0,0.35)'; ctx.shadowBlur = 3; ctx.shadowOffsetY = 1.5;
         const g = ctx.createLinearGradient(0, top, 0, top + h);
-        g.addColorStop(0, '#63b3ed'); g.addColorStop(0.52, '#3182ce'); g.addColorStop(1, '#2b6cb0');
+        g.addColorStop(0, '#ffe066'); g.addColorStop(0.55, '#f7c600'); g.addColorStop(1, '#d9a100');
         ctx.fillStyle = g; shareRR(ctx, bx, top, w, h, r); ctx.fill();
         ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
         ctx.save();
         shareRR(ctx, bx, top, w, h, r); ctx.clip();
-        const gl = ctx.createLinearGradient(bx, 0, bx + e, 0);
-        gl.addColorStop(0, 'rgba(0,0,0,0.35)'); gl.addColorStop(1, 'rgba(0,0,0,0.05)');
-        ctx.fillStyle = gl; ctx.fillRect(bx, top, e, h);
-        const gr2 = ctx.createLinearGradient(bx + w, 0, bx + w - e, 0);
-        gr2.addColorStop(0, 'rgba(0,0,0,0.35)'); gr2.addColorStop(1, 'rgba(0,0,0,0.05)');
-        ctx.fillStyle = gr2; ctx.fillRect(bx + w - e, top, e, h);
+        // fabric wrapping around the arm: dark edges, light in the middle
+        const cyl = ctx.createLinearGradient(bx, 0, bx + w, 0);
+        cyl.addColorStop(0, 'rgba(0,0,0,0.42)'); cyl.addColorStop(0.24, 'rgba(0,0,0,0)');
+        cyl.addColorStop(0.5, 'rgba(255,255,255,0.26)'); cyl.addColorStop(0.76, 'rgba(0,0,0,0)'); cyl.addColorStop(1, 'rgba(0,0,0,0.42)');
+        ctx.fillStyle = cyl; ctx.fillRect(bx, top, w, h);
+        // ribbed elastic ends
+        [bx, bx + w - e].forEach(x => {
+            ctx.fillStyle = 'rgba(120,80,0,0.3)'; ctx.fillRect(x, top, e, h);
+            ctx.strokeStyle = 'rgba(60,35,0,0.35)'; ctx.lineWidth = 1;
+            for (let rx = x + 1.5; rx < x + e; rx += 2.2) { ctx.beginPath(); ctx.moveTo(rx, top); ctx.lineTo(rx, top + h); ctx.stroke(); }
+        });
+        ctx.strokeStyle = 'rgba(60,35,0,0.6)'; ctx.lineWidth = 1; ctx.beginPath();
+        ctx.moveTo(bx + e, top); ctx.lineTo(bx + e, top + h); ctx.moveTo(bx + w - e, top); ctx.lineTo(bx + w - e, top + h); ctx.stroke();
+        // stitching along top and bottom edge
+        const sy = Math.max(2, h * 0.16);
+        ctx.setLineDash([2, 2]); ctx.strokeStyle = 'rgba(70,42,0,0.6)';
+        ctx.beginPath(); ctx.moveTo(bx + e + 1, top + sy); ctx.lineTo(bx + w - e - 1, top + sy);
+        ctx.moveTo(bx + e + 1, top + h - sy); ctx.lineTo(bx + w - e - 1, top + h - sy); ctx.stroke();
+        ctx.setLineDash([]);
         ctx.restore();
-        ctx.strokeStyle = 'rgba(255,255,255,0.6)'; ctx.lineWidth = 1; shareRR(ctx, bx, top, w, h, r); ctx.stroke();
-        ctx.fillStyle = '#fff'; ctx.font = SF('900', Math.round(h * 0.78));
+        ctx.strokeStyle = 'rgba(0,0,0,0.35)'; ctx.lineWidth = 1; shareRR(ctx, bx, top, w, h, r); ctx.stroke();
+        ctx.fillStyle = '#14110a'; ctx.font = SF('900', Math.round(h * 0.7));
         ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
         ctx.fillText('C', bx + w / 2, cy + 1);
         ctx.restore();
@@ -6151,6 +6208,8 @@ function syncAllGoalRows(saved) {
     function msTap(pid) {
         if (!msState) return;
         const st = msState;
+        // a player who already belongs to another team can't be touched
+        if (st.assign[pid] !== undefined && st.assign[pid] !== st.active) return;
         if (st.capMode) {
             // captain mode: tap a player of the open team = armband on / off
             if (st.assign[pid] === st.active) { st.captains[st.active] = (st.captains[st.active] === pid) ? null : pid; st.capMode = false; msRender(); }
@@ -6205,16 +6264,25 @@ function syncAllGoalRows(saved) {
         const bar = $('msBar'); if (bar) bar.style.width = (st.step * 33.4) + '%';
 
         if (st.step === 1) {
-            $('msTitle').textContent = '✋ How many teams?'; $('msStep').textContent = 'Step 1 of 3';
-            body.innerHTML = `<div class="ms-bigcount">${[2, 3, 4, 5].map(n =>
-                `<button type="button" class="ms-bigbtn ${st.n === n ? 'active' : ''}" onclick="msSetCount(${n})">${n}<small>~${Math.round(st.players.length / n)} each</small></button>`).join('')}</div>`;
+            $('msTitle').textContent = '📋 How many teams?'; $('msStep').textContent = 'Step 1 of 3';
+            const rec = (typeof getBestTeamCount === 'function') ? getBestTeamCount(st.players.length) : 0;
+            const shield = c => `<svg viewBox="0 0 24 28" aria-hidden="true"><path d="M12 1l9.5 3.5V13c0 6.2-4.2 11-9.5 14C6.7 24 2.5 19.2 2.5 13V4.5z" fill="${c}" stroke="rgba(255,255,255,.75)" stroke-width="1.2"/><path d="M12 5l6 2.2V13c0 4-2.6 7.2-6 9.2V5z" fill="rgba(255,255,255,.24)"/></svg>`;
+            body.innerHTML = `<div class="ms-intro"><b>${st.players.length}</b><span>players ready — choose how many teams to split them into</span></div>
+                <div class="ms-cc-grid">${[2, 3, 4, 5].map((n, k) => {
+                    const c = MS_COLORS[n - 2], ok = Math.floor(st.players.length / n) >= 2;
+                    return `<button type="button" class="ms-cc ${st.n === n ? 'active' : ''}" style="--c:${c};--cs:${c}30;animation-delay:${k * 60}ms" onclick="msSetCount(${n})" ${ok ? '' : 'disabled'}>
+                        ${rec === n ? '<span class="ms-cc-rec">Best</span>' : ''}
+                        <span class="ms-cc-n">${n}</span><span class="ms-cc-lbl">teams</span>
+                        <span class="ms-cc-shields">${Array.from({ length: n }, (_, i) => shield(MS_COLORS[i])).join('')}</span>
+                        <span class="ms-cc-each">~${Math.round(st.players.length / n)} players each</span></button>`;
+                }).join('')}</div>`;
             warn.textContent = '';
             actions.innerHTML = btn('ms-btn-ghost', 'closeManualSplit()', 'Cancel');
             return;
         }
 
         if (st.step === 2) {
-            $('msTitle').textContent = `✋ Choose ${st.n} teams`; $('msStep').textContent = `Step 2 of 3 · selected ${st.picks.length}/${st.n}`;
+            $('msTitle').textContent = `📋 Choose ${st.n} teams`; $('msStep').textContent = `Step 2 of 3 · selected ${st.picks.length}/${st.n}`;
             if (!$('msPresetGrid')) {
                 body.innerHTML = `<input class="ms-search" id="msSearchInput" type="search" placeholder="Search team…" value="${esc(st.search)}" oninput="msSearch(this.value)"><div class="ms-presets" id="msPresetGrid"></div>`;
             }
@@ -6226,7 +6294,7 @@ function syncAllGoalRows(saved) {
         }
 
         // step 3: players
-        $('msTitle').textContent = '✋ Pick the players'; $('msStep').textContent = 'Step 3 of 3';
+        $('msTitle').textContent = '📋 Pick the players'; $('msStep').textContent = 'Step 3 of 3';
         const counts = Array.from({ length: st.n }, () => 0), sums = Array.from({ length: st.n }, () => 0);
         st.players.forEach(p => { const t = st.assign[p.id]; if (t !== undefined) { counts[t]++; sums[t] += Number(p.rating) || 0; } });
         const nameOf = id => { const q = st.players.find(p => p.id === id); return q ? q.name : ''; };
@@ -6252,13 +6320,13 @@ function syncAllGoalRows(saved) {
                 const col = t !== undefined ? MS_COLORS[t] : '';
                 const mine = t === st.active, other = t !== undefined && !mine;
                 const isCap = mine && st.captains[t] === p.id;
-                const style = mine ? `background:${col};border-color:${col};` : (other ? `border-color:${col};` : '');
+                const style = mine ? `background:${col};border-color:${col};` : (other ? `border-color:${col};--tc:${col};` : '');
                 const end = mine
                     ? (isCap ? '' : '<span class="ms-check">✓</span>')
-                    : (other ? `<img class="ms-team-badge" style="border-color:${col}" src="${esc(st.picks[t].logo || defaultLogo)}" alt="" title="${esc(st.picks[t].name)}" onerror="logoFallback(this)">` : '');
+                    : (other ? `<span class="ms-lockwrap"><img class="ms-team-badge" src="${esc(st.picks[t].logo || defaultLogo)}" alt="" onerror="logoFallback(this)"><span class="ms-lock"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span></span>` : '');
                 const capCls = st.capMode ? (mine ? 'cap-pick' : 'cap-dim') : '';
                 const initial = esc(String(p.name || '?').trim().charAt(0).toUpperCase());
-                return `<div class="ms-card ${mine ? 'mine' : ''} ${other ? 'other' : ''} ${capCls}" style="${style}" onclick="msTap(${p.id})">
+                return `<div class="ms-card ${mine ? 'mine' : ''} ${other ? 'other locked' : ''} ${capCls}" style="${style}" ${other ? `aria-disabled="true" title="${esc(st.picks[t].name)}"` : `onclick="msTap(${p.id})"`}>
                     <span class="ms-avatar">${initial}</span>
                     <div class="ms-card-name"><div class="ms-nmrow"><span class="ms-nm">${esc(p.name)}</span>${isCap ? '<span class="cap-band" title="Captain">C</span>' : ''}</div><small>⭐ ${formatRating(p.rating)}</small></div>
                     <span class="ms-card-end">${end}</span></div>`;
