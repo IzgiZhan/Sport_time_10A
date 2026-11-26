@@ -892,6 +892,77 @@
         .swapstat-actions .swapstat-ok:disabled { opacity: .45; cursor: not-allowed; }
         .hist-share { background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.4); color: #fff; border-radius: 8px; padding: 3px 10px; font-size: 11px; font-weight: 900; cursor: pointer; }
 
+        /* ===== Captain badge + team formation ===== */
+        .cap-badge { display: inline-flex; align-items: center; justify-content: center; width: 17px; height: 17px; margin-right: 6px; border-radius: 50%; background: #d69e2e; color: #fff; font-size: 10px; font-weight: 900; line-height: 1; vertical-align: middle; flex-shrink: 0; box-shadow: 0 0 0 2px rgba(214,158,46,.25); }
+        .cap-btn { width: 24px; height: 24px; margin-left: 8px; border-radius: 50%; border: 1.5px solid var(--card-border); background: var(--input-bg); color: var(--text-sub); font-size: 11px; font-weight: 900; cursor: pointer; line-height: 1; padding: 0; }
+        .cap-btn.on { background: #d69e2e; border-color: #d69e2e; color: #fff; }
+        body:not(.is-admin) .cap-btn, body:not(.is-admin) .formation-box { display: none !important; }
+        .team-list li .tl-left { display: flex; align-items: center; min-width: 0; }
+        .team-list li .tl-right { display: flex; align-items: center; flex-shrink: 0; }
+        .formation-box { margin: 14px 0 10px; padding: 12px; border: 1px solid var(--card-border); border-radius: 16px; background: var(--card-bg); }
+        .formation-title { font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: .5px; color: var(--text-sub); margin-bottom: 8px; }
+        .formation-modes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .formation-btn { padding: 11px 8px; border: 2px solid var(--card-border); border-radius: 12px; background: var(--input-bg); color: var(--text-main); font-size: 14px; font-weight: 900; cursor: pointer; text-align: center; line-height: 1.25; }
+        .formation-btn small { display: block; margin-top: 2px; font-size: 11px; font-weight: 700; color: var(--text-sub); }
+        .formation-btn.active { border-color: var(--primary-blue); background: rgba(49,130,206,.12); }
+        .ms-overlay { position: fixed; inset: 0; z-index: 10050; display: flex; align-items: center; justify-content: center; padding: 10px; background: rgba(5,10,24,.78); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+        .ms-dialog { width: min(560px, 100%); max-height: 94vh; display: flex; flex-direction: column; border: 1px solid var(--card-border); border-radius: 20px; background: var(--card-bg); color: var(--text-main); box-shadow: 0 24px 70px rgba(0,0,0,.45); overflow: hidden; }
+        .ms-top { padding: 14px 16px; background: linear-gradient(135deg, #1a365d, #3182ce); color: #fff; }
+        .ms-top h3 { font-size: 17px; font-weight: 900; }
+        .ms-top small { display: block; margin-top: 3px; font-size: 11px; font-weight: 700; opacity: .88; line-height: 1.35; }
+        .ms-body { padding: 12px 14px; overflow-y: auto; }
+        .ms-row-label { font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: .4px; color: var(--text-sub); margin: 2px 0 6px; }
+        .ms-count-row { display: flex; gap: 8px; margin-bottom: 12px; }
+        .ms-count-btn { flex: 1; padding: 9px 0; border-radius: 10px; border: 2px solid var(--card-border); background: var(--input-bg); color: var(--text-main); font-size: 14px; font-weight: 900; cursor: pointer; }
+        .ms-count-btn.active { border-color: var(--primary-blue); background: rgba(49,130,206,.14); color: var(--primary-blue); }
+        .ms-summary { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+        .ms-chip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 999px; border: 1px solid var(--card-border); background: var(--input-bg); font-size: 11px; font-weight: 800; }
+        .ms-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+        .ms-player { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--card-border); }
+        .ms-pname { min-width: 0; flex: 1; font-size: 13px; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .ms-pname small { color: var(--text-sub); font-weight: 700; margin-left: 4px; }
+        .ms-picks { display: flex; gap: 5px; align-items: center; flex-shrink: 0; }
+        .ms-pick { width: 30px; height: 30px; border-radius: 9px; border: 2px solid var(--card-border); background: var(--input-bg); color: var(--text-sub); font-size: 13px; font-weight: 900; cursor: pointer; padding: 0; }
+        .ms-cap { width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--card-border); background: var(--input-bg); color: var(--text-sub); font-size: 12px; font-weight: 900; cursor: pointer; padding: 0; margin-left: 4px; }
+        .ms-cap.on { background: #d69e2e; border-color: #d69e2e; color: #fff; }
+        .ms-cap:disabled { opacity: .35; cursor: not-allowed; }
+        .ms-foot { display: flex; flex-direction: column; gap: 8px; padding: 12px 14px; border-top: 1px solid var(--card-border); }
+        .ms-warn { font-size: 12px; font-weight: 800; color: var(--primary-red); min-height: 16px; }
+        .ms-actions { display: flex; gap: 8px; }
+        .ms-actions button { flex: 1; padding: 12px 8px; border: none; border-radius: 12px; font-size: 13px; font-weight: 900; cursor: pointer; }
+        .ms-btn-ghost { background: var(--input-bg); color: var(--text-main); border: 1px solid var(--card-border) !important; }
+        .ms-btn-ok { background: linear-gradient(135deg, #38a169, #2f855a); color: #fff; }
+        .ms-btn-ok:disabled { opacity: .45; cursor: not-allowed; }
+
+        /* ===== Match History modal ===== */
+        .hm-overlay { position: fixed; inset: 0; z-index: 10040; display: flex; align-items: center; justify-content: center; padding: 12px; background: rgba(5,10,24,.75); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+        .hm-dialog { width: min(640px, 100%); max-height: 92vh; display: flex; flex-direction: column; border: 1px solid var(--card-border); border-radius: 20px; background: var(--card-bg); color: var(--text-main); box-shadow: 0 24px 70px rgba(0,0,0,.45); overflow: hidden; }
+        .hm-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 14px 16px; background: linear-gradient(135deg, #1a365d, #3182ce); color: #fff; }
+        .hm-top h3 { font-size: 17px; font-weight: 900; line-height: 1.2; }
+        .hm-top small { display: block; font-size: 11px; font-weight: 700; opacity: .85; margin-top: 2px; }
+        .hm-top-actions { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
+        .hm-btn { background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.45); color: #fff; border-radius: 10px; padding: 7px 12px; font-size: 12px; font-weight: 900; cursor: pointer; }
+        .hm-btn:disabled { opacity: .6; cursor: wait; }
+        .hm-list { padding: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+        .hm-card { border: 1px solid var(--card-border); border-radius: 16px; background: var(--input-bg); padding: 12px 14px; }
+        .hm-meta { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 11px; font-weight: 900; color: var(--text-sub); text-transform: uppercase; letter-spacing: .4px; margin-bottom: 10px; }
+        .hm-share { background: var(--primary-blue); color: #fff; border: none; border-radius: 8px; padding: 5px 10px; font-size: 11px; font-weight: 900; cursor: pointer; }
+        .hm-share:disabled { opacity: .6; cursor: wait; }
+        .hm-main { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 10px; }
+        .hm-team { display: flex; align-items: center; gap: 8px; min-width: 0; font-size: 14px; font-weight: 900; }
+        .hm-team.right { flex-direction: row-reverse; text-align: right; }
+        .hm-team img { width: 34px; height: 34px; object-fit: contain; background: #fff; border-radius: 50%; padding: 2px; border: 1px solid var(--card-border); flex-shrink: 0; }
+        .hm-team span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .hm-score { font-size: 24px; font-weight: 900; color: var(--primary-blue); white-space: nowrap; }
+        .hm-goals { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--card-border); }
+        .hm-goals .col { display: flex; flex-direction: column; gap: 4px; }
+        .hm-goals .col.right { text-align: right; }
+        .hm-goal { font-size: 12px; font-weight: 800; line-height: 1.3; }
+        .hm-goal em { font-style: normal; color: var(--text-sub); font-weight: 700; }
+        .hm-goal.og { color: var(--primary-red); }
+        .hm-mvp { margin-top: 10px; text-align: center; font-size: 12px; font-weight: 900; color: var(--primary-gold); }
+        .hm-empty { text-align: center; padding: 30px 16px; color: var(--text-sub); font-weight: 700; }
+
         /* ===== Admin: rating & awards rules editor ===== */
         .backup-row { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 12px; margin-top:8px; border-radius:12px; background:var(--input-bg); border:1px solid var(--card-border); }
         .backup-row-main { min-width:0; }
@@ -954,6 +1025,13 @@
         </div>
         <div id="viewOnlyNote" class="view-only-note">👁 View-only mode. Enter the Admin password to change tournament data.</div>
         <div class="player-grid" id="playersList"></div>
+        <div class="formation-box" id="formationBox">
+            <div class="formation-title">Team formation</div>
+            <div class="formation-modes">
+                <button type="button" id="formRandomBtn" class="formation-btn active" onclick="setFormationMode('random')">🎲 Random<small>the site splits fairly</small></button>
+                <button type="button" id="formManualBtn" class="formation-btn" onclick="setFormationMode('manual')">✋ Manual<small>you choose the teams</small></button>
+            </div>
+        </div>
         <button id="startTournamentBtn" class="btn btn-green" onclick="startTournament()">Start Tournament</button>
     </div>
 
@@ -1000,6 +1078,9 @@
 
         <div class="section-header" style="margin-top:20px;">
             <span class="section-title">📅 Match Schedule</span>
+            <span style="display:flex;gap:14px;">
+                <button onclick="openHistoryMatches('current')" style="background:none;border:none;color:var(--primary-blue);font-size:13px;font-weight:900;cursor:pointer;">📋 Match History</button>
+            </span>
         </div>
 
         <div class="round-nav" id="roundNavControls" style="display:none;">
@@ -2950,7 +3031,7 @@ function shareCard(ctx, x, y, w, h, r = 28, fill = '#fff') {
         return schedule;
     }
 
-    function startTournament() {
+    function startTournament(manualPlan) {
         if (!requireAdmin("start the tournament")) return;
         let selected = playersData.filter(p => {
             const cb = document.getElementById(`check_${p.id}`);
@@ -2962,8 +3043,11 @@ function shareCard(ctx, x, y, w, h, r = 28, fill = '#fff') {
             return;
         }
 
+        const hasPlan = !!(manualPlan && Array.isArray(manualPlan.teams));
+        if (!hasPlan && formationMode === 'manual') { openManualSplit(selected); return; }
+
         const total = selected.length;
-        let numTeams = getBestTeamCount(total);
+        let numTeams = hasPlan ? manualPlan.teams.length : getBestTeamCount(total);
 
         if (!numTeams) {
             alert("Please select at least 4 players.");
@@ -2975,7 +3059,7 @@ function shareCard(ctx, x, y, w, h, r = 28, fill = '#fff') {
             resetCurrentTournamentStats();
         }
 
-        let distributed = distributeEquallyFlexible(selected, numTeams);
+        let distributed = hasPlan ? manualPlan.teams : distributeEquallyFlexible(selected, numTeams);
 
         if (!distributed) {
             alert("Could not create equal teams. Please check the selected players.");
@@ -3002,6 +3086,7 @@ function shareCard(ctx, x, y, w, h, r = 28, fill = '#fff') {
                 type: preset.type,
                 code: preset.code || preset.name.substring(0,3).toLowerCase(),
                 logo: preset.logo,
+                captainId: hasPlan && manualPlan.captains && manualPlan.captains[i] != null ? manualPlan.captains[i] : null,
                 players: distributed[i],
                 played: 0,
                 win: 0,
@@ -3103,6 +3188,7 @@ function shareCard(ctx, x, y, w, h, r = 28, fill = '#fff') {
         activeTeams.forEach((t, idx) => {
             t.players = distributed[idx];
         });
+        fixCaptains();
 
         saveData();
         renderTeamsCards();
@@ -4385,6 +4471,7 @@ function syncAllGoalRows(saved) {
         tA.players[iA] = tB.players[iB];
         tB.players[iB] = tmp;
         swapSel = null;
+        fixCaptains();
         saveData();
         renderTeamsCards();
     }
@@ -4399,6 +4486,7 @@ function syncAllGoalRows(saved) {
         if (tA.players.length <= 1) { alert("A team must keep at least one player."); return; }
         tB.players.push(tA.players.splice(iA, 1)[0]);
         swapSel = null;
+        fixCaptains();
         saveData();
         renderTeamsCards();
     }
@@ -4469,15 +4557,20 @@ function syncAllGoalRows(saved) {
                         ((b.speed || 3) - (a.speed || 3)) ||
                         a.name.localeCompare(b.name)
                 );
+            const teamCap = getTeamCaptain(t);
+            if (teamCap) {
+                const ci = sortedTeamPlayers.findIndex(q => String(q.id) === String(teamCap.id));
+                if (ci > 0) sortedTeamPlayers.unshift(sortedTeamPlayers.splice(ci, 1)[0]);
+            }
 
             let playersListHtml =
                 sortedTeamPlayers.map(p => `
                     <li class="${swapSel && String(swapSel.teamId) === String(t.id) && String(swapSel.playerId) === String(p.id) ? 'swap-selected' : ''}"
                         ${swapMode ? `onclick="pickSwapPlayer('${t.id}', '${p.id}')"` : ''}>
-                        <span>${esc(p.name)}</span>
-                        <span style="color:var(--primary-blue);">
+                        <span class="tl-left">${teamCap && String(teamCap.id) === String(p.id) ? '<span class="cap-badge" title="Captain">C</span>' : ''}<span>${esc(p.name)}</span></span>
+                        <span class="tl-right"><span style="color:var(--primary-blue);">
                             ⭐ ${formatRating(p.rating)}
-                        </span>
+                        </span><button type="button" class="cap-btn ${teamCap && String(teamCap.id) === String(p.id) ? 'on' : ''}" title="Captain" onclick="event.stopPropagation(); setTeamCaptain('${t.id}', '${p.id}')">C</button></span>
                     </li>
                 `).join('');
 
@@ -4726,7 +4819,7 @@ function syncAllGoalRows(saved) {
             if (out.length > 3) { out.length = 3; out[2] = out[2].replace(/.{0,2}$/, '…'); }
             return out;
         };
-        const teamLines = teams.map(t => wrapRoster(sortNamesByRating((t.players || []).map(p => (playersData.find(x => x.id === p.id) || p).name))));
+        const teamLines = teams.map(t => wrapRoster(rosterWithCaptain(sortNamesByRating((t.players || []).map(p => (playersData.find(x => x.id === p.id) || p).name)), captainNameOf(t))));
         const rowHs = teamLines.map(l => l.length ? 62 + l.length * 24 + 14 : 92);
 
         const W = 1600, pad = 40;
@@ -4904,11 +4997,17 @@ function syncAllGoalRows(saved) {
             const teamName = esc(team.name || `Team ${index + 1}`);
             const logo = esc(team.logo || defaultLogo);
             const names = members.map(getName).filter(Boolean);
+            const capMember = getTeamCaptain(team);
+            if (capMember) {
+                const ci = members.findIndex(m2 => String(m2 && m2.id) === String(capMember.id));
+                if (ci > 0) members.unshift(members.splice(ci, 1)[0]);
+            }
             const playerRows = members.map(member => {
                 const player = playersData.find(p => String(p.id) === String(member && member.id));
                 const name = String((player && player.name) || (member && member.name) || 'Unknown player');
                 const rating = player && Number.isFinite(Number(player.rating)) ? formatRating(Number(player.rating)) : '—';
-                return `<div class="roster-player-row"><span class="roster-player-dot" aria-hidden="true"></span><span class="roster-player-name">${esc(name)}</span><span class="roster-player-rating">⭐ ${esc(rating)}</span></div>`;
+                const isCapRow = capMember && String(capMember.id) === String(member && member.id);
+                return `<div class="roster-player-row">${isCapRow ? '<span class="cap-badge" title="Captain" style="margin-right:0;">C</span>' : '<span class="roster-player-dot" aria-hidden="true"></span>'}<span class="roster-player-name">${esc(name)}</span><span class="roster-player-rating">⭐ ${esc(rating)}</span></div>`;
             });
             const playersHtml = playerRows.length
                 ? playerRows.join('')
@@ -4938,10 +5037,11 @@ function syncAllGoalRows(saved) {
                 const ratingValue = player && Number.isFinite(Number(player.rating)) ? Number(player.rating) : -Infinity;
                 return {
                     name: String((player && player.name) || (member && member.name) || 'Unknown player'),
+                    isCaptain: team.captainId != null && String(member && member.id) === String(team.captainId),
                     ratingValue,
                     rating: Number.isFinite(ratingValue) ? formatRating(ratingValue) : '—'
                 };
-            }).sort((a, b) => (b.ratingValue - a.ratingValue) || a.name.localeCompare(b.name))
+            }).sort((a, b) => (Number(b.isCaptain) - Number(a.isCaptain)) || (b.ratingValue - a.ratingValue) || a.name.localeCompare(b.name))
         }));
         const logos = await Promise.all(entries.map(team => loadLogo(team.logo)));
         await document.fonts.ready;
@@ -4999,7 +5099,13 @@ function syncAllGoalRows(saved) {
                 x.fillStyle = colors.ink;
                 let fontSize = 25; x.font = SF('850', fontSize);
                 while (fontSize > 18 && x.measureText(player.name).width > colW - 158) x.font = SF('850', --fontSize);
-                x.fillText(shareFit(x, player.name, colW - 158), cx + 62, mid);
+                const shownName = shareFit(x, player.name, colW - 158 - (player.isCaptain ? 36 : 0));
+                x.fillText(shownName, cx + 62, mid);
+                if (player.isCaptain) {
+                    const bx = cx + 62 + x.measureText(shownName).width + 20;
+                    x.fillStyle = '#d69e2e'; x.beginPath(); x.arc(bx, mid, 14, 0, Math.PI * 2); x.fill();
+                    x.fillStyle = '#ffffff'; x.font = SF('900', 17); x.textAlign = 'center'; x.fillText('C', bx, mid + 1); x.textAlign = 'left';
+                }
                 x.fillStyle = colors['accent-soft']; shareRR(x, cx + colW - 82, mid - 19, 60, 38, 6); x.fill();
                 x.textAlign = 'center'; x.fillStyle = colors.accent; x.font = SF('900', 20);
                 x.fillText(player.rating, cx + colW - 52, mid);
@@ -5374,6 +5480,197 @@ function syncAllGoalRows(saved) {
         await shareBlob(blob, `sport-time-tournament-${idx + 1}.png`);
     }
 
+    // ---------- Match History: list + share one match / all matches (finished tournaments and the current one) ----------
+    function getMatchesSource(idx) {
+        if (idx === 'current') {
+            return { h: { date: new Date().toISOString(), matches: snapshotMatchesForHistory() }, label: 'Current tournament', tag: 'current' };
+        }
+        const h = (allTimeStats.__history || [])[idx];
+        return h ? { h, label: `Tournament #${Number(idx) + 1}`, tag: `t${Number(idx) + 1}` } : null;
+    }
+    function matchIsCaptain(m, name) {
+        return !!name && ((m.t1 && m.t1.captain === name) || (m.t2 && m.t2.captain === name));
+    }
+
+    function closeHistoryMatches() {
+        const o = document.getElementById('hmOverlay');
+        if (o) o.remove();
+        document.body.style.overflow = '';
+    }
+
+    function openHistoryMatches(idx) {
+        const src = getMatchesSource(idx);
+        if (!src) return;
+        const h = src.h;
+        if (!Array.isArray(h.matches) || !h.matches.length) {
+            alert(idx === 'current'
+                ? 'No matches have been played yet.'
+                : 'Matches were not saved for this tournament (it was finished before Match History was added).');
+            return;
+        }
+        closeHistoryMatches();
+        const ik = idx === 'current' ? "'current'" : String(idx);
+        const nm = (m, n) => esc(n) + (matchIsCaptain(m, n) ? ' <span class="cap-badge" style="margin:0 0 0 4px;width:14px;height:14px;font-size:9px;" title="Captain">C</span>' : '');
+        const goalLine = (m, g) => g.og
+            ? `<div class="hm-goal og">🥅 ${nm(m, g.scorer)} (OG)</div>`
+            : `<div class="hm-goal">⚽ ${nm(m, g.scorer)}${g.assist ? ` <em>🅰️ ${nm(m, g.assist)}</em>` : ''}</div>`;
+        const cards = h.matches.map((m, i) => {
+            const g1 = (m.goals || []).filter(g => g.team === 1), g2 = (m.goals || []).filter(g => g.team === 2);
+            return `
+            <div class="hm-card">
+                <div class="hm-meta"><span>Match #${esc(m.no)} · Round ${esc(m.tour)}</span><button class="hm-share" onclick="shareHistoryMatch(${ik}, ${i}, this)">📤 Share</button></div>
+                <div class="hm-main">
+                    <div class="hm-team"><img src="${esc(m.t1.logo || defaultLogo)}" alt="" onerror="logoFallback(this)"><span>${esc(m.t1.name)}</span></div>
+                    <div class="hm-score">${m.s1} : ${m.s2}</div>
+                    <div class="hm-team right"><img src="${esc(m.t2.logo || defaultLogo)}" alt="" onerror="logoFallback(this)"><span>${esc(m.t2.name)}</span></div>
+                </div>
+                ${(g1.length || g2.length) ? `<div class="hm-goals"><div class="col">${g1.map(g => goalLine(m, g)).join('')}</div><div class="col right">${g2.map(g => goalLine(m, g)).join('')}</div></div>` : ''}
+                ${m.mvp ? `<div class="hm-mvp">🏆 MVP: ${nm(m, m.mvp)}</div>` : ''}
+            </div>`;
+        }).join('');
+        const o = document.createElement('div');
+        o.id = 'hmOverlay'; o.className = 'hm-overlay';
+        o.innerHTML = `
+            <div class="hm-dialog" role="dialog" aria-modal="true">
+                <div class="hm-top">
+                    <div><h3>📋 Match History</h3><small>${esc(src.label)} · ${esc(new Date(h.date).toLocaleDateString())} · ${h.matches.length} matches</small></div>
+                    <div class="hm-top-actions">
+                        <button class="hm-btn" onclick="shareHistoryAllMatches(${ik}, this)">📤 Share all</button>
+                        <button class="hm-btn" onclick="closeHistoryMatches()" aria-label="Close">✕</button>
+                    </div>
+                </div>
+                <div class="hm-list">${cards}</div>
+            </div>`;
+        o.addEventListener('click', e => { if (e.target === o) closeHistoryMatches(); });
+        document.body.appendChild(o);
+        document.body.style.overflow = 'hidden';
+    }
+
+    async function shareHistoryMatch(idx, mi, btn) {
+        const src = getMatchesSource(idx);
+        const m = src && src.h.matches && src.h.matches[mi];
+        if (!m) return;
+        const old = btn ? btn.textContent : '';
+        if (btn) { btn.disabled = true; btn.textContent = '…'; }
+        try {
+            const blob = await buildHistoryMatchesImage(src.h, [m], `${src.label}  ·  Match #${m.no}`);
+            if (!blob) { alert('Could not create the image.'); return; }
+            await shareBlob(blob, `sport-time-${src.tag}-match-${m.no}.png`);
+        } catch (e) { console.error(e); alert('Could not create the image.'); }
+        finally { if (btn) { btn.disabled = false; btn.textContent = old; } }
+    }
+
+    async function shareHistoryAllMatches(idx, btn) {
+        const src = getMatchesSource(idx);
+        if (!src || !src.h.matches || !src.h.matches.length) return;
+        const old = btn ? btn.textContent : '';
+        if (btn) { btn.disabled = true; btn.textContent = '…'; }
+        try {
+            const blob = await buildHistoryMatchesImage(src.h, src.h.matches, `${src.label}  ·  All matches (${src.h.matches.length})`);
+            if (!blob) { alert('Could not create the image.'); return; }
+            await shareBlob(blob, `sport-time-${src.tag}-all-matches.png`);
+        } catch (e) { console.error(e); alert('Could not create the image.'); }
+        finally { if (btn) { btn.disabled = false; btn.textContent = old; } }
+    }
+
+    function historyMatchCardHeight(m) {
+        const g1 = (m.goals || []).filter(g => g.team === 1).length, g2 = (m.goals || []).filter(g => g.team === 2).length;
+        const rows = Math.max(g1, g2);
+        return 170 + (rows ? rows * 40 + 16 : 0) + (m.mvp ? 56 : 0) + 18;
+    }
+
+    async function buildHistoryMatchesImage(h, list, subtitle) {
+        const W = 1080, pad = 40, cw = W - pad * 2, gap = 24, top0 = 200;
+        const logoCache = new Map();
+        const getLogo = async src => {
+            const key = src || defaultLogo;
+            if (!logoCache.has(key)) logoCache.set(key, await loadLogo(key));
+            return logoCache.get(key);
+        };
+        const heights = list.map(historyMatchCardHeight);
+        const H = top0 + heights.reduce((a, b) => a + b + gap, 0) + 90;
+        const scale = Math.min(1, 16000 / H);
+        const c = document.createElement('canvas');
+        c.width = Math.round(W * scale); c.height = Math.round(H * scale);
+        const x = c.getContext('2d');
+        if (!x) throw new Error('Canvas unavailable');
+        x.scale(scale, scale);
+        shareBackground(x, W, H);
+        shareHeader(x, W, pad, subtitle);
+
+        let y = top0;
+        for (let i = 0; i < list.length; i++) {
+            const m = list[i], ch = heights[i];
+            const l1 = await getLogo(m.t1.logo), l2 = await getLogo(m.t2.logo);
+            shareCard(x, pad, y, cw, ch, 26);
+            const cx = pad + cw / 2;
+            const cap = n => matchIsCaptain(m, n) ? ' (C)' : '';
+
+            x.textBaseline = 'middle'; x.textAlign = 'center';
+            x.fillStyle = '#718096'; x.font = SF('900', 22);
+            x.fillText(`MATCH #${m.no}  ·  ROUND ${m.tour}`, cx, y + 34);
+
+            const cy = y + 100;
+            const drawLogo = (img, lx, R) => {
+                x.save(); x.beginPath(); x.arc(lx, cy, R, 0, Math.PI * 2); x.clip();
+                x.fillStyle = '#fff'; x.fillRect(lx - R, cy - R, R * 2, R * 2);
+                if (img) {
+                    const k = Math.min((R * 1.7) / img.width, (R * 1.7) / img.height);
+                    x.drawImage(img, lx - img.width * k / 2, cy - img.height * k / 2, img.width * k, img.height * k);
+                }
+                x.restore();
+                x.strokeStyle = '#e2e8f0'; x.lineWidth = 2; x.beginPath(); x.arc(lx, cy, R, 0, Math.PI * 2); x.stroke();
+            };
+            drawLogo(l1, pad + 66, 38);
+            drawLogo(l2, pad + cw - 66, 38);
+            x.fillStyle = '#1a202c'; x.font = SF('900', 30);
+            x.textAlign = 'left';  x.fillText(shareFit(x, m.t1.name, cx - 100 - (pad + 120)), pad + 120, cy + 1);
+            x.textAlign = 'right'; x.fillText(shareFit(x, m.t2.name, (pad + cw - 120) - (cx + 100)), pad + cw - 120, cy + 1);
+            x.textAlign = 'center'; x.fillStyle = '#2b6cb0'; x.font = SF('900', 64);
+            x.fillText(`${m.s1} : ${m.s2}`, cx, cy + 2);
+
+            let gy = y + 170;
+            const gl = (m.goals || []).filter(g => g.team === 1), gr = (m.goals || []).filter(g => g.team === 2);
+            const rows = Math.max(gl.length, gr.length);
+            if (rows) {
+                x.strokeStyle = '#e2e8f0'; x.lineWidth = 2; x.setLineDash([8, 8]);
+                x.beginPath(); x.moveTo(pad + 30, y + 150); x.lineTo(pad + cw - 30, y + 150); x.stroke(); x.setLineDash([]);
+                const drawGoal = (g, align, gx, ry) => {
+                    const parts = [];
+                    if (g.og) {
+                        parts.push({ e: '🥅', size: 24 }, { t: `${g.scorer}${cap(g.scorer)} (OG)`, font: SF('800', 24), color: '#e53e3e' });
+                    } else {
+                        parts.push({ e: '⚽', size: 24 }, { t: `${g.scorer}${cap(g.scorer)}`, font: SF('800', 24), color: '#1a202c' });
+                        if (g.assist) parts.push({ e: '🅰️', size: 22 }, { t: `${g.assist}${cap(g.assist)}`, font: SF('700', 22), color: '#718096' });
+                    }
+                    const maxW = cw / 2 - 50;
+                    let tries = 0;
+                    while (tries++ < 40) {
+                        const total = parts.reduce((s2, p2) => { if (p2.e) return s2 + p2.size; x.font = p2.font; return s2 + x.measureText(p2.t).width; }, 0) + 10 * (parts.length - 1);
+                        if (total <= maxW) break;
+                        const lastT = [...parts].reverse().find(p2 => !p2.e);
+                        if (!lastT || lastT.t.length < 4) break;
+                        lastT.t = lastT.t.slice(0, -2) + '…';
+                    }
+                    shareInline(x, parts, gx, ry, align, 10);
+                };
+                for (let r = 0; r < rows; r++) {
+                    const ry = gy + 20 + r * 40;
+                    if (gl[r]) drawGoal(gl[r], 'left', pad + 36, ry);
+                    if (gr[r]) drawGoal(gr[r], 'right', pad + cw - 36, ry);
+                }
+                gy += rows * 40 + 16;
+            }
+
+            if (m.mvp) {
+                shareInline(x, [{ e: '🏆', size: 28 }, { t: `MVP: ${m.mvp}${cap(m.mvp)}`, font: SF('900', 26), color: '#b7791f' }], cx, gy + 22, 'center', 10);
+            }
+            y += ch + gap;
+        }
+        shareFooter(x, W, H);
+        return await new Promise(res => c.toBlob(res, 'image/png'));
+    }
+
     async function buildHistoryImage(h, num) {
         const teams = h.teams;
         const logos = await Promise.all(teams.map(t => loadLogo(t.logo || defaultLogo)));
@@ -5409,7 +5706,7 @@ function syncAllGoalRows(saved) {
             if (out.length > 3) { out.length = 3; out[2] = out[2].replace(/.{0,2}$/, '…'); }
             return out;
         };
-        const teamLines = teams.map(t => wrapRoster(sortNamesByRating(t.players)));
+        const teamLines = teams.map(t => wrapRoster(rosterWithCaptain(sortNamesByRating(t.players), t.captain)));
         const rowHs = teamLines.map(l => Math.max(84, 62 + l.length * 24));
         const awardsTop = champTop + champH + 30, awardsH = hasAwards ? 200 : 0;
         const tableTop = awardsTop + (hasAwards ? awardsH + 30 : 0), tableH = 70 + rowHs.reduce((a2, b2) => a2 + b2, 0) + 20;
@@ -5586,6 +5883,201 @@ function syncAllGoalRows(saved) {
             (b.pts - a.pts) || (b.gd - a.gd) || (b.gf - a.gf));
     }
 
+    // ---------- Captains ----------
+    function getTeamCaptain(t) {
+        if (!t || t.captainId == null) return null;
+        return (t.players || []).find(p => String(p.id) === String(t.captainId)) || null;
+    }
+    function captainNameOf(t) {
+        const c = getTeamCaptain(t);
+        if (!c) return null;
+        const pl = playersData.find(x => String(x.id) === String(c.id));
+        return (pl || c).name;
+    }
+    function fixCaptains() {
+        (activeTeams || []).forEach(t => { if (t.captainId != null && !getTeamCaptain(t)) t.captainId = null; });
+    }
+    // plain-text roster: captain first, marked "(C)" (used on share images)
+    function rosterWithCaptain(sortedNames, cap) {
+        const names = [...(sortedNames || [])];
+        if (cap) { const i = names.indexOf(cap); if (i >= 0) { names.splice(i, 1); names.unshift(cap + ' (C)'); } }
+        return names;
+    }
+    // HTML roster line: captain first with a gold badge
+    function rosterHtmlWithCaptain(sortedNames, cap) {
+        const names = [...(sortedNames || [])];
+        if (cap) { const i = names.indexOf(cap); if (i >= 0) names.splice(i, 1); else cap = null; }
+        const parts = names.map(n => esc(n));
+        if (cap) parts.unshift(`<span class="cap-badge" style="margin-right:4px;width:14px;height:14px;font-size:9px;">C</span>${esc(cap)}`);
+        return parts.join(' · ');
+    }
+    function setTeamCaptain(teamId, playerId) {
+        if (!requireAdmin("choose a captain")) return;
+        const t = activeTeams.find(x => String(x.id) === String(teamId));
+        if (!t) return;
+        t.captainId = (t.captainId != null && String(t.captainId) === String(playerId)) ? null : (isNaN(Number(playerId)) ? playerId : Number(playerId));
+        saveData();
+        renderTeamsCards();
+        if (document.getElementById('teamsRosterModal') && document.getElementById('teamsRosterModal').classList.contains('open')) renderTeamsRosterModal();
+    }
+
+    // ---------- Team formation: random (site) or manual ----------
+    let formationMode = 'random';
+    try { const sv = localStorage.getItem('st10a_formation'); if (sv === 'manual' || sv === 'random') formationMode = sv; } catch (e) {}
+    function setFormationMode(mode) {
+        formationMode = mode === 'manual' ? 'manual' : 'random';
+        try { localStorage.setItem('st10a_formation', formationMode); } catch (e) {}
+        syncFormationUI();
+    }
+    function syncFormationUI() {
+        const r = document.getElementById('formRandomBtn'), m = document.getElementById('formManualBtn');
+        if (r) r.classList.toggle('active', formationMode === 'random');
+        if (m) m.classList.toggle('active', formationMode === 'manual');
+    }
+    document.addEventListener('DOMContentLoaded', syncFormationUI);
+    setTimeout(syncFormationUI, 0);
+
+    const MS_COLORS = ['#3182ce', '#38a169', '#d69e2e', '#e53e3e', '#805ad5', '#dd6b20'];
+    let msState = null;
+    function openManualSplit(selected) {
+        closeManualSplit();
+        const n0 = Math.max(2, Math.min(6, getBestTeamCount(selected.length) || 2));
+        msState = { players: [...selected].sort((a, b) => (b.rating - a.rating) || String(a.name).localeCompare(String(b.name))), n: n0, assign: {}, captains: [] };
+        const o = document.createElement('div');
+        o.id = 'msOverlay'; o.className = 'ms-overlay';
+        o.innerHTML = `
+            <div class="ms-dialog" role="dialog" aria-modal="true">
+                <div class="ms-top"><h3>✋ Manual team split</h3><small>Tap a team number to put a player into that team. Tap <b>C</b> to make him the captain of his team.</small></div>
+                <div class="ms-body">
+                    <div class="ms-row-label">Number of teams</div>
+                    <div class="ms-count-row" id="msCountRow"></div>
+                    <div class="ms-summary" id="msSummary"></div>
+                    <div id="msList"></div>
+                </div>
+                <div class="ms-foot">
+                    <div class="ms-warn" id="msWarn"></div>
+                    <div class="ms-actions">
+                        <button type="button" class="ms-btn-ghost" onclick="closeManualSplit()">Cancel</button>
+                        <button type="button" class="ms-btn-ghost" onclick="msFillRest()">🎲 Fill the rest</button>
+                        <button type="button" class="ms-btn-ok" id="msOk" onclick="msConfirm()">Start</button>
+                    </div>
+                </div>
+            </div>`;
+        document.body.appendChild(o);
+        document.body.style.overflow = 'hidden';
+        msRender();
+    }
+    function closeManualSplit() {
+        const o = document.getElementById('msOverlay');
+        if (o) o.remove();
+        msState = null;
+        document.body.style.overflow = '';
+    }
+    function msSetCount(n) {
+        if (!msState) return;
+        msState.n = n;
+        Object.keys(msState.assign).forEach(id => { if (msState.assign[id] >= n) delete msState.assign[id]; });
+        msState.captains = msState.captains.slice(0, n).map(c => (c != null && msState.assign[c] !== undefined) ? c : null);
+        msRender();
+    }
+    function msAssign(pid, team) {
+        if (!msState) return;
+        if (msState.assign[pid] === team) {
+            delete msState.assign[pid];
+        } else {
+            msState.assign[pid] = team;
+        }
+        // a captain who left his team is no longer captain
+        for (let i = 0; i < msState.n; i++) {
+            const c = msState.captains[i];
+            if (c != null && msState.assign[c] !== i) msState.captains[i] = null;
+        }
+        msRender();
+    }
+    function msToggleCaptain(pid) {
+        if (!msState) return;
+        const team = msState.assign[pid];
+        if (team === undefined) return;
+        msState.captains[team] = (msState.captains[team] === pid) ? null : pid;
+        msRender();
+    }
+    function msFillRest() {
+        if (!msState) return;
+        const counts = Array.from({ length: msState.n }, () => 0);
+        Object.values(msState.assign).forEach(t => { counts[t]++; });
+        const rest = msState.players.filter(p => msState.assign[p.id] === undefined).sort(() => Math.random() - 0.5);
+        rest.forEach(p => {
+            const min = Math.min(...counts);
+            const options = counts.map((c, i) => c === min ? i : -1).filter(i => i >= 0);
+            const t = options[Math.floor(Math.random() * options.length)];
+            msState.assign[p.id] = t; counts[t]++;
+        });
+        msRender();
+    }
+    function msRender() {
+        if (!msState) return;
+        const st = msState;
+        document.getElementById('msCountRow').innerHTML = [2, 3, 4, 5, 6].map(n =>
+            `<button type="button" class="ms-count-btn ${st.n === n ? 'active' : ''}" onclick="msSetCount(${n})">${n}</button>`).join('');
+        const counts = Array.from({ length: st.n }, () => 0), sums = Array.from({ length: st.n }, () => 0);
+        st.players.forEach(p => { const t = st.assign[p.id]; if (t !== undefined) { counts[t]++; sums[t] += Number(p.rating) || 0; } });
+        document.getElementById('msSummary').innerHTML = counts.map((c, i) =>
+            `<span class="ms-chip"><span class="ms-dot" style="background:${MS_COLORS[i]}"></span>Team ${i + 1}: <b>${c}</b> · ⭐ ${formatRating(sums[i])}</span>`).join('');
+        const list = document.getElementById('msList');
+        const keep = list.parentElement.scrollTop;
+        list.innerHTML = st.players.map(p => {
+            const t = st.assign[p.id];
+            const picks = Array.from({ length: st.n }, (_, i) => {
+                const on = t === i;
+                return `<button type="button" class="ms-pick" style="${on ? `background:${MS_COLORS[i]};border-color:${MS_COLORS[i]};color:#fff;` : ''}" onclick="msAssign(${p.id}, ${i})">${i + 1}</button>`;
+            }).join('');
+            const isCap = t !== undefined && st.captains[t] === p.id;
+            return `<div class="ms-player"><div class="ms-pname">${esc(p.name)}<small>⭐ ${formatRating(p.rating)}</small></div>
+                <div class="ms-picks">${picks}<button type="button" class="ms-cap ${isCap ? 'on' : ''}" ${t === undefined ? 'disabled' : ''} title="Captain" onclick="msToggleCaptain(${p.id})">C</button></div></div>`;
+        }).join('');
+        list.parentElement.scrollTop = keep;
+        const unassigned = st.players.length - counts.reduce((a, b) => a + b, 0);
+        const small = counts.findIndex(c => c < 2);
+        let warn = '';
+        if (unassigned) warn = `${unassigned} player${unassigned === 1 ? '' : 's'} without a team`;
+        else if (small >= 0) warn = `Team ${small + 1} needs at least 2 players`;
+        document.getElementById('msWarn').textContent = warn;
+        document.getElementById('msOk').disabled = !!warn;
+    }
+    function msConfirm() {
+        if (!msState) return;
+        const st = msState;
+        const teams = Array.from({ length: st.n }, () => []);
+        st.players.forEach(p => { const t = st.assign[p.id]; if (t !== undefined) teams[t].push(p); });
+        if (teams.some(t => t.length < 2) || teams.reduce((a, t) => a + t.length, 0) !== st.players.length) return;
+        const captains = Array.from({ length: st.n }, (_, i) => st.captains[i] != null ? st.captains[i] : null);
+        closeManualSplit();
+        startTournament({ teams, captains });
+    }
+
+    // Self-contained copy of every played match (names, not ids) so History keeps it forever
+    function snapshotMatchesForHistory() {
+        const pName = id => { const p = playersData.find(x => String(x.id) === String(id)); return p ? p.name : null; };
+        return getOrderedActiveMatches().filter(m => m.played).map((m, i) => {
+            const t1 = activeTeams.find(t => t.id === m.t1), t2 = activeTeams.find(t => t.id === m.t2);
+            return {
+                no: Number(m.matchNumber) || (i + 1),
+                tour: Number(m.tour) || 1,
+                t1: { name: t1 ? t1.name : 'T1', logo: t1 ? (t1.logo || null) : null, captain: t1 ? captainNameOf(t1) : null },
+                t2: { name: t2 ? t2.name : 'T2', logo: t2 ? (t2.logo || null) : null, captain: t2 ? captainNameOf(t2) : null },
+                s1: Number(m.s1) || 0,
+                s2: Number(m.s2) || 0,
+                goals: (m.goalsDetails || []).map(g => ({
+                    team: g.teamId === m.t1 ? 1 : 2,
+                    scorer: pName(g.scorerId) || 'Unknown',
+                    assist: g.assistantId ? pName(g.assistantId) : null,
+                    og: !!g.isOg
+                })),
+                mvp: m.mvpId ? pName(m.mvpId) : null
+            };
+        });
+    }
+
     function saveTournamentToHistory() {
         if (!activeMatches.some(m => m.played)) return;
         const sorted = getSortedTeams();
@@ -5607,7 +6099,8 @@ function syncAllGoalRows(saved) {
         allTimeStats.__history.push({
             date: new Date().toISOString(),
             rounds: totalRounds,
-            teams: sorted.map(t => ({ name: t.name, logo: t.logo, pts: t.pts, gf: t.gf, ga: t.ga, mp: t.played, w: t.win, d: t.draw, l: t.loss, form: getFormLetters(t.id), players: (t.players || []).map(p => (playersData.find(x => x.id === p.id) || p).name) })),
+            matches: snapshotMatchesForHistory(),
+            teams: sorted.map(t => ({ name: t.name, logo: t.logo, pts: t.pts, gf: t.gf, ga: t.ga, mp: t.played, w: t.win, d: t.draw, l: t.loss, form: getFormLetters(t.id), captain: captainNameOf(t), players: (t.players || []).map(p => (playersData.find(x => x.id === p.id) || p).name) })),
             topScorer: best('goals'),
             awards: computeLiveAwards(),
             ratingChanges: computeActiveTournamentRatingDeltas(),
@@ -5636,7 +6129,7 @@ function syncAllGoalRows(saved) {
             const rows = h.teams.map((t, k) => `
                 <tr class="${k === 0 ? 'hist-first' : ''}">
                     <td><span class="hist-rank hist-rank-${k + 1}">${k + 1}</span></td>
-                    <td class="hist-team"><img src="${esc(t.logo || defaultLogo)}" alt="" onerror="logoFallback(this)"><div class="hist-team-info"><span>${esc(t.name)}</span>${(t.players && t.players.length) ? `<span class="hist-roster">${sortNamesByRating(t.players).map(esc).join(' · ')}</span>` : ''}</div></td>
+                    <td class="hist-team"><img src="${esc(t.logo || defaultLogo)}" alt="" onerror="logoFallback(this)"><div class="hist-team-info"><span>${esc(t.name)}</span>${(t.players && t.players.length) ? `<span class="hist-roster">${rosterHtmlWithCaptain(sortNamesByRating(t.players), t.captain)}</span>` : ''}</div></td>
                     <td>${t.mp ?? '-'}</td><td>${t.w ?? '-'}</td><td>${t.d ?? '-'}</td><td>${t.l ?? '-'}</td>
                     <td class="hist-gf">${t.gf}-${t.ga}</td>
                     <td class="hist-pts">${t.pts}</td>
@@ -5667,6 +6160,7 @@ function syncAllGoalRows(saved) {
                     <div class="hist-head">
                         <span>Tournament #${list.length - i}</span>
                         <span>${esc(d)} · ${h.rounds} rounds</span>
+                        <button class="hist-share" onclick="openHistoryMatches(${list.length - 1 - i})">📋 Match History</button>
                         <button class="hist-share" onclick="shareHistory(${list.length - 1 - i})">📤 Share</button>
                         <button class="hist-swap" onclick="openSwapStatsDialog(${list.length - 1 - i})">🔁 Swap stats</button>
                         <button class="hist-delete" onclick="deleteHistoryTournament(${list.length - 1 - i})">🗑 Delete</button>
@@ -5892,6 +6386,17 @@ function syncAllGoalRows(saved) {
             pb[pb.indexOf(b.name)] = a.name;
             const lg = a.logo; a.logo = b.logo; b.logo = lg;
         }
+
+        // names in the saved matches follow the swap too
+        const swapName = nm => nm === a.name ? b.name : (nm === b.name ? a.name : nm);
+        if (ia >= 0 && ib >= 0 && ia !== ib) {
+            teamsArr.forEach(t => { if (t.captain) t.captain = swapName(t.captain); });
+            (h.matches || []).forEach(mm => ['t1', 't2'].forEach(k => { if (mm[k] && mm[k].captain) mm[k].captain = swapName(mm[k].captain); }));
+        }
+        (h.matches || []).forEach(mm => {
+            (mm.goals || []).forEach(g => { g.scorer = swapName(g.scorer); if (g.assist) g.assist = swapName(g.assist); });
+            if (mm.mvp) mm.mvp = swapName(mm.mvp);
+        });
 
         // Tournament awards are recalculated from the corrected stats
         h.awards = computeAwards(h.playerStats, p => (h.teams || []).findIndex(t => (t.players || []).includes(p.name)));
