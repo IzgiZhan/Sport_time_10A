@@ -529,6 +529,21 @@
         .swap-mode .team-list li:hover { background: rgba(49,130,206,.10); }
         .team-list li.swap-selected { background: rgba(214,158,46,.25) !important; box-shadow: inset 4px 0 0 var(--primary-gold, #d69e2e); }
         .team-actions-row .btn { font-size: 13px; letter-spacing: .4px; padding: 15px 8px; }
+        .tb-row { display: flex; gap: 8px; margin-bottom: 14px; }
+        .tb-btn { flex: 1 1 0; min-width: 0; display: flex; align-items: center; justify-content: center; gap: 6px; height: 40px; padding: 0 8px; border: none; border-radius: 12px; color: #fff; font-size: 12px; font-weight: 900; letter-spacing: .3px; text-transform: uppercase; white-space: nowrap; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,.14), inset 0 1px 0 rgba(255,255,255,.25); transition: transform .15s ease, filter .15s ease; -webkit-tap-highlight-color: transparent; }
+        .tb-btn:hover { transform: translateY(-1px); filter: brightness(1.07); }
+        .tb-btn:active { transform: scale(.97); }
+        .tb-btn .tb-ico { font-size: 15px; line-height: 1; }
+        .swap-sub { display: none; gap: 4px; padding: 4px; margin: -4px 0 12px; border-radius: 14px; background: var(--input-bg); border: 1px solid var(--card-border); }
+        .swap-sub.show { display: flex; }
+        .swap-sub-btn { flex: 1; display: flex; align-items: center; justify-content: center; gap: 7px; padding: 9px 8px; border: none; border-radius: 10px; background: transparent; color: var(--text-sub); font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: .3px; cursor: pointer; transition: background .2s ease, color .2s ease, box-shadow .2s ease; }
+        .swap-sub-btn .cap-band { margin-left: 0; }
+        .swap-sub-btn.active { color: #fff; background: linear-gradient(135deg, #6366f1, #4f46e5); box-shadow: 0 4px 10px rgba(79,70,229,.35); }
+        .swap-sub-btn.active.gold { background: linear-gradient(135deg, #f59e0b, #d97706); box-shadow: 0 4px 10px rgba(217,119,6,.35); }
+        .tb-blue { background: linear-gradient(135deg, #3182ce, #2b6cb0); }
+        .tb-indigo { background: linear-gradient(135deg, #6366f1, #4f46e5); }
+        .tb-gold { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .tb-btn.active { background: linear-gradient(135deg, #38a169, #2f855a); }
         .btn-swap { background: linear-gradient(135deg, #6366f1, #4f46e5); color: #fff; }
         .btn-swap:hover { filter: brightness(1.08); }
         .btn-swap.active { background: linear-gradient(135deg, #38a169, #2f855a); }
@@ -910,11 +925,18 @@
         .btn-cap.active { background: linear-gradient(135deg, #38a169, #2f855a); }
         .captain-mode .team-list li { cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; }
         .captain-mode .team-list li:hover { background: rgba(245,158,11,.14); }
-        body:not(.is-admin) .formation-box, body:not(.is-admin) #captainModeBtn { display: none !important; }
+        body:not(.is-admin) .formation-box, body:not(.is-admin) #swapSub { display: none !important; }
         .formation-box { margin: 14px 0 10px; }
-        .formation-seg { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; border-radius: 16px; background: var(--input-bg); border: 1px solid var(--card-border); }
-        .formation-btn { padding: 12px 8px; border: none; border-radius: 12px; background: transparent; color: var(--text-sub); font-size: 14px; font-weight: 900; cursor: pointer; transition: background .18s ease, color .18s ease, box-shadow .18s ease; }
-        .formation-btn.active { background: linear-gradient(135deg, #3182ce, #4f46e5); color: #fff; box-shadow: 0 4px 12px rgba(49,130,206,.35); }
+        .formation-seg { position: relative; display: grid; grid-template-columns: 1fr 1fr; gap: 0; padding: 5px; border-radius: 20px; background: var(--input-bg); border: 1px solid var(--card-border); box-shadow: inset 0 2px 6px rgba(0,0,0,.08); }
+        .formation-pill { position: absolute; top: 5px; bottom: 5px; left: 5px; width: calc(50% - 5px); border-radius: 16px; background: linear-gradient(135deg, #3182ce, #6366f1); box-shadow: 0 6px 16px rgba(79,70,229,.42), inset 0 1px 0 rgba(255,255,255,.3); transition: transform .28s cubic-bezier(.4,1.3,.5,1), background .28s ease; }
+        .formation-seg[data-mode="manual"] .formation-pill { transform: translateX(100%); background: linear-gradient(135deg, #f59e0b, #ef6c1a); box-shadow: 0 6px 16px rgba(239,108,26,.42), inset 0 1px 0 rgba(255,255,255,.3); }
+        .formation-btn { position: relative; z-index: 1; display: flex; align-items: center; justify-content: center; gap: 9px; padding: 11px 8px; border: none; border-radius: 16px; background: transparent; color: var(--text-sub); cursor: pointer; transition: color .2s ease; -webkit-tap-highlight-color: transparent; }
+        .formation-btn .fm-ico { font-size: 22px; line-height: 1; transition: transform .25s ease; }
+        .formation-btn .fm-txt { display: flex; flex-direction: column; align-items: flex-start; text-align: left; line-height: 1.15; }
+        .formation-btn .fm-txt b { font-size: 14px; font-weight: 900; }
+        .formation-btn .fm-txt small { font-size: 10px; font-weight: 700; opacity: .8; }
+        .formation-btn.active { color: #fff; background: transparent; box-shadow: none; }
+        .formation-btn.active .fm-ico { transform: scale(1.15) rotate(-8deg); }
         .ms-overlay { position: fixed; inset: 0; z-index: 10050; display: flex; align-items: center; justify-content: center; padding: 10px; background: rgba(5,10,24,.78); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
         .ms-dialog { width: min(560px, 100%); max-height: 94vh; display: flex; flex-direction: column; border: 1px solid var(--card-border); border-radius: 22px; background: var(--card-bg); color: var(--text-main); box-shadow: 0 24px 70px rgba(0,0,0,.45); overflow: hidden; }
         .ms-top { padding: 14px 16px; background: linear-gradient(135deg, #1a365d, #3182ce); color: #fff; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
@@ -990,7 +1012,7 @@
         .ms-card.other .ms-avatar { background: transparent; }
         .ms-card-name { flex: 1; }
         .ms-card-end { margin-left: auto; display: inline-flex; align-items: center; flex-shrink: 0; }
-        .ms-team-badge { width: 28px; height: 28px; object-fit: contain; border-radius: 50%; background: #fff; padding: 2px; border: 2px solid var(--card-border); box-sizing: border-box; }
+        .ms-team-badge { width: 30px; height: 30px; object-fit: contain; background: transparent; border: none; border-radius: 0; filter: drop-shadow(0 1px 2px rgba(0,0,0,.35)); }
         .ms-check { width: 22px; height: 22px; border-radius: 50%; background: rgba(255,255,255,.26); color: #fff; font-size: 13px; font-weight: 900; display: inline-flex; align-items: center; justify-content: center; }
         .ms-card.cap-pick { animation: msPulse 1.1s ease-in-out infinite; }
         .ms-card.cap-dim { opacity: .35; }
@@ -1088,9 +1110,14 @@
         <div id="viewOnlyNote" class="view-only-note">👁 View-only mode. Enter the Admin password to change tournament data.</div>
         <div class="player-grid" id="playersList"></div>
         <div class="formation-box" id="formationBox">
-            <div class="formation-seg">
-                <button type="button" id="formRandomBtn" class="formation-btn active" onclick="setFormationMode('random')">🎲 Random</button>
-                <button type="button" id="formManualBtn" class="formation-btn" onclick="setFormationMode('manual')">✋ Manual</button>
+            <div class="formation-seg" id="formationSeg" data-mode="random">
+                <span class="formation-pill" aria-hidden="true"></span>
+                <button type="button" id="formRandomBtn" class="formation-btn active" onclick="setFormationMode('random')">
+                    <span class="fm-ico">🎲</span><span class="fm-txt"><b>Random</b><small>Auto teams</small></span>
+                </button>
+                <button type="button" id="formManualBtn" class="formation-btn" onclick="setFormationMode('manual')">
+                    <span class="fm-ico">✋</span><span class="fm-txt"><b>Manual</b><small>Pick yourself</small></span>
+                </button>
             </div>
         </div>
         <button id="startTournamentBtn" class="btn btn-green" onclick="startTournament()">Start Tournament</button>
@@ -1101,12 +1128,13 @@
             <span class="section-title">⚙️ Squads & Clubs</span>
             <button type="button" id="teamsShareBtn" class="teams-open-btn" onclick="shareRosters()">⚽ Teams <span aria-hidden="true">📤</span></button>
         </div>
-        <div class="team-actions-row" style="display:flex; gap:10px; margin-bottom: 10px;">
-            <button id="balanceTeamsBtn" class="btn btn-blue" style="margin-top:0; flex:1;" onclick="balanceExistingTeams()">Balance teams</button>
-            <button id="swapPlayersBtn" class="btn btn-swap" style="margin-top:0; flex:1;" onclick="toggleSwapMode()">🔄 Change players</button>
+        <div class="tb-row">
+            <button id="balanceTeamsBtn" class="tb-btn tb-blue" onclick="balanceExistingTeams()"><span class="tb-ico">⚖️</span><span class="tb-txt">Balance</span></button>
+            <button id="swapPlayersBtn" class="tb-btn tb-indigo" onclick="toggleSwapMode()"><span class="tb-ico">🔄</span><span class="tb-txt">Swap</span></button>
         </div>
-        <div class="team-actions-row" style="display:flex; gap:10px; margin-bottom: 20px;">
-            <button id="captainModeBtn" class="btn btn-cap" style="margin-top:0; flex:1;" onclick="toggleCaptainMode()">🎖 Choose captains</button>
+        <div id="swapSub" class="swap-sub">
+            <button type="button" id="swapSubPlayers" class="swap-sub-btn active" onclick="setSwapSub('players')"><span>🔄</span> Players</button>
+            <button type="button" id="swapSubCaptain" class="swap-sub-btn" onclick="setSwapSub('captain')"><span class="cap-band sm">C</span> Captain</button>
         </div>
         <div id="captainHint" class="swap-hint">Tap a player to make him the captain of his team. Tap the captain again to remove the armband.</div>
         <div id="swapHint" class="swap-hint">Tap a player, then either a player from another team (they swap) or ➕ Add on a team (he just moves there).</div>
@@ -1691,7 +1719,6 @@
         }
         if (balanceBtn) {
             balanceBtn.disabled = !isAdminAuthenticated;
-            balanceBtn.innerText = isAdminAuthenticated ? "Balance teams" : "Balance teams";
         }
         if (resetBtn) {
             resetBtn.disabled = !isAdminAuthenticated;
@@ -4516,16 +4543,16 @@ function syncAllGoalRows(saved) {
 
     // ---------- Change players: tap two players to swap them between teams ----------
     let swapMode = false, swapSel = null, captainMode = false;
-    function toggleCaptainMode() {
-        if (!requireAdmin("choose captains")) return;
-        if (!activeTeams.length) { alert("No active teams yet!"); return; }
-        captainMode = !captainMode; swapMode = false; swapSel = null;
-        renderTeamsCards();
-    }
+    // Captains now live inside "Change players": the mode has two sub-modes (players / captain)
     function toggleSwapMode() {
         if (!requireAdmin("change players")) return;
         if (!activeTeams.length) { alert("No active teams yet!"); return; }
         swapMode = !swapMode; swapSel = null; captainMode = false;
+        renderTeamsCards();
+    }
+    function setSwapSub(sub) {
+        if (!swapMode || !isAdminAuthenticated) return;
+        captainMode = sub === 'captain'; swapSel = null;
         renderTeamsCards();
     }
     function pickSwapPlayer(teamId, playerId) {
@@ -4569,16 +4596,19 @@ function syncAllGoalRows(saved) {
     function renderTeamsCards() {
         const container =
             document.getElementById('teamsResult');
-        container.classList.toggle('swap-mode', swapMode);
-        container.classList.toggle('captain-mode', captainMode);
-        const capBtn = document.getElementById('captainModeBtn');
-        if (capBtn) { capBtn.classList.toggle('active', captainMode); capBtn.innerText = captainMode ? '✅ Done' : '🎖 Choose captains'; }
+        container.classList.toggle('swap-mode', swapMode && !captainMode);
+        container.classList.toggle('captain-mode', swapMode && captainMode);
         const capHint = document.getElementById('captainHint');
-        if (capHint) capHint.classList.toggle('show', captainMode);
+        if (capHint) capHint.classList.toggle('show', swapMode && captainMode);
         const swapBtn = document.getElementById('swapPlayersBtn');
-        if (swapBtn) { swapBtn.classList.toggle('active', swapMode); swapBtn.innerText = swapMode ? '✅ Done' : '🔄 Change players'; }
+        if (swapBtn) { swapBtn.classList.toggle('active', swapMode); swapBtn.innerHTML = swapMode ? '<span class="tb-ico">✅</span><span class="tb-txt">Done</span>' : '<span class="tb-ico">🔄</span><span class="tb-txt">Change</span>'; }
         const swapHint = document.getElementById('swapHint');
-        if (swapHint) swapHint.classList.toggle('show', swapMode);
+        if (swapHint) swapHint.classList.toggle('show', swapMode && !captainMode);
+        const swapSub = document.getElementById('swapSub');
+        if (swapSub) swapSub.classList.toggle('show', swapMode);
+        const sp = document.getElementById('swapSubPlayers'), sc = document.getElementById('swapSubCaptain');
+        if (sp) sp.classList.toggle('active', !captainMode);
+        if (sc) { sc.classList.toggle('active', captainMode); sc.classList.toggle('gold', captainMode); }
 
         container.innerHTML = '';
 
@@ -4646,7 +4676,7 @@ function syncAllGoalRows(saved) {
             let playersListHtml =
                 sortedTeamPlayers.map(p => `
                     <li class="${swapSel && String(swapSel.teamId) === String(t.id) && String(swapSel.playerId) === String(p.id) ? 'swap-selected' : ''}"
-                        ${swapMode ? `onclick="pickSwapPlayer('${t.id}', '${p.id}')"` : (captainMode ? `onclick="setTeamCaptain('${t.id}', '${p.id}')"` : '')}>
+                        ${swapMode ? (captainMode ? `onclick="setTeamCaptain('${t.id}', '${p.id}')"` : `onclick="pickSwapPlayer('${t.id}', '${p.id}')"`) : ''}>
                         <span class="tl-left"><span>${esc(p.name)}</span></span>
                         <span class="tl-right"><span style="color:var(--primary-blue);">
                             ⭐ ${formatRating(p.rating)}
@@ -6053,6 +6083,7 @@ function syncAllGoalRows(saved) {
         const r = document.getElementById('formRandomBtn'), m = document.getElementById('formManualBtn');
         if (r) r.classList.toggle('active', formationMode === 'random');
         if (m) m.classList.toggle('active', formationMode === 'manual');
+        const seg = document.getElementById('formationSeg'); if (seg) seg.dataset.mode = formationMode;
     }
     document.addEventListener('DOMContentLoaded', syncFormationUI);
     setTimeout(syncFormationUI, 0);
