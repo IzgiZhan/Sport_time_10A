@@ -909,14 +909,10 @@
 
         /* ===== Captain badge + team formation ===== */
         /* captain armband */
-        .cap-band { position: relative; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; min-width: 34px; height: 19px; padding: 0 10px; margin-left: 7px; border-radius: 4px; overflow: hidden; background: linear-gradient(180deg, #fff3b0 0%, #f6c945 48%, #d4900f 100%); color: #1a202c; font-size: 12px; font-weight: 900; line-height: 1; vertical-align: middle; text-shadow: 0 1px 0 rgba(255,255,255,.55); box-shadow: 0 1px 3px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.7); outline: 1px dashed rgba(110,64,0,.38); outline-offset: -3px; }
-        .cap-band::before, .cap-band::after { content: ""; position: absolute; top: 0; bottom: 0; width: 7px; background: linear-gradient(90deg, rgba(0,0,0,.36), rgba(0,0,0,.06)); }
+        .cap-band { position: relative; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; height: 1.05em; min-width: 1.75em; padding: 0 .5em; margin-left: .45em; border-radius: .22em; overflow: hidden; background: linear-gradient(180deg, #63b3ed 0%, #3182ce 52%, #2b6cb0 100%); color: #fff; font-size: inherit; font-weight: 900; line-height: 1; vertical-align: middle; box-shadow: 0 1px 2px rgba(0,0,0,.35), 0 0 0 1px rgba(255,255,255,.55); }
+        .cap-band::before, .cap-band::after { content: ""; position: absolute; top: 0; bottom: 0; width: .32em; background: linear-gradient(90deg, rgba(0,0,0,.35), rgba(0,0,0,.05)); }
         .cap-band::before { left: 0; }
         .cap-band::after { right: 0; transform: scaleX(-1); }
-        .cap-band.sm { min-width: 28px; height: 15px; padding: 0 8px; margin-left: 5px; font-size: 9px; }
-        .cap-band.sm::before, .cap-band.sm::after { width: 5px; }
-        .cap-band.lg { min-width: 42px; height: 26px; padding: 0 12px; margin-left: 0; border-radius: 5px; font-size: 15px; }
-        .cap-band.lg::before, .cap-band.lg::after { width: 9px; }
         button.cap-band { border: none; cursor: pointer; }
         .team-list li .tl-left { display: flex; align-items: center; min-width: 0; }
         .team-list li .tl-right { display: flex; align-items: center; flex-shrink: 0; }
@@ -1010,7 +1006,10 @@
         .ms-avatar { width: 34px; height: 34px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 14px; font-weight: 900; background: var(--input-bg); color: var(--text-sub); }
         .ms-card.mine .ms-avatar { background: rgba(255,255,255,.22); color: #fff; }
         .ms-card.other .ms-avatar { background: transparent; }
-        .ms-card-name { flex: 1; }
+        .ms-card-name { flex: 1; min-width: 0; overflow: visible; white-space: normal; }
+        .ms-nmrow { display: flex; align-items: center; min-width: 0; }
+        .ms-nm { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .ms-card-name small { white-space: nowrap; }
         .ms-card-end { margin-left: auto; display: inline-flex; align-items: center; flex-shrink: 0; }
         .ms-team-badge { width: 30px; height: 30px; object-fit: contain; background: transparent; border: none; border-radius: 0; filter: drop-shadow(0 1px 2px rgba(0,0,0,.35)); }
         .ms-check { width: 22px; height: 22px; border-radius: 50%; background: rgba(255,255,255,.26); color: #fff; font-size: 13px; font-weight: 900; display: inline-flex; align-items: center; justify-content: center; }
@@ -4677,10 +4676,10 @@ function syncAllGoalRows(saved) {
                 sortedTeamPlayers.map(p => `
                     <li class="${swapSel && String(swapSel.teamId) === String(t.id) && String(swapSel.playerId) === String(p.id) ? 'swap-selected' : ''}"
                         ${swapMode ? (captainMode ? `onclick="setTeamCaptain('${t.id}', '${p.id}')"` : `onclick="pickSwapPlayer('${t.id}', '${p.id}')"`) : ''}>
-                        <span class="tl-left"><span>${esc(p.name)}</span></span>
+                        <span class="tl-left"><span>${esc(p.name)}</span>${teamCap && String(teamCap.id) === String(p.id) ? '<span class="cap-band" title="Captain">C</span>' : ''}</span>
                         <span class="tl-right"><span style="color:var(--primary-blue);">
                             ⭐ ${formatRating(p.rating)}
-                        </span>${teamCap && String(teamCap.id) === String(p.id) ? '<span class="cap-band" title="Captain">C</span>' : ''}</span>
+                        </span></span>
                     </li>
                 `).join('');
 
@@ -5209,11 +5208,11 @@ function syncAllGoalRows(saved) {
                 x.fillStyle = colors.ink;
                 let fontSize = 25; x.font = SF('850', fontSize);
                 while (fontSize > 18 && x.measureText(player.name).width > colW - 158) x.font = SF('850', --fontSize);
-                const shownName = shareFit(x, player.name, colW - 158 - (player.isCaptain ? 56 : 0));
+                const shownName = shareFit(x, player.name, colW - 158 - (player.isCaptain ? 50 : 0));
                 x.fillText(shownName, cx + 62, mid);
                 if (player.isCaptain) {
                     const bx = cx + 62 + x.measureText(shownName).width + 12;
-                    shareDrawCaptainBand(x, bx, mid, 42, 26);
+                    shareDrawCaptainBand(x, bx, mid, 36, 22);
                     x.textAlign = 'left';
                 }
                 x.fillStyle = colors['accent-soft']; shareRR(x, cx + colW - 82, mid - 19, 60, 38, 6); x.fill();
@@ -5714,7 +5713,7 @@ function syncAllGoalRows(saved) {
             const l1 = await getLogo(m.t1.logo), l2 = await getLogo(m.t2.logo);
             shareCard(x, pad, y, cw, ch, 26);
             const cx = pad + cw / 2;
-            const bandPart = (n, h = 22) => matchIsCaptain(m, n) ? [{ band: true, w: Math.round(h * 1.55), h }] : [];
+            const bandPart = (n, h = 22) => matchIsCaptain(m, n) ? [{ band: true, w: Math.round(h * 1.7), h }] : [];
 
             x.textBaseline = 'middle'; x.textAlign = 'center';
             x.fillStyle = '#718096'; x.font = SF('900', 22);
@@ -5748,10 +5747,10 @@ function syncAllGoalRows(saved) {
                 const drawGoal = (g, align, gx, ry) => {
                     const parts = [];
                     if (g.og) {
-                        parts.push({ e: '🥅', size: 24 }, { t: `${g.scorer}`, font: SF('800', 24), color: '#e53e3e' }, ...bandPart(g.scorer, 22), { t: '(OG)', font: SF('800', 24), color: '#e53e3e' });
+                        parts.push({ e: '🥅', size: 24 }, { t: `${g.scorer}`, font: SF('800', 24), color: '#e53e3e' }, ...bandPart(g.scorer, 20), { t: '(OG)', font: SF('800', 24), color: '#e53e3e' });
                     } else {
-                        parts.push({ e: '⚽', size: 24 }, { t: `${g.scorer}`, font: SF('800', 24), color: '#1a202c' }, ...bandPart(g.scorer, 22));
-                        if (g.assist) parts.push({ e: '🅰️', size: 22 }, { t: `${g.assist}`, font: SF('700', 22), color: '#718096' }, ...bandPart(g.assist, 20));
+                        parts.push({ e: '⚽', size: 24 }, { t: `${g.scorer}`, font: SF('800', 24), color: '#1a202c' }, ...bandPart(g.scorer, 20));
+                        if (g.assist) parts.push({ e: '🅰️', size: 22 }, { t: `${g.assist}`, font: SF('700', 22), color: '#718096' }, ...bandPart(g.assist, 18));
                     }
                     const maxW = cw / 2 - 50;
                     let tries = 0;
@@ -5773,7 +5772,7 @@ function syncAllGoalRows(saved) {
             }
 
             if (m.mvp) {
-                shareInline(x, [{ e: '🏆', size: 28 }, { t: `MVP: ${m.mvp}`, font: SF('900', 26), color: '#b7791f' }, ...bandPart(m.mvp, 24)], cx, gy + 22, 'center', 10);
+                shareInline(x, [{ e: '🏆', size: 28 }, { t: `MVP: ${m.mvp}`, font: SF('900', 26), color: '#b7791f' }, ...bandPart(m.mvp, 22)], cx, gy + 22, 'center', 10);
             }
             y += ch + gap;
         }
@@ -6016,31 +6015,24 @@ function syncAllGoalRows(saved) {
         return names;
     }
     function shareDrawCaptainBand(ctx, bx, cy, w, h) {
-        const top = cy - h / 2, e = Math.max(4, Math.round(w * 0.2)), r = Math.min(6, h / 3);
+        const top = cy - h / 2, e = Math.max(3, Math.round(w * 0.18)), r = Math.max(2, h * 0.22);
         ctx.save();
-        // soft shadow
-        ctx.shadowColor = 'rgba(0,0,0,0.35)'; ctx.shadowBlur = 4; ctx.shadowOffsetY = 1.5;
+        ctx.shadowColor = 'rgba(0,0,0,0.3)'; ctx.shadowBlur = 3; ctx.shadowOffsetY = 1;
         const g = ctx.createLinearGradient(0, top, 0, top + h);
-        g.addColorStop(0, '#fff3b0'); g.addColorStop(0.48, '#f6c945'); g.addColorStop(1, '#d4900f');
+        g.addColorStop(0, '#63b3ed'); g.addColorStop(0.52, '#3182ce'); g.addColorStop(1, '#2b6cb0');
         ctx.fillStyle = g; shareRR(ctx, bx, top, w, h, r); ctx.fill();
         ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
-        // elastic ends
         ctx.save();
         shareRR(ctx, bx, top, w, h, r); ctx.clip();
-        let gl = ctx.createLinearGradient(bx, 0, bx + e, 0);
-        gl.addColorStop(0, 'rgba(0,0,0,0.38)'); gl.addColorStop(1, 'rgba(0,0,0,0.06)');
+        const gl = ctx.createLinearGradient(bx, 0, bx + e, 0);
+        gl.addColorStop(0, 'rgba(0,0,0,0.35)'); gl.addColorStop(1, 'rgba(0,0,0,0.05)');
         ctx.fillStyle = gl; ctx.fillRect(bx, top, e, h);
-        let gr2 = ctx.createLinearGradient(bx + w, 0, bx + w - e, 0);
-        gr2.addColorStop(0, 'rgba(0,0,0,0.38)'); gr2.addColorStop(1, 'rgba(0,0,0,0.06)');
+        const gr2 = ctx.createLinearGradient(bx + w, 0, bx + w - e, 0);
+        gr2.addColorStop(0, 'rgba(0,0,0,0.35)'); gr2.addColorStop(1, 'rgba(0,0,0,0.05)');
         ctx.fillStyle = gr2; ctx.fillRect(bx + w - e, top, e, h);
-        // top highlight
-        ctx.fillStyle = 'rgba(255,255,255,0.55)'; ctx.fillRect(bx, top, w, 1.5);
         ctx.restore();
-        // stitching
-        ctx.strokeStyle = 'rgba(110,64,0,0.38)'; ctx.lineWidth = 1; ctx.setLineDash([3, 2]);
-        shareRR(ctx, bx + 3, top + 3, w - 6, h - 6, Math.max(1, r - 2)); ctx.stroke(); ctx.setLineDash([]);
-        // letter
-        ctx.fillStyle = '#1a202c'; ctx.font = SF('900', Math.round(h * 0.68));
+        ctx.strokeStyle = 'rgba(255,255,255,0.6)'; ctx.lineWidth = 1; shareRR(ctx, bx, top, w, h, r); ctx.stroke();
+        ctx.fillStyle = '#fff'; ctx.font = SF('900', Math.round(h * 0.78));
         ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
         ctx.fillText('C', bx + w / 2, cy + 1);
         ctx.restore();
@@ -6051,7 +6043,7 @@ function syncAllGoalRows(saved) {
         const gi = ln.indexOf(CAP_GAP);
         if (gi < 0) return;
         const w0 = ctx.measureText(ln.slice(0, gi)).width;
-        shareDrawCaptainBand(ctx, lx + w0 + 8, baseY - 7, 32, 20);
+        shareDrawCaptainBand(ctx, lx + w0 + 7, baseY - 7, 28, 17);
     }
     // HTML roster line: captain first with a gold badge
     function rosterHtmlWithCaptain(sortedNames, cap) {
@@ -6262,13 +6254,13 @@ function syncAllGoalRows(saved) {
                 const isCap = mine && st.captains[t] === p.id;
                 const style = mine ? `background:${col};border-color:${col};` : (other ? `border-color:${col};` : '');
                 const end = mine
-                    ? (isCap ? '<span class="cap-band lg" title="Captain">C</span>' : '<span class="ms-check">✓</span>')
+                    ? (isCap ? '' : '<span class="ms-check">✓</span>')
                     : (other ? `<img class="ms-team-badge" style="border-color:${col}" src="${esc(st.picks[t].logo || defaultLogo)}" alt="" title="${esc(st.picks[t].name)}" onerror="logoFallback(this)">` : '');
                 const capCls = st.capMode ? (mine ? 'cap-pick' : 'cap-dim') : '';
                 const initial = esc(String(p.name || '?').trim().charAt(0).toUpperCase());
                 return `<div class="ms-card ${mine ? 'mine' : ''} ${other ? 'other' : ''} ${capCls}" style="${style}" onclick="msTap(${p.id})">
                     <span class="ms-avatar">${initial}</span>
-                    <div class="ms-card-name">${esc(p.name)}<small>⭐ ${formatRating(p.rating)}</small></div>
+                    <div class="ms-card-name"><div class="ms-nmrow"><span class="ms-nm">${esc(p.name)}</span>${isCap ? '<span class="cap-band" title="Captain">C</span>' : ''}</div><small>⭐ ${formatRating(p.rating)}</small></div>
                     <span class="ms-card-end">${end}</span></div>`;
             }).join('')}</div>`;
         body.scrollTop = keep;
