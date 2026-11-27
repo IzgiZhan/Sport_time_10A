@@ -5738,7 +5738,7 @@ function syncAllGoalRows(saved) {
         const nm = (m, n) => esc(n);
         const goalLine = (m, g) => g.og
             ? `<div class="hm-goal og">🥅 ${nm(m, g.scorer)} (OG)</div>`
-            : `<div class="hm-goal">⚽ ${nm(m, g.scorer)}${g.assist ? ` <em>(🅰️ ${nm(m, g.assist)})</em>` : ''}</div>`;
+            : `<div class="hm-goal">⚽ ${nm(m, g.scorer)}${g.assist ? ` <em>(${nm(m, g.assist)} 🅰️)</em>` : ''}</div>`;
         const cards = h.matches.map((m, i) => {
             const g1 = (m.goals || []).filter(g => g.team === 1), g2 = (m.goals || []).filter(g => g.team === 2);
             return `
@@ -5865,7 +5865,7 @@ function syncAllGoalRows(saved) {
                         parts.push({ e: '🥅', size: 24 }, { t: `${g.scorer}`, name: true, font: SF('800', 24), color: '#e53e3e' }, ...bandPart(g.scorer, 24), { t: '(OG)', font: SF('800', 24), color: '#e53e3e' });
                     } else {
                         parts.push({ e: '⚽', size: 24 }, { t: `${g.scorer}`, name: true, font: SF('800', 24), color: '#1a202c' }, ...bandPart(g.scorer, 24));
-                        if (g.assist) parts.push({ t: '(', font: SF('700', 22), color: '#718096' }, { e: '🅰️', size: 22, tight: true }, { t: `${g.assist}`, name: true, font: SF('700', 22), color: '#718096' }, ...bandPart(g.assist, 22), { t: ')', tight: true, font: SF('700', 22), color: '#718096' });
+                        if (g.assist) parts.push({ t: '(', font: SF('700', 22), color: '#718096' }, { t: `${g.assist}`, name: true, tight: true, font: SF('700', 22), color: '#718096' }, { e: '🅰️', size: 22 }, { t: ')', tight: true, font: SF('700', 22), color: '#718096' });
                     }
                     const maxW = cw / 2 - 50;
                     let tries = 0;
