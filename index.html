@@ -1448,7 +1448,7 @@
 
     // ---------- Tournament awards ----------
     const AWARD_RULES = { goldenBall: 0.20, goldenBoot: 0.10, goldenAssist: 0.10 };
-    const GOLDEN_BALL_WEIGHTS = { goal: 1, assist: 1, mvp: 1, place: [1, 0.75, 0.5] };
+    const GOLDEN_BALL_WEIGHTS = { goal: 1, assist: 0.75, mvp: 0.5, place: [1, 0.75, 0.5] };
     const AWARD_DEFS = [
         { key: 'goldenBall',   title: "Ballon d'Or",   label: "BALLON D'OR",   color: '#d69e2e', desc: 'Best player of the tournament',
           lines: ['⚽', '🅰️', '🏆', '🥇', '🥈', '🥉'] },
