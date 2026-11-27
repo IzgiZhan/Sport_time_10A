@@ -908,23 +908,10 @@
         .hist-share { background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.4); color: #fff; border-radius: 8px; padding: 3px 10px; font-size: 11px; font-weight: 900; cursor: pointer; }
 
         /* ===== Captain badge + team formation ===== */
-        /* captain armband */
-        .cap-band { position: relative; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; height: 1.2em; min-width: 2.3em; padding: 0 .78em; margin-left: .45em; border-radius: .2em; overflow: hidden; color: #14110a; font-size: inherit; font-weight: 900; line-height: 1; letter-spacing: 0; vertical-align: middle; text-shadow: 0 1px 0 rgba(255,255,255,.45);
-            background:
-                repeating-linear-gradient(90deg, rgba(70,42,0,.62) 0 2px, transparent 2px 4px) 0 .16em / 100% 1px no-repeat,
-                repeating-linear-gradient(90deg, rgba(70,42,0,.62) 0 2px, transparent 2px 4px) 0 calc(100% - .16em) / 100% 1px no-repeat,
-                linear-gradient(90deg, rgba(0,0,0,.42) 0%, rgba(0,0,0,0) 24%, rgba(255,255,255,.26) 50%, rgba(0,0,0,0) 76%, rgba(0,0,0,.42) 100%),
-                repeating-linear-gradient(0deg, rgba(0,0,0,.06) 0 1px, rgba(255,255,255,.06) 1px 2px),
-                linear-gradient(180deg, #ffe066 0%, #f7c600 55%, #d9a100 100%);
-            box-shadow: 0 1px 2px rgba(0,0,0,.5), 0 2px 5px rgba(0,0,0,.2), inset 0 1px 0 rgba(255,255,255,.55), inset 0 -1px 0 rgba(0,0,0,.3); }
-        .cap-band::before, .cap-band::after { content: ""; position: absolute; top: 0; bottom: 0; width: .5em;
-            background:
-                linear-gradient(90deg, rgba(0,0,0,.4), rgba(0,0,0,.04)),
-                repeating-linear-gradient(90deg, rgba(60,35,0,.34) 0 1px, rgba(255,255,255,.14) 1px 2px),
-                linear-gradient(180deg, #e8b400, #b98600);
-            box-shadow: inset -1px 0 0 rgba(60,35,0,.6); }
-        .cap-band::before { left: 0; }
-        .cap-band::after { right: 0; transform: scaleX(-1); }
+        /* captain mark: plain (C), same size as the nickname */
+        .cap-band { display: inline; flex-shrink: 0; margin-left: .3em; padding: 0; background: none; border: none; box-shadow: none; text-shadow: none; font-size: inherit; font-weight: 900; line-height: inherit; letter-spacing: 0; color: var(--primary-gold, #d69e2e); white-space: nowrap; vertical-align: baseline; }
+        .cap-band::before { content: "("; }
+        .cap-band::after { content: ")"; }
         button.cap-band { border: none; cursor: pointer; }
         .team-list li .tl-left { display: flex; align-items: center; min-width: 0; }
         .team-list li .tl-right { display: flex; align-items: center; flex-shrink: 0; }
@@ -1074,7 +1061,7 @@
         .hm-main { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 10px; }
         .hm-team { display: flex; align-items: center; gap: 8px; min-width: 0; font-size: 14px; font-weight: 900; }
         .hm-team.right { flex-direction: row-reverse; text-align: right; }
-        .hm-team img { width: 34px; height: 34px; object-fit: contain; background: #fff; border-radius: 50%; padding: 2px; border: 1px solid var(--card-border); flex-shrink: 0; }
+        .hm-team img { width: 38px; height: 38px; object-fit: contain; background: none; border-radius: 0; padding: 0; border: none; flex-shrink: 0; }
         .hm-team span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .hm-score { font-size: 24px; font-weight: 900; color: var(--primary-blue); white-space: nowrap; }
         .hm-goals { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--card-border); }
@@ -1995,8 +1982,7 @@
     const H = tableTop + tableH + 110;
 
     const c = document.createElement('canvas');
-    c.width = W; c.height = H;
-    const x = c.getContext('2d');
+    const x = shareHiRes(c, W, H);
     if (!x) throw new Error('Canvas unavailable');
 
     shareBackground(x, W, H);
@@ -2134,6 +2120,19 @@ const SHARE_EMOJI_FONT = '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji
 const shareEmojiCache = {};
 const SF = (w, s) => `${w} ${s}px ${SHARE_FONT}`;
 
+// Hi-res canvas: draw in logical W x H units, store at up to 2x for a sharp image
+function shareHiRes(c, W, H, maxQ = 2) {
+    const q = Math.max(0.4, Math.min(maxQ, Math.sqrt(16000000 / (W * H)), 15500 / H));
+    c.width = Math.round(W * q); c.height = Math.round(H * q);
+    const g = c.getContext('2d');
+    if (!g) return null;
+    g.scale(q, q);
+    g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
+    return g;
+}
+// make sure every Inter weight used on share images is loaded (else canvas falls back to a system font)
+try { if (document.fonts && document.fonts.load) ['400','500','600','700','800','900'].forEach(w => document.fonts.load(`${w} 24px Inter`, 'AaBbЯя0123(C)')); } catch (e) {}
+
 function shareRR(ctx, x, y, w, h, r) {
     ctx.beginPath();
     ctx.moveTo(x + r, y);
@@ -2179,18 +2178,20 @@ function shareDrawEmoji(ctx, ch, cx, cy, size) {
 function shareInline(ctx, parts, x, cy, align = 'left', gap = 10) {
     const items = parts.map(p => {
         if (p.e) return { ...p, w: p.size || 28 };
-        if (p.band) return { ...p, w: p.w || 36 };
+        if (p.band) { ctx.font = p.font || ctx.font; return { ...p, w: ctx.measureText('(C)').width }; }
         ctx.font = p.font;
         return { ...p, w: ctx.measureText(p.t).width };
     });
-    const total = items.reduce((s, i) => s + i.w, 0) + gap * (items.length - 1);
+    const gb = (i, idx) => idx === 0 ? 0 : (i.tight ? 0 : (i.band ? 6 : gap));
+    const total = items.reduce((s, i, idx) => s + i.w + gb(i, idx), 0);
     let cx = align === 'center' ? x - total / 2 : align === 'right' ? x - total : x;
     ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
-    items.forEach(i => {
+    items.forEach((i, idx) => {
+        cx += gb(i, idx);
         if (i.e) shareDrawEmoji(ctx, i.e, cx + i.w / 2, cy, i.w);
-        else if (i.band) shareDrawCaptainBand(ctx, cx, cy, i.w, i.h || 24);
+        else if (i.band) shareDrawCaptainBand(ctx, cx, cy, i.w, 0, i.font, i.color);
         else { ctx.font = i.font; ctx.fillStyle = i.color; ctx.fillText(i.t, cx, cy + 1); }
-        cx += i.w + gap;
+        cx += i.w;
     });
     return total;
 }
@@ -2273,8 +2274,7 @@ function shareCard(ctx, x, y, w, h, r = 28, fill = '#fff') {
     const awardImages = await Promise.all((data.awards || []).map(key => loadAwardIcon(key)));
 
     const c = document.createElement('canvas');
-    c.width = W; c.height = H;
-    const x = c.getContext('2d');
+    const x = shareHiRes(c, W, H);
     if (!x) return null;
 
     shareBackground(x, W, H);
@@ -4982,8 +4982,7 @@ function syncAllGoalRows(saved) {
         const H = statsTop + statsH + 90;
 
         const c = document.createElement('canvas');
-        c.width = W; c.height = H;
-        const x = c.getContext('2d');
+        const x = shareHiRes(c, W, H);
         const rr = (X, Y, w, h, r) => {
             x.beginPath();
             x.moveTo(X + r, Y); x.arcTo(X + w, Y, X + w, Y + h, r);
@@ -5211,8 +5210,8 @@ function syncAllGoalRows(saved) {
             pairHeights.push(headerH + count * rowH + bottom);
         }
         const H = Math.max(520, top + pairHeights.reduce((sum, h) => sum + h, 0) + Math.max(0, pairHeights.length - 1) * cardGap + 92);
-        const c = document.createElement('canvas'); c.width = W; c.height = H;
-        const x = c.getContext('2d'); if (!x) throw new Error('Canvas is not supported');
+        const c = document.createElement('canvas');
+        const x = shareHiRes(c, W, H); if (!x) throw new Error('Canvas is not supported');
         x.fillStyle = colors.bg; x.fillRect(0, 0, W, H);
         x.textBaseline = 'middle'; x.textAlign = 'left';
         x.fillStyle = colors.brand; x.font = SF('900', 24); x.fillText('SPORT TIME 10A', pad, 48);
@@ -5255,8 +5254,8 @@ function syncAllGoalRows(saved) {
                 const shownName = shareFit(x, player.name, colW - 158 - (player.isCaptain ? 50 : 0));
                 x.fillText(shownName, cx + 62, mid);
                 if (player.isCaptain) {
-                    const bx = cx + 62 + x.measureText(shownName).width + 12;
-                    shareDrawCaptainBand(x, bx, mid, 36, 22);
+                    const bx = cx + 62 + x.measureText(shownName).width + 8;
+                    shareDrawCaptainBand(x, bx, mid, 0, 0);
                     x.textAlign = 'left';
                 }
                 x.fillStyle = colors['accent-soft']; shareRR(x, cx + colW - 82, mid - 19, 60, 38, 6); x.fill();
@@ -5309,8 +5308,7 @@ function syncAllGoalRows(saved) {
         const H = rulesTop + rulesH + 90;
 
         const c = document.createElement('canvas');
-        c.width = W; c.height = H;
-        const x = c.getContext('2d');
+        const x = shareHiRes(c, W, H);
         const rr = (X, Y, w, h, r) => {
             x.beginPath();
             x.moveTo(X + r, Y); x.arcTo(X + w, Y, X + w, Y + h, r);
@@ -5489,8 +5487,8 @@ function syncAllGoalRows(saved) {
         const W = 1280, pad = 40, rowH = 84, top = 220, headerH = 86;
         const cardH = headerH + Math.max(rows.length, 1) * rowH + 12;
         const H = top + cardH + 90;
-        const c = document.createElement('canvas'); c.width = W; c.height = H;
-        const x = c.getContext('2d');
+        const c = document.createElement('canvas');
+        const x = shareHiRes(c, W, H);
         if (!x) throw new Error('Canvas unavailable');
         const rr = (X, Y, w, h, r) => {
             x.beginPath(); x.moveTo(X + r, Y); x.arcTo(X + w, Y, X + w, Y + h, r);
@@ -5580,14 +5578,16 @@ function syncAllGoalRows(saved) {
                 images.push(img);
             } finally { URL.revokeObjectURL(url); }
         }
-        const fullHeight = images.reduce((sum, img) => sum + img.height, 0);
-        const scale = Math.min(1, 30000 / fullHeight);
+        const baseW = Math.max(...images.map(i => i.width));
+        const fullHeight = images.reduce((sum, img) => sum + img.height * (baseW / img.width), 0);
+        const scale = Math.min(1, 15500 / fullHeight, Math.sqrt(16000000 / (baseW * fullHeight)));
         const canvas = document.createElement('canvas');
-        canvas.width = Math.round(1280 * scale); canvas.height = Math.ceil(fullHeight * scale);
+        canvas.width = Math.round(baseW * scale); canvas.height = Math.ceil(fullHeight * scale);
         const ctx = canvas.getContext('2d');
         if (!ctx) throw new Error('Canvas unavailable');
+        ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
         let y = 0;
-        images.forEach(img => { ctx.drawImage(img, 0, y, canvas.width, img.height * scale); y += img.height * scale; });
+        images.forEach(img => { const hh = img.height * (baseW / img.width) * scale; ctx.drawImage(img, 0, y, canvas.width, hh); y += hh; });
         return new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
     }
 
@@ -5666,7 +5666,7 @@ function syncAllGoalRows(saved) {
         const nm = (m, n) => esc(n) + (matchIsCaptain(m, n) ? '<span class="cap-band sm" title="Captain">C</span>' : '');
         const goalLine = (m, g) => g.og
             ? `<div class="hm-goal og">🥅 ${nm(m, g.scorer)} (OG)</div>`
-            : `<div class="hm-goal">⚽ ${nm(m, g.scorer)}${g.assist ? ` <em>🅰️ ${nm(m, g.assist)}</em>` : ''}</div>`;
+            : `<div class="hm-goal">⚽ ${nm(m, g.scorer)}${g.assist ? ` <em>(🅰️ ${nm(m, g.assist)})</em>` : ''}</div>`;
         const cards = h.matches.map((m, i) => {
             const g1 = (m.goals || []).filter(g => g.team === 1), g2 = (m.goals || []).filter(g => g.team === 2);
             return `
@@ -5742,12 +5742,9 @@ function syncAllGoalRows(saved) {
         };
         const heights = list.map(historyMatchCardHeight);
         const H = top0 + heights.reduce((a, b) => a + b + gap, 0) + 90;
-        const scale = Math.min(1, 16000 / H);
         const c = document.createElement('canvas');
-        c.width = Math.round(W * scale); c.height = Math.round(H * scale);
-        const x = c.getContext('2d');
+        const x = shareHiRes(c, W, H);
         if (!x) throw new Error('Canvas unavailable');
-        x.scale(scale, scale);
         shareBackground(x, W, H);
         shareHeader(x, W, pad, subtitle);
 
@@ -5757,7 +5754,7 @@ function syncAllGoalRows(saved) {
             const l1 = await getLogo(m.t1.logo), l2 = await getLogo(m.t2.logo);
             shareCard(x, pad, y, cw, ch, 26);
             const cx = pad + cw / 2;
-            const bandPart = (n, h = 22) => matchIsCaptain(m, n) ? [{ band: true, w: Math.round(h * 1.7), h }] : [];
+            const bandPart = (n, size = 24) => matchIsCaptain(m, n) ? [{ band: true, font: SF('900', size), color: '#d97706' }] : [];
 
             x.textBaseline = 'middle'; x.textAlign = 'center';
             x.fillStyle = '#718096'; x.font = SF('900', 22);
@@ -5765,14 +5762,9 @@ function syncAllGoalRows(saved) {
 
             const cy = y + 100;
             const drawLogo = (img, lx, R) => {
-                x.save(); x.beginPath(); x.arc(lx, cy, R, 0, Math.PI * 2); x.clip();
-                x.fillStyle = '#fff'; x.fillRect(lx - R, cy - R, R * 2, R * 2);
-                if (img) {
-                    const k = Math.min((R * 1.7) / img.width, (R * 1.7) / img.height);
-                    x.drawImage(img, lx - img.width * k / 2, cy - img.height * k / 2, img.width * k, img.height * k);
-                }
-                x.restore();
-                x.strokeStyle = '#e2e8f0'; x.lineWidth = 2; x.beginPath(); x.arc(lx, cy, R, 0, Math.PI * 2); x.stroke();
+                if (!img) return;
+                const k = Math.min((R * 2) / img.width, (R * 2) / img.height);
+                x.drawImage(img, lx - img.width * k / 2, cy - img.height * k / 2, img.width * k, img.height * k);
             };
             drawLogo(l1, pad + 66, 38);
             drawLogo(l2, pad + cw - 66, 38);
@@ -5791,19 +5783,27 @@ function syncAllGoalRows(saved) {
                 const drawGoal = (g, align, gx, ry) => {
                     const parts = [];
                     if (g.og) {
-                        parts.push({ e: '🥅', size: 24 }, { t: `${g.scorer}`, font: SF('800', 24), color: '#e53e3e' }, ...bandPart(g.scorer, 20), { t: '(OG)', font: SF('800', 24), color: '#e53e3e' });
+                        parts.push({ e: '🥅', size: 24 }, { t: `${g.scorer}`, name: true, font: SF('800', 24), color: '#e53e3e' }, ...bandPart(g.scorer, 24), { t: '(OG)', font: SF('800', 24), color: '#e53e3e' });
                     } else {
-                        parts.push({ e: '⚽', size: 24 }, { t: `${g.scorer}`, font: SF('800', 24), color: '#1a202c' }, ...bandPart(g.scorer, 20));
-                        if (g.assist) parts.push({ e: '🅰️', size: 22 }, { t: `${g.assist}`, font: SF('700', 22), color: '#718096' }, ...bandPart(g.assist, 18));
+                        parts.push({ e: '⚽', size: 24 }, { t: `${g.scorer}`, name: true, font: SF('800', 24), color: '#1a202c' }, ...bandPart(g.scorer, 24));
+                        if (g.assist) parts.push({ t: '(', font: SF('700', 22), color: '#718096' }, { e: '🅰️', size: 22, tight: true }, { t: `${g.assist}`, name: true, font: SF('700', 22), color: '#718096' }, ...bandPart(g.assist, 22), { t: ')', tight: true, font: SF('700', 22), color: '#718096' });
                     }
                     const maxW = cw / 2 - 50;
                     let tries = 0;
+                    const widthOf = () => {
+                        const gb = (p2, i2) => i2 === 0 ? 0 : (p2.tight ? 0 : (p2.band ? 6 : 10));
+                        return parts.reduce((s2, p2, i2) => {
+                            if (p2.e) return s2 + p2.size + gb(p2, i2);
+                            x.font = p2.font;
+                            return s2 + x.measureText(p2.band ? '(C)' : p2.t).width + gb(p2, i2);
+                        }, 0);
+                    };
                     while (tries++ < 40) {
-                        const total = parts.reduce((s2, p2) => { if (p2.e) return s2 + p2.size; if (p2.band) return s2 + p2.w; x.font = p2.font; return s2 + x.measureText(p2.t).width; }, 0) + 10 * (parts.length - 1);
-                        if (total <= maxW) break;
-                        const lastT = [...parts].reverse().find(p2 => !p2.e && !p2.band && p2.t !== '(OG)');
+                        if (widthOf() <= maxW) break;
+                        const names = parts.filter(p2 => p2.name);
+                        const lastT = names[names.length - 1];
                         if (!lastT || lastT.t.length < 4) break;
-                        lastT.t = lastT.t.slice(0, -2) + '…';
+                        lastT.t = lastT.t.replace(/…$/, '').slice(0, -2) + '…';
                     }
                     shareInline(x, parts, gx, ry, align, 10);
                 };
@@ -5816,7 +5816,7 @@ function syncAllGoalRows(saved) {
             }
 
             if (m.mvp) {
-                shareInline(x, [{ e: '🏆', size: 28 }, { t: `MVP: ${m.mvp}`, font: SF('900', 26), color: '#b7791f' }, ...bandPart(m.mvp, 22)], cx, gy + 22, 'center', 10);
+                shareInline(x, [{ e: '🏆', size: 28 }, { t: `MVP: ${m.mvp}`, font: SF('900', 26), color: '#b7791f' }, ...bandPart(m.mvp, 26)], cx, gy + 22, 'center', 10);
             }
             y += ch + gap;
         }
@@ -5867,8 +5867,7 @@ function syncAllGoalRows(saved) {
         const H = statsTop + statsH + 90;
 
         const c = document.createElement('canvas');
-        c.width = W; c.height = H;
-        const x = c.getContext('2d');
+        const x = shareHiRes(c, W, H);
         const rr = (X, Y, w, h2, r) => {
             x.beginPath();
             x.moveTo(X + r, Y); x.arcTo(X + w, Y, X + w, Y + h2, r);
@@ -6052,46 +6051,19 @@ function syncAllGoalRows(saved) {
     }
     // plain-text roster: captain first, marked "(C)" (used on share images)
     // the captain gets blank space after his name; drawRosterLine() paints the armband there
-    const CAP_GAP = '\u00A0'.repeat(8);
+    const CAP_GAP = '\u00A0'.repeat(10);
     function rosterWithCaptain(sortedNames, cap) {
         const names = [...(sortedNames || [])];
         if (cap) { const i = names.indexOf(cap); if (i >= 0) { names.splice(i, 1); names.unshift(cap + CAP_GAP); } }
         return names;
     }
-    function shareDrawCaptainBand(ctx, bx, cy, w, h) {
-        const top = cy - h / 2, r = Math.max(2, h * 0.2), e = Math.max(4, w * 0.2);
+    function shareDrawCaptainBand(ctx, bx, cy, w, h, font, color) {
         ctx.save();
-        ctx.shadowColor = 'rgba(0,0,0,0.35)'; ctx.shadowBlur = 3; ctx.shadowOffsetY = 1.5;
-        const g = ctx.createLinearGradient(0, top, 0, top + h);
-        g.addColorStop(0, '#ffe066'); g.addColorStop(0.55, '#f7c600'); g.addColorStop(1, '#d9a100');
-        ctx.fillStyle = g; shareRR(ctx, bx, top, w, h, r); ctx.fill();
-        ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
-        ctx.save();
-        shareRR(ctx, bx, top, w, h, r); ctx.clip();
-        // fabric wrapping around the arm: dark edges, light in the middle
-        const cyl = ctx.createLinearGradient(bx, 0, bx + w, 0);
-        cyl.addColorStop(0, 'rgba(0,0,0,0.42)'); cyl.addColorStop(0.24, 'rgba(0,0,0,0)');
-        cyl.addColorStop(0.5, 'rgba(255,255,255,0.26)'); cyl.addColorStop(0.76, 'rgba(0,0,0,0)'); cyl.addColorStop(1, 'rgba(0,0,0,0.42)');
-        ctx.fillStyle = cyl; ctx.fillRect(bx, top, w, h);
-        // ribbed elastic ends
-        [bx, bx + w - e].forEach(x => {
-            ctx.fillStyle = 'rgba(120,80,0,0.3)'; ctx.fillRect(x, top, e, h);
-            ctx.strokeStyle = 'rgba(60,35,0,0.35)'; ctx.lineWidth = 1;
-            for (let rx = x + 1.5; rx < x + e; rx += 2.2) { ctx.beginPath(); ctx.moveTo(rx, top); ctx.lineTo(rx, top + h); ctx.stroke(); }
-        });
-        ctx.strokeStyle = 'rgba(60,35,0,0.6)'; ctx.lineWidth = 1; ctx.beginPath();
-        ctx.moveTo(bx + e, top); ctx.lineTo(bx + e, top + h); ctx.moveTo(bx + w - e, top); ctx.lineTo(bx + w - e, top + h); ctx.stroke();
-        // stitching along top and bottom edge
-        const sy = Math.max(2, h * 0.16);
-        ctx.setLineDash([2, 2]); ctx.strokeStyle = 'rgba(70,42,0,0.6)';
-        ctx.beginPath(); ctx.moveTo(bx + e + 1, top + sy); ctx.lineTo(bx + w - e - 1, top + sy);
-        ctx.moveTo(bx + e + 1, top + h - sy); ctx.lineTo(bx + w - e - 1, top + h - sy); ctx.stroke();
-        ctx.setLineDash([]);
-        ctx.restore();
-        ctx.strokeStyle = 'rgba(0,0,0,0.35)'; ctx.lineWidth = 1; shareRR(ctx, bx, top, w, h, r); ctx.stroke();
-        ctx.fillStyle = '#14110a'; ctx.font = SF('900', Math.round(h * 0.7));
-        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-        ctx.fillText('C', bx + w / 2, cy + 1);
+        let f = font || ctx.font;
+        f = f.replace(/^((?:italic|oblique)\s+)?(?:bold|normal|\d{3})\s/, '$1900 ');
+        ctx.font = f; ctx.fillStyle = color || '#d97706';
+        ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+        ctx.fillText('(C)', bx, cy + 1);
         ctx.restore();
     }
     // one roster text line; if it starts with the captain, draw the armband after his name
@@ -6100,7 +6072,7 @@ function syncAllGoalRows(saved) {
         const gi = ln.indexOf(CAP_GAP);
         if (gi < 0) return;
         const w0 = ctx.measureText(ln.slice(0, gi)).width;
-        shareDrawCaptainBand(ctx, lx + w0 + 7, baseY - 7, 28, 17);
+        shareDrawCaptainBand(ctx, lx + w0 + 6, baseY - 7, 0, 0);
     }
     // HTML roster line: captain first with a gold badge
     function rosterHtmlWithCaptain(sortedNames, cap) {
