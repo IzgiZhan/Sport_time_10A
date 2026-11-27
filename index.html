@@ -4422,6 +4422,14 @@ function syncAllGoalRows(saved) {
         }
 
         /*
+         * Nobody scored or assisted (e.g. 0:0): pick the MVP randomly from both teams.
+         */
+        if (mvpPlayerId === null && topPlayers.length === 0) {
+            const pool = [...(t1.players || []), ...(t2.players || [])].map(p => p.id);
+            if (pool.length) mvpPlayerId = pool[Math.floor(Math.random() * pool.length)];
+        }
+
+        /*
          * Add MVP statistic and rating bonus.
          */
         if (mvpPlayerId) {
@@ -5742,7 +5750,7 @@ function syncAllGoalRows(saved) {
                     <div class="hm-team right"><img src="${esc(m.t2.logo || defaultLogo)}" alt="" onerror="logoFallback(this)"><span>${esc(m.t2.name)}</span></div>
                 </div>
                 ${(g1.length || g2.length) ? `<div class="hm-goals"><div class="col">${g1.map(g => goalLine(m, g)).join('')}</div><div class="col right">${g2.map(g => goalLine(m, g)).join('')}</div></div>` : ''}
-                ${m.mvp ? `<div class="hm-mvp">🏆 MVP: ${nm(m, m.mvp)}</div>` : ''}
+                ${m.mvp ? `<div class="hm-mvp">🏆 MVP: ${esc(m.mvp)}${matchIsCaptain(m, m.mvp) ? '<span class="cap-band" title="Captain">C</span>' : ''}</div>` : ''}
             </div>`;
         }).join('');
         const o = document.createElement('div');
@@ -5887,7 +5895,7 @@ function syncAllGoalRows(saved) {
             }
 
             if (m.mvp) {
-                shareInline(x, [{ e: '🏆', size: 28 }, { t: `MVP: ${m.mvp}`, font: SF('900', 26), color: '#b7791f' }, ...bandPart(m.mvp, 26)], cx, gy + 22, 'center', 10);
+                shareInline(x, [{ e: '🏆', size: 28 }, { t: `MVP: ${m.mvp}`, font: SF('900', 26), color: '#b7791f' }, ...(matchIsCaptain(m, m.mvp) ? [{ band: true, font: SF('900', 26), color: '#d97706' }] : [])], cx, gy + 22, 'center', 10);
             }
             y += ch + gap;
         }
@@ -6900,6 +6908,10 @@ function syncAllGoalRows(saved) {
         const save = async () => {
             pull();
             if (state.goals.some(g => !g.scorer)) { alert('Choose a scorer for every goal.'); return; }
+            if (!st.mvp && !st.s1 && !st.s2 && !state.goals.length) {
+                const pool = [...r1, ...r2];
+                if (pool.length) st.mvp = pool[Math.floor(Math.random() * pool.length)];
+            }
             const nm = {
                 ...m,
                 s1: st.s1, s2: st.s2,
