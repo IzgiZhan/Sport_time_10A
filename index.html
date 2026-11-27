@@ -5904,68 +5904,66 @@ function syncAllGoalRows(saved) {
     }
 
 
-    // Clean list of all matches (round, teams, score) - no scorers, big and sharp
+    // One continuous list of all matches (teams + score only), fixed standard image size
     async function buildHistoryMatchesListImage(h, list, subtitle) {
-        const W = 1080, pad = 40, cw = W - pad * 2, top0 = 210, rowH = 112, gap = 14, roundH = 70;
+        const W = 1080, pad = 40, cw = W - pad * 2, top0 = 200, bottom = 100, gap = 12;
+        const n = list.length;
+        // 1 column up to 16 matches, 2 columns after that
+        const cols = n > 16 ? 2 : 1;
+        const rowsN = Math.ceil(n / cols);
+        // standard sizes: 1080x1350 for short lists, 1080x1920 for long ones
+        const need = rowsN * 88 + (rowsN - 1) * gap;
+        const H = (1350 - top0 - bottom >= need) ? 1350 : 1920;
+        const avail = H - top0 - bottom;
+        const rowH = Math.max(40, Math.min(124, Math.floor((avail - (rowsN - 1) * gap) / rowsN)));
+        const cardW = cols === 1 ? cw : Math.floor((cw - 16) / 2);
+        const blockH = rowsN * rowH + (rowsN - 1) * gap;
+        const startY = top0 + Math.max(0, Math.floor((avail - blockH) / 2));
+
         const logoCache = new Map();
         const getLogo = async src => {
             const key = src || defaultLogo;
             if (!logoCache.has(key)) logoCache.set(key, await loadLogo(key));
             return logoCache.get(key);
         };
-        const groups = [];
-        list.forEach(m => {
-            let g = groups[groups.length - 1];
-            if (!g || g.tour !== m.tour) { g = { tour: m.tour, items: [] }; groups.push(g); }
-            g.items.push(m);
-        });
-        const H = top0 + groups.reduce((sum, g) => sum + roundH + g.items.length * (rowH + gap) + 12, 0) + 100;
         const c = document.createElement('canvas');
         const x = shareHiRes(c, W, H);
         if (!x) throw new Error('Canvas unavailable');
         shareBackground(x, W, H);
         shareHeader(x, W, pad, subtitle);
 
-        const cx = pad + cw / 2;
-        let y = top0;
-        for (const g of groups) {
-            // round label
-            x.font = SF('900', 28);
-            const label = `ROUND ${g.tour}`;
-            const lw = x.measureText(label).width + 52;
-            x.fillStyle = 'rgba(255,255,255,0.16)'; shareRR(x, pad, y + 6, lw, 50, 25); x.fill();
-            x.strokeStyle = 'rgba(255,255,255,0.3)'; x.lineWidth = 1.5; shareRR(x, pad, y + 6, lw, 50, 25); x.stroke();
-            x.fillStyle = '#fff'; x.textAlign = 'center'; x.textBaseline = 'middle';
-            x.fillText(label, pad + lw / 2, y + 32);
-            y += roundH;
-            for (const m of g.items) {
-                const l1 = await getLogo(m.t1.logo), l2 = await getLogo(m.t2.logo);
-                shareCard(x, pad, y, cw, rowH, 26);
-                const mid = y + rowH / 2;
-                const win1 = m.s1 > m.s2, win2 = m.s2 > m.s1;
-                const drawLogo = (img, lx) => {
-                    if (!img) return;
-                    const R = 40, k = Math.min((R * 2) / img.width, (R * 2) / img.height);
-                    x.drawImage(img, lx - img.width * k / 2, mid - img.height * k / 2, img.width * k, img.height * k);
-                };
-                drawLogo(l1, pad + 62);
-                drawLogo(l2, pad + cw - 62);
-                // score pill
-                x.fillStyle = '#ebf4ff'; shareRR(x, cx - 96, mid - 42, 192, 84, 42); x.fill();
-                x.strokeStyle = '#bee3f8'; x.lineWidth = 2; shareRR(x, cx - 96, mid - 42, 192, 84, 42); x.stroke();
-                x.textAlign = 'center'; x.fillStyle = '#1e4f8f'; x.font = SF('900', 58);
-                x.fillText(`${m.s1} : ${m.s2}`, cx, mid + 3);
-                // team names
-                const nameFont = win => SF(win ? '900' : '800', 32);
-                x.textAlign = 'left';
-                x.font = nameFont(win1); x.fillStyle = win2 ? '#718096' : '#1a202c';
-                x.fillText(shareFit(x, m.t1.name, cx - 116 - (pad + 116)), pad + 116, mid + 1);
-                x.textAlign = 'right';
-                x.font = nameFont(win2); x.fillStyle = win1 ? '#718096' : '#1a202c';
-                x.fillText(shareFit(x, m.t2.name, (pad + cw - 116) - (cx + 116)), pad + cw - 116, mid + 1);
-                y += rowH + gap;
-            }
-            y += 12;
+        const R = Math.round(rowH * 0.36);
+        const pillH = Math.round(rowH * 0.74), pillW = Math.round(pillH * (cols === 1 ? 2.3 : 1.9));
+        const nameSize = Math.max(18, Math.min(32, Math.round(rowH * (cols === 1 ? 0.29 : 0.3))));
+        const scoreSize = Math.round(pillH * 0.7);
+        const inset = Math.round(rowH * 0.18);
+
+        for (let i = 0; i < n; i++) {
+            const m = list[i];
+            const col = cols === 1 ? 0 : Math.floor(i / rowsN);
+            const row = cols === 1 ? i : i % rowsN;
+            const cx0 = pad + col * (cardW + 16), y = startY + row * (rowH + gap);
+            const cxm = cx0 + cardW / 2, mid = y + rowH / 2;
+            const l1 = await getLogo(m.t1.logo), l2 = await getLogo(m.t2.logo);
+            shareCard(x, cx0, y, cardW, rowH, Math.min(26, rowH * 0.24));
+            const win1 = m.s1 > m.s2, win2 = m.s2 > m.s1;
+            const drawLogo = (img, lx) => {
+                if (!img) return;
+                const k = Math.min((R * 2) / img.width, (R * 2) / img.height);
+                x.drawImage(img, lx - img.width * k / 2, mid - img.height * k / 2, img.width * k, img.height * k);
+            };
+            drawLogo(l1, cx0 + inset + R);
+            drawLogo(l2, cx0 + cardW - inset - R);
+            x.fillStyle = '#ebf4ff'; shareRR(x, cxm - pillW / 2, mid - pillH / 2, pillW, pillH, pillH / 2); x.fill();
+            x.strokeStyle = '#bee3f8'; x.lineWidth = 2; shareRR(x, cxm - pillW / 2, mid - pillH / 2, pillW, pillH, pillH / 2); x.stroke();
+            x.textBaseline = 'middle'; x.textAlign = 'center'; x.fillStyle = '#1e4f8f'; x.font = SF('900', scoreSize);
+            x.fillText(`${m.s1} : ${m.s2}`, cxm, mid + 2);
+            const nameL = cx0 + inset + R * 2 + 12, nameR = cx0 + cardW - inset - R * 2 - 12;
+            const maxName = (cxm - pillW / 2 - 12) - nameL;
+            x.textAlign = 'left'; x.font = SF(win1 ? '900' : '800', nameSize); x.fillStyle = win2 ? '#718096' : '#1a202c';
+            x.fillText(shareFit(x, m.t1.name, maxName), nameL, mid + 1);
+            x.textAlign = 'right'; x.font = SF(win2 ? '900' : '800', nameSize); x.fillStyle = win1 ? '#718096' : '#1a202c';
+            x.fillText(shareFit(x, m.t2.name, maxName), nameR, mid + 1);
         }
         shareFooter(x, W, H);
         return await new Promise(res => c.toBlob(res, 'image/png'));
