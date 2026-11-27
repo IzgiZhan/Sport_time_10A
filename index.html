@@ -1101,6 +1101,28 @@
         .he-cancel { background: var(--input-bg); color: var(--text-main); border: 1px solid var(--card-border) !important; }
         .he-save { background: linear-gradient(135deg, #38a169, #2f855a); color: #fff; }
 
+        /* edit dialog: button polish */
+        .hm-edit { display: inline-flex; align-items: center; gap: 4px; background: linear-gradient(135deg, #f6ad55, #d69e2e); color: #fff; border: none; border-radius: 999px; padding: 6px 13px; font-size: 11px; font-weight: 900; letter-spacing: .3px; cursor: pointer; box-shadow: 0 4px 10px rgba(214,158,46,.35), inset 0 1px 0 rgba(255,255,255,.35); transition: transform .15s ease, box-shadow .15s ease; }
+        .hm-edit:hover { transform: translateY(-1px); box-shadow: 0 7px 14px rgba(214,158,46,.45), inset 0 1px 0 rgba(255,255,255,.35); }
+        .hm-edit:active { transform: translateY(0) scale(.97); }
+        .he-goal { grid-template-columns: minmax(0,1fr) minmax(0,1fr) auto auto; padding: 8px; border-radius: 12px; background: var(--card-bg); border: 1px solid var(--card-border); }
+        .he-goal select { height: 36px; border-radius: 10px; }
+        .he-goal select:disabled { opacity: .45; }
+        .he-ogl { height: 36px; padding: 0 10px; border-radius: 10px; border: 1px solid var(--card-border); background: var(--input-bg); color: var(--text-sub) !important; cursor: pointer; transition: all .15s ease; }
+        .he-ogl input { display: none; }
+        .he-ogl.on { background: rgba(229,62,62,.15); border-color: var(--primary-red); color: var(--primary-red) !important; }
+        .he-goal .he-del { width: 36px; height: 36px; border-radius: 10px; background: rgba(229,62,62,.12); transition: background .15s ease, transform .15s ease; }
+        .he-goal .he-del:hover { background: rgba(229,62,62,.28); transform: scale(1.06); }
+        .he-add { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px; border: 2px dashed rgba(49,130,206,.45); border-radius: 12px; background: rgba(49,130,206,.07); color: var(--primary-blue); font-size: 13px; transition: background .15s ease, border-color .15s ease; }
+        .he-add:hover { background: rgba(49,130,206,.15); border-color: var(--primary-blue); }
+        .he-add span { font-size: 16px; line-height: 1; }
+        .he-foot { gap: 12px; padding: 14px; background: var(--input-bg); }
+        .he-foot button { padding: 13px; border-radius: 14px; font-size: 14px; letter-spacing: .3px; transition: transform .15s ease, box-shadow .15s ease, filter .15s ease; }
+        .he-foot button:active { transform: scale(.97); }
+        .he-cancel { background: var(--card-bg); }
+        .he-save { background: linear-gradient(135deg, #48bb78, #2f855a); box-shadow: 0 8px 18px rgba(47,133,90,.38), inset 0 1px 0 rgba(255,255,255,.3); }
+        .he-save:hover { filter: brightness(1.07); transform: translateY(-1px); }
+
         /* ===== Admin: rating & awards rules editor ===== */
         .backup-row { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 12px; margin-top:8px; border-radius:12px; background:var(--input-bg); border:1px solid var(--card-border); }
         .backup-row-main { min-width:0; }
@@ -6835,23 +6857,27 @@ function syncAllGoalRows(saved) {
         const teamsArr = h.teams || [];
         const roster = name => { const t = teamsArr.find(x => x.name === name); return (t && t.players) ? t.players : []; };
         const r1 = roster(m.t1.name), r2 = roster(m.t2.name);
-        const allNames = (h.playerStats || []).map(p => p.name);
-        const known = new Set([...r1, ...r2]);
-        const others = allNames.filter(n => !known.has(n)).sort((a, b) => a.localeCompare(b));
+        const allNames = [...r1, ...r2];
         const opt = (list, sel) => list.map(n => `<option value="${esc(n)}" ${n === sel ? 'selected' : ''}>${esc(n)}</option>`).join('');
-        const group = (label, list, sel) => list.length ? `<optgroup label="${esc(label)}">${opt(list, sel)}</optgroup>` : '';
-        const nameSelect = (cls, sel, own, opp, withNone) =>
-            `<select class="${cls}">${withNone ? '<option value="">—</option>' : ''}${group(own.label, own.list, sel)}${group(opp.label, opp.list, sel)}${group('Others', others, sel)}</select>`;
+        const withCur = (list, cur) => (cur && !list.includes(cur)) ? [...list, cur] : list;
+        const scorerSelect = (g) => {
+            const list = withCur(g.og ? (g.team === 1 ? r2 : r1) : (g.team === 1 ? r1 : r2), g.scorer);
+            return `<select class="he-scorer">${opt(list, g.scorer)}</select>`;
+        };
+        const assistSelect = (g) => {
+            const list = withCur(g.team === 1 ? r1 : r2, g.assist);
+            return `<select class="he-assist" ${g.og ? 'disabled' : ''}><option value="">No assist</option>${opt(list, g.assist || '')}</select>`;
+        };
         const state = { goals: (m.goals || []).map(g => ({ ...g })) };
         const st = { s1: Number(m.s1) || 0, s2: Number(m.s2) || 0, mvp: m.mvp || null };
         const o = document.createElement('div');
         o.id = 'heOverlay'; o.className = 'he-overlay';
         const goalRows = team => state.goals.map((g, gi) => g.team !== team ? '' : `
             <div class="he-goal" data-gi="${gi}">
-                ${nameSelect('he-scorer', g.scorer, team === 1 ? { label: m.t1.name, list: r1 } : { label: m.t2.name, list: r2 }, team === 1 ? { label: m.t2.name, list: r2 } : { label: m.t1.name, list: r1 }, false)}
-                ${nameSelect('he-assist', g.assist || '', team === 1 ? { label: m.t1.name, list: r1 } : { label: m.t2.name, list: r2 }, { label: '', list: [] }, true)}
-                <label><input type="checkbox" class="he-og" ${g.og ? 'checked' : ''}>OG</label>
-                <button type="button" class="he-del" aria-label="Remove">✕</button>
+                ${scorerSelect(g)}
+                ${assistSelect(g)}
+                <label class="he-ogl ${g.og ? 'on' : ''}"><input type="checkbox" class="he-og" ${g.og ? 'checked' : ''}>OG</label>
+                <button type="button" class="he-del" aria-label="Remove goal">✕</button>
             </div>`).join('');
         const render = () => {
             o.innerHTML = `
@@ -6863,23 +6889,31 @@ function syncAllGoalRows(saved) {
                         <div class="sc"><input id="heS1" type="number" min="0" max="99" value="${st.s1}"><b>:</b><input id="heS2" type="number" min="0" max="99" value="${st.s2}"></div>
                         <div class="nm r">${esc(m.t2.name)}</div>
                     </div>
-                    <div class="he-team"><h4>${esc(m.t1.name)} — goals</h4>${goalRows(1)}<button type="button" class="he-add" data-team="1">+ Add goal</button></div>
-                    <div class="he-team"><h4>${esc(m.t2.name)} — goals</h4>${goalRows(2)}<button type="button" class="he-add" data-team="2">+ Add goal</button></div>
+                    <div class="he-team"><h4>${esc(m.t1.name)} — goals</h4>${goalRows(1)}<button type="button" class="he-add" data-team="1"><span>＋</span> Add goal</button></div>
+                    <div class="he-team"><h4>${esc(m.t2.name)} — goals</h4>${goalRows(2)}<button type="button" class="he-add" data-team="2"><span>＋</span> Add goal</button></div>
                     <div class="he-mvp">🏆 MVP
-                        <select id="heMvp"><option value="">—</option>${group(m.t1.name, r1, st.mvp)}${group(m.t2.name, r2, st.mvp)}${group('Others', others, st.mvp)}</select>
+                        <select id="heMvp"><option value="">No MVP</option><optgroup label="${esc(m.t1.name)}">${opt(r1, st.mvp)}</optgroup><optgroup label="${esc(m.t2.name)}">${opt(r2, st.mvp)}</optgroup></select>
                     </div>
                 </div>
-                <div class="he-foot"><button type="button" class="he-cancel">Cancel</button><button type="button" class="he-save">Save</button></div>
+                <div class="he-foot"><button type="button" class="he-cancel">Cancel</button><button type="button" class="he-save">✓ Save changes</button></div>
             </div>`;
             o.querySelectorAll('.he-goal').forEach(row => {
                 const gi = Number(row.dataset.gi);
                 row.querySelector('.he-del').onclick = () => { pull(); state.goals.splice(gi, 1); syncScore(); render(); };
+                row.querySelector('.he-og').onchange = () => {
+                    pull();
+                    const g = state.goals[gi];
+                    const list = g.og ? (g.team === 1 ? r2 : r1) : (g.team === 1 ? r1 : r2);
+                    if (!list.includes(g.scorer)) g.scorer = list[0] || '';
+                    if (g.og) g.assist = null;
+                    render();
+                };
             });
             o.querySelectorAll('.he-add').forEach(b => b.onclick = () => {
                 pull();
                 const team = Number(b.dataset.team);
                 const list = team === 1 ? r1 : r2;
-                state.goals.push({ team, scorer: list[0] || allNames[0] || '', assist: null, og: false });
+                state.goals.push({ team, scorer: list[0] || '', assist: null, og: false });
                 syncScore(); render();
             });
             o.querySelector('.he-cancel').onclick = closeEditHistoryMatch;
