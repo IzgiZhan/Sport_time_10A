@@ -2251,16 +2251,8 @@ function shareBackground(ctx, W, H) {
 
 function shareHeader(ctx, W, pad, subtitle) {
     ctx.textBaseline = 'middle';
-    // gold ball mark
-    const bx = pad + 34, by = 76;
-    const bg = ctx.createLinearGradient(bx - 34, by - 34, bx + 34, by + 34);
-    bg.addColorStop(0, '#fff3a6'); bg.addColorStop(1, '#d69e2e');
-    ctx.save(); ctx.shadowColor = 'rgba(0,0,0,0.35)'; ctx.shadowBlur = 16; ctx.shadowOffsetY = 6;
-    ctx.fillStyle = bg; ctx.beginPath(); ctx.arc(bx, by, 34, 0, Math.PI * 2); ctx.fill(); ctx.restore();
-    ctx.fillStyle = '#14110a'; ctx.font = SF('900', 34); ctx.textAlign = 'center';
-    ctx.fillText('10', bx, by + 2);
     // title
-    const tx = pad + 86;
+    const tx = pad;
     ctx.textAlign = 'left'; ctx.fillStyle = '#fff'; ctx.font = SF('900', 50);
     ctx.save(); ctx.shadowColor = 'rgba(0,0,0,0.3)'; ctx.shadowBlur = 10; ctx.shadowOffsetY = 3;
     ctx.fillText('SPORT TIME 10A', tx, 66); ctx.restore();
@@ -5735,7 +5727,7 @@ function syncAllGoalRows(saved) {
         }
         closeHistoryMatches();
         const ik = idx === 'current' ? "'current'" : String(idx);
-        const nm = (m, n) => esc(n) + (matchIsCaptain(m, n) ? '<span class="cap-band sm" title="Captain">C</span>' : '');
+        const nm = (m, n) => esc(n);
         const goalLine = (m, g) => g.og
             ? `<div class="hm-goal og">🥅 ${nm(m, g.scorer)} (OG)</div>`
             : `<div class="hm-goal">⚽ ${nm(m, g.scorer)}${g.assist ? ` <em>(🅰️ ${nm(m, g.assist)})</em>` : ''}</div>`;
@@ -5791,7 +5783,7 @@ function syncAllGoalRows(saved) {
         const old = btn ? btn.textContent : '';
         if (btn) { btn.disabled = true; btn.textContent = '…'; }
         try {
-            const blob = await buildHistoryMatchesImage(src.h, src.h.matches, `${src.label}  ·  All matches (${src.h.matches.length})`);
+            const blob = await buildHistoryMatchesListImage(src.h, src.h.matches, `${src.label}  ·  All matches (${src.h.matches.length})`);
             if (!blob) { alert('Could not create the image.'); return; }
             await shareBlob(blob, `sport-time-${src.tag}-all-matches.png`);
         } catch (e) { console.error(e); alert('Could not create the image.'); }
@@ -5831,7 +5823,7 @@ function syncAllGoalRows(saved) {
             if (m.s1 === m.s2) { acc.addColorStop(0, '#f6e05e'); acc.addColorStop(1, '#d69e2e'); }
             else { acc.addColorStop(0, '#63b3ed'); acc.addColorStop(1, '#2b6cb0'); }
             x.save(); shareRR(x, pad, y, cw, ch, 26); x.clip(); x.fillStyle = acc; x.fillRect(pad, y, 10, ch); x.restore();
-            const bandPart = (n, size = 24) => matchIsCaptain(m, n) ? [{ band: true, font: SF('900', size), color: '#d97706' }] : [];
+            const bandPart = () => [];
 
             x.textBaseline = 'middle'; x.textAlign = 'center';
             x.fillStyle = '#718096'; x.font = SF('900', 22);
@@ -5898,6 +5890,74 @@ function syncAllGoalRows(saved) {
                 shareInline(x, [{ e: '🏆', size: 28 }, { t: `MVP: ${m.mvp}`, font: SF('900', 26), color: '#b7791f' }, ...bandPart(m.mvp, 26)], cx, gy + 22, 'center', 10);
             }
             y += ch + gap;
+        }
+        shareFooter(x, W, H);
+        return await new Promise(res => c.toBlob(res, 'image/png'));
+    }
+
+
+    // Clean list of all matches (round, teams, score) - no scorers, big and sharp
+    async function buildHistoryMatchesListImage(h, list, subtitle) {
+        const W = 1080, pad = 40, cw = W - pad * 2, top0 = 210, rowH = 112, gap = 14, roundH = 70;
+        const logoCache = new Map();
+        const getLogo = async src => {
+            const key = src || defaultLogo;
+            if (!logoCache.has(key)) logoCache.set(key, await loadLogo(key));
+            return logoCache.get(key);
+        };
+        const groups = [];
+        list.forEach(m => {
+            let g = groups[groups.length - 1];
+            if (!g || g.tour !== m.tour) { g = { tour: m.tour, items: [] }; groups.push(g); }
+            g.items.push(m);
+        });
+        const H = top0 + groups.reduce((sum, g) => sum + roundH + g.items.length * (rowH + gap) + 12, 0) + 100;
+        const c = document.createElement('canvas');
+        const x = shareHiRes(c, W, H);
+        if (!x) throw new Error('Canvas unavailable');
+        shareBackground(x, W, H);
+        shareHeader(x, W, pad, subtitle);
+
+        const cx = pad + cw / 2;
+        let y = top0;
+        for (const g of groups) {
+            // round label
+            x.font = SF('900', 28);
+            const label = `ROUND ${g.tour}`;
+            const lw = x.measureText(label).width + 52;
+            x.fillStyle = 'rgba(255,255,255,0.16)'; shareRR(x, pad, y + 6, lw, 50, 25); x.fill();
+            x.strokeStyle = 'rgba(255,255,255,0.3)'; x.lineWidth = 1.5; shareRR(x, pad, y + 6, lw, 50, 25); x.stroke();
+            x.fillStyle = '#fff'; x.textAlign = 'center'; x.textBaseline = 'middle';
+            x.fillText(label, pad + lw / 2, y + 32);
+            y += roundH;
+            for (const m of g.items) {
+                const l1 = await getLogo(m.t1.logo), l2 = await getLogo(m.t2.logo);
+                shareCard(x, pad, y, cw, rowH, 26);
+                const mid = y + rowH / 2;
+                const win1 = m.s1 > m.s2, win2 = m.s2 > m.s1;
+                const drawLogo = (img, lx) => {
+                    if (!img) return;
+                    const R = 40, k = Math.min((R * 2) / img.width, (R * 2) / img.height);
+                    x.drawImage(img, lx - img.width * k / 2, mid - img.height * k / 2, img.width * k, img.height * k);
+                };
+                drawLogo(l1, pad + 62);
+                drawLogo(l2, pad + cw - 62);
+                // score pill
+                x.fillStyle = '#ebf4ff'; shareRR(x, cx - 96, mid - 42, 192, 84, 42); x.fill();
+                x.strokeStyle = '#bee3f8'; x.lineWidth = 2; shareRR(x, cx - 96, mid - 42, 192, 84, 42); x.stroke();
+                x.textAlign = 'center'; x.fillStyle = '#1e4f8f'; x.font = SF('900', 58);
+                x.fillText(`${m.s1} : ${m.s2}`, cx, mid + 3);
+                // team names
+                const nameFont = win => SF(win ? '900' : '800', 32);
+                x.textAlign = 'left';
+                x.font = nameFont(win1); x.fillStyle = win2 ? '#718096' : '#1a202c';
+                x.fillText(shareFit(x, m.t1.name, cx - 116 - (pad + 116)), pad + 116, mid + 1);
+                x.textAlign = 'right';
+                x.font = nameFont(win2); x.fillStyle = win1 ? '#718096' : '#1a202c';
+                x.fillText(shareFit(x, m.t2.name, (pad + cw - 116) - (cx + 116)), pad + cw - 116, mid + 1);
+                y += rowH + gap;
+            }
+            y += 12;
         }
         shareFooter(x, W, H);
         return await new Promise(res => c.toBlob(res, 'image/png'));
