@@ -1076,6 +1076,8 @@
 
         /* ===== Edit a match of a finished tournament ===== */
         body:not(.is-admin) .hm-edit { display: none !important; }
+        body:not(.is-admin) .hm-edit-live { display: none !important; }
+        .hm-bottom-actions { margin-top: 12px; }
         .hm-actions { display: flex; gap: 6px; align-items: center; }
         .hm-edit { background: #d69e2e; color: #fff; border: none; border-radius: 8px; padding: 5px 10px; font-size: 11px; font-weight: 900; cursor: pointer; }
         .he-overlay { position: fixed; inset: 0; z-index: 10060; display: flex; align-items: center; justify-content: center; padding: 12px; background: rgba(5,10,24,.82); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
@@ -1129,6 +1131,11 @@
         .he-gs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
         .he-gs small { display: block; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: .4px; color: var(--text-sub); margin-bottom: 3px; }
         .he-ogl { display: inline-flex; align-items: center; height: 28px; padding: 0 10px; font-size: 11px; font-weight: 900; }
+
+        /* history match editor = same look as the live match editor */
+        .he-dialog.he-live { width: min(760px, 100%); overflow-y: auto; }
+        .he-live .match-card { margin: 0; border: none; box-shadow: none; border-radius: 0; }
+        .he-live .match-actions .match-btn { min-width: 120px; }
 
         /* ===== Admin: rating & awards rules editor ===== */
         .backup-row { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 12px; margin-top:8px; border-radius:12px; background:var(--input-bg); border:1px solid var(--card-border); }
@@ -5772,7 +5779,7 @@ function syncAllGoalRows(saved) {
             const g1 = (m.goals || []).filter(g => g.team === 1), g2 = (m.goals || []).filter(g => g.team === 2);
             return `
             <div class="hm-card">
-                <div class="hm-meta"><span>Match #${esc(m.no)} · Round ${esc(m.tour)}</span><div class="hm-actions">${idx === 'current' ? '' : `<button class="hm-share hm-edit" onclick="openEditHistoryMatch(${ik}, ${i})">✏️ Edit</button>`}<button class="hm-share" onclick="shareHistoryMatch(${ik}, ${i}, this)">📤 Share</button></div></div>
+                <div class="hm-meta"><span>Match #${esc(m.no)} · Round ${esc(m.tour)}</span></div>
                 <div class="hm-main">
                     <div class="hm-team"><img src="${esc(m.t1.logo || defaultLogo)}" alt="" onerror="logoFallback(this)"><span>${esc(m.t1.name)}</span></div>
                     <div class="hm-score">${m.s1} : ${m.s2}</div>
@@ -5780,6 +5787,10 @@ function syncAllGoalRows(saved) {
                 </div>
                 ${(g1.length || g2.length) ? `<div class="hm-goals"><div class="col">${g1.map(g => goalLine(m, g)).join('')}</div><div class="col right">${g2.map(g => goalLine(m, g)).join('')}</div></div>` : ''}
                 ${m.mvp ? `<div class="hm-mvp">🏆 MVP: ${esc(m.mvp)}${matchIsCaptain(m, m.mvp) ? '<span class="cap-band" title="Captain">C</span>' : ''}</div>` : ''}
+                <div class="match-actions hm-bottom-actions">
+                    ${idx === 'current' ? '' : `<button class="match-cancel-btn match-edit-btn hm-edit-live" onclick="openEditHistoryMatch(${ik}, ${i})">✏️ Edit</button>`}
+                    <button class="match-cancel-btn match-edit-btn" onclick="shareHistoryMatch(${ik}, ${i}, this)">📤 Share</button>
+                </div>
             </div>`;
         }).join('');
         const o = document.createElement('div');
@@ -6877,22 +6888,35 @@ function syncAllGoalRows(saved) {
             ((sel && !list.includes(sel)) ? [...list, sel] : list).map(n => `<option value="${esc(n)}" ${n === sel ? 'selected' : ''}>${esc(n)}</option>`).join('');
         const o = document.createElement('div');
         o.id = 'heOverlay'; o.className = 'he-overlay';
+        const codeOf = t => { const p = (typeof presetByLogo === 'function') ? presetByLogo(t.logo) : null; return p && p.code ? p.code : ''; };
+        const teamHead = (t, right) => {
+            const info = `<div style="display:flex; flex-direction:column; line-height:1.2;${right ? ' text-align:right;' : ''}"><span>${esc(t.name)}</span><span class="country-code">${esc(codeOf(t))}</span></div>`;
+            const img = `<img src="${esc(t.logo || defaultLogo)}" class="team-logo" alt="" onerror="logoFallback(this)">`;
+            return right ? `<div class="match-team right">${info}${img}</div>` : `<div class="match-team">${img}${info}</div>`;
+        };
         o.innerHTML = `
-            <div class="he-dialog" role="dialog" aria-modal="true">
-                <div class="he-top">✏️ Edit match #${esc(m.no)}<small>Tournament #${idx + 1} · Round ${esc(m.tour)}</small></div>
-                <div class="he-body">
-                    <div class="he-score">
-                        <div class="nm">${esc(m.t1.name)}</div>
-                        <div class="sc"><input id="heS1" type="number" inputmode="numeric" min="0" max="30" value="${score[1]}"><b>:</b><input id="heS2" type="number" inputmode="numeric" min="0" max="30" value="${score[2]}"></div>
-                        <div class="nm r">${esc(m.t2.name)}</div>
+            <div class="he-dialog he-live" role="dialog" aria-modal="true">
+                <div class="match-card">
+                    <div class="match-badge">Match #${esc(m.no)}</div>
+                    <div class="match-main">
+                        ${teamHead(m.t1, false)}
+                        <div class="match-score-inputs">
+                            <input id="heS1" type="number" inputmode="numeric" min="0" max="30" value="${score[1]}">
+                            <span>:</span>
+                            <input id="heS2" type="number" inputmode="numeric" min="0" max="30" value="${score[2]}">
+                        </div>
+                        ${teamHead(m.t2, true)}
                     </div>
                     <div id="heGoals"></div>
+                    <div class="match-actions">
+                        <button type="button" class="match-btn he-save">Save</button>
+                        <button type="button" class="match-btn skip-match-btn he-cancel">Cancel</button>
+                    </div>
                 </div>
-                <div class="he-foot"><button type="button" class="he-cancel">Cancel</button><button type="button" class="he-save">✓ Save changes</button></div>
             </div>`;
         const box = o.querySelector('#heGoals');
         const pull = () => {
-            box.querySelectorAll('.he-goal').forEach(row => {
+            box.querySelectorAll('.goal-row').forEach(row => {
                 const g = G[Number(row.dataset.t)][Number(row.dataset.i)];
                 if (!g) return;
                 g.og = row.querySelector('.he-og').checked;
@@ -6901,20 +6925,21 @@ function syncAllGoalRows(saved) {
             });
         };
         const renderGoals = () => {
-            box.innerHTML = [1, 2].map(t => !G[t].length ? '' : `
-                <div class="he-team"><h4>${esc(t === 1 ? m.t1.name : m.t2.name)} — goals</h4>
-                ${G[t].map((g, i) => {
-                    const scorers = g.og ? R[opp(t)] : R[t];
-                    const assists = R[t].filter(n => n !== g.scorer);
-                    return `<div class="he-goal" data-t="${t}" data-i="${i}">
-                        <div class="he-gh"><span>Goal #${i + 1}</span><label class="he-ogl ${g.og ? 'on' : ''}"><input type="checkbox" class="he-og" ${g.og ? 'checked' : ''}>Own goal</label></div>
-                        <div class="he-gs">
-                            <div><small>Scorer</small><select class="he-scorer">${optHtml(scorers, g.scorer, '— choose —')}</select></div>
-                            <div><small>Assist</small><select class="he-assist" ${g.og ? 'disabled' : ''}>${optHtml(assists, g.assist, 'None')}</select></div>
-                        </div>
-                    </div>`;
-                }).join('')}</div>`).join('');
-            box.querySelectorAll('.he-goal').forEach(row => {
+            const rows = [1, 2].map(t => G[t].map((g, i) => {
+                const scorers = g.og ? R[opp(t)] : R[t];
+                const assists = R[t].filter(n => n !== g.scorer);
+                const tm = t === 1 ? m.t1 : m.t2;
+                return `<div class="goal-row" data-t="${t}" data-i="${i}">
+                    <span style="font-size:11px; font-weight:800; color:var(--${t === 1 ? 'primary-blue' : 'primary-red'});">${esc(tm.name)} Goal #${i + 1}:</span>
+                    <label>Scorer:</label>
+                    <select class="he-scorer">${optHtml(scorers, g.scorer, '— choose —')}</select>
+                    <label class="autogol-label"><input type="checkbox" class="he-og" ${g.og ? 'checked' : ''}>Own Goal</label>
+                    <label>Assist:</label>
+                    <select class="he-assist" ${g.og ? 'disabled' : ''}>${optHtml(assists, g.assist, 'None')}</select>
+                </div>`;
+            }).join('')).join('');
+            box.innerHTML = rows ? `<div class="goal-events-container">${rows}</div>` : '';
+            box.querySelectorAll('.goal-row').forEach(row => {
                 const t = Number(row.dataset.t), i = Number(row.dataset.i);
                 row.querySelector('.he-og').onchange = () => {
                     pull();
