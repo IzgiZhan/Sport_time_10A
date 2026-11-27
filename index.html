@@ -1123,6 +1123,13 @@
         .he-save { background: linear-gradient(135deg, #48bb78, #2f855a); box-shadow: 0 8px 18px rgba(47,133,90,.38), inset 0 1px 0 rgba(255,255,255,.3); }
         .he-save:hover { filter: brightness(1.07); transform: translateY(-1px); }
 
+        /* edit dialog: goal rows like the live tournament editor (score -> scorer / assist) */
+        .he-goal { display: block; padding: 10px; margin-bottom: 8px; border-radius: 12px; background: var(--card-bg); border: 1px solid var(--card-border); }
+        .he-gh { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; font-size: 12px; font-weight: 900; color: var(--primary-blue); }
+        .he-gs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .he-gs small { display: block; font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: .4px; color: var(--text-sub); margin-bottom: 3px; }
+        .he-ogl { display: inline-flex; align-items: center; height: 28px; padding: 0 10px; font-size: 11px; font-weight: 900; }
+
         /* ===== Admin: rating & awards rules editor ===== */
         .backup-row { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 12px; margin-top:8px; border-radius:12px; background:var(--input-bg); border:1px solid var(--card-border); }
         .backup-row-main { min-width:0; }
@@ -6854,108 +6861,112 @@ function syncAllGoalRows(saved) {
         const m = h && h.matches && h.matches[mi];
         if (!m) return;
         closeEditHistoryMatch();
-        const teamsArr = h.teams || [];
-        const roster = name => { const t = teamsArr.find(x => x.name === name); return (t && t.players) ? t.players : []; };
-        const r1 = roster(m.t1.name), r2 = roster(m.t2.name);
-        const allNames = [...r1, ...r2];
-        const opt = (list, sel) => list.map(n => `<option value="${esc(n)}" ${n === sel ? 'selected' : ''}>${esc(n)}</option>`).join('');
-        const withCur = (list, cur) => (cur && !list.includes(cur)) ? [...list, cur] : list;
-        const scorerSelect = (g) => {
-            const list = withCur(g.og ? (g.team === 1 ? r2 : r1) : (g.team === 1 ? r1 : r2), g.scorer);
-            return `<select class="he-scorer">${opt(list, g.scorer)}</select>`;
-        };
-        const assistSelect = (g) => {
-            const list = withCur(g.team === 1 ? r1 : r2, g.assist);
-            return `<select class="he-assist" ${g.og ? 'disabled' : ''}><option value="">No assist</option>${opt(list, g.assist || '')}</select>`;
-        };
-        const state = { goals: (m.goals || []).map(g => ({ ...g })) };
-        const st = { s1: Number(m.s1) || 0, s2: Number(m.s2) || 0, mvp: m.mvp || null };
+        const rosterOf = name => { const t = (h.teams || []).find(x => x.name === name); return (t && t.players) ? t.players : []; };
+        const R = { 1: rosterOf(m.t1.name), 2: rosterOf(m.t2.name) };
+        const opp = t => (t === 1 ? 2 : 1);
+        // goals per team, one row per goal of the score (like editing during a tournament)
+        const G = { 1: [], 2: [] };
+        (m.goals || []).forEach(g => G[g.team === 1 ? 1 : 2].push({ scorer: g.scorer || '', assist: g.assist || '', og: !!g.og }));
+        const score = { 1: Number(m.s1) || 0, 2: Number(m.s2) || 0 };
+        const fit = () => [1, 2].forEach(t => {
+            while (G[t].length < score[t]) G[t].push({ scorer: '', assist: '', og: false });
+            if (G[t].length > score[t]) G[t].length = score[t];
+        });
+        fit();
+        const optHtml = (list, sel, none) => (none ? `<option value="">${none}</option>` : '') +
+            ((sel && !list.includes(sel)) ? [...list, sel] : list).map(n => `<option value="${esc(n)}" ${n === sel ? 'selected' : ''}>${esc(n)}</option>`).join('');
         const o = document.createElement('div');
         o.id = 'heOverlay'; o.className = 'he-overlay';
-        const goalRows = team => state.goals.map((g, gi) => g.team !== team ? '' : `
-            <div class="he-goal" data-gi="${gi}">
-                ${scorerSelect(g)}
-                ${assistSelect(g)}
-                <label class="he-ogl ${g.og ? 'on' : ''}"><input type="checkbox" class="he-og" ${g.og ? 'checked' : ''}>OG</label>
-                <button type="button" class="he-del" aria-label="Remove goal">✕</button>
-            </div>`).join('');
-        const render = () => {
-            o.innerHTML = `
+        o.innerHTML = `
             <div class="he-dialog" role="dialog" aria-modal="true">
-                <div class="he-top">✏️ Edit match #${esc(m.no)}<small>Tournament #${idx + 1} · Round ${esc(m.tour)} · player stats, table, awards and ratings are recalculated</small></div>
+                <div class="he-top">✏️ Edit match #${esc(m.no)}<small>Tournament #${idx + 1} · Round ${esc(m.tour)}</small></div>
                 <div class="he-body">
                     <div class="he-score">
                         <div class="nm">${esc(m.t1.name)}</div>
-                        <div class="sc"><input id="heS1" type="number" min="0" max="99" value="${st.s1}"><b>:</b><input id="heS2" type="number" min="0" max="99" value="${st.s2}"></div>
+                        <div class="sc"><input id="heS1" type="number" inputmode="numeric" min="0" max="30" value="${score[1]}"><b>:</b><input id="heS2" type="number" inputmode="numeric" min="0" max="30" value="${score[2]}"></div>
                         <div class="nm r">${esc(m.t2.name)}</div>
                     </div>
-                    <div class="he-team"><h4>${esc(m.t1.name)} — goals</h4>${goalRows(1)}<button type="button" class="he-add" data-team="1"><span>＋</span> Add goal</button></div>
-                    <div class="he-team"><h4>${esc(m.t2.name)} — goals</h4>${goalRows(2)}<button type="button" class="he-add" data-team="2"><span>＋</span> Add goal</button></div>
-                    <div class="he-mvp">🏆 MVP
-                        <select id="heMvp"><option value="">No MVP</option><optgroup label="${esc(m.t1.name)}">${opt(r1, st.mvp)}</optgroup><optgroup label="${esc(m.t2.name)}">${opt(r2, st.mvp)}</optgroup></select>
-                    </div>
+                    <div id="heGoals"></div>
                 </div>
                 <div class="he-foot"><button type="button" class="he-cancel">Cancel</button><button type="button" class="he-save">✓ Save changes</button></div>
             </div>`;
-            o.querySelectorAll('.he-goal').forEach(row => {
-                const gi = Number(row.dataset.gi);
-                row.querySelector('.he-del').onclick = () => { pull(); state.goals.splice(gi, 1); syncScore(); render(); };
+        const box = o.querySelector('#heGoals');
+        const pull = () => {
+            box.querySelectorAll('.he-goal').forEach(row => {
+                const g = G[Number(row.dataset.t)][Number(row.dataset.i)];
+                if (!g) return;
+                g.og = row.querySelector('.he-og').checked;
+                g.scorer = row.querySelector('.he-scorer').value;
+                g.assist = g.og ? '' : row.querySelector('.he-assist').value;
+            });
+        };
+        const renderGoals = () => {
+            box.innerHTML = [1, 2].map(t => !G[t].length ? '' : `
+                <div class="he-team"><h4>${esc(t === 1 ? m.t1.name : m.t2.name)} — goals</h4>
+                ${G[t].map((g, i) => {
+                    const scorers = g.og ? R[opp(t)] : R[t];
+                    const assists = R[t].filter(n => n !== g.scorer);
+                    return `<div class="he-goal" data-t="${t}" data-i="${i}">
+                        <div class="he-gh"><span>Goal #${i + 1}</span><label class="he-ogl ${g.og ? 'on' : ''}"><input type="checkbox" class="he-og" ${g.og ? 'checked' : ''}>Own goal</label></div>
+                        <div class="he-gs">
+                            <div><small>Scorer</small><select class="he-scorer">${optHtml(scorers, g.scorer, '— choose —')}</select></div>
+                            <div><small>Assist</small><select class="he-assist" ${g.og ? 'disabled' : ''}>${optHtml(assists, g.assist, 'None')}</select></div>
+                        </div>
+                    </div>`;
+                }).join('')}</div>`).join('');
+            box.querySelectorAll('.he-goal').forEach(row => {
+                const t = Number(row.dataset.t), i = Number(row.dataset.i);
                 row.querySelector('.he-og').onchange = () => {
                     pull();
-                    const g = state.goals[gi];
-                    const list = g.og ? (g.team === 1 ? r2 : r1) : (g.team === 1 ? r1 : r2);
-                    if (!list.includes(g.scorer)) g.scorer = list[0] || '';
-                    if (g.og) g.assist = null;
-                    render();
+                    const g = G[t][i];
+                    const list = g.og ? R[opp(t)] : R[t];
+                    if (!list.includes(g.scorer)) g.scorer = '';
+                    if (g.og) g.assist = '';
+                    renderGoals();
                 };
+                row.querySelector('.he-scorer').onchange = () => { pull(); renderGoals(); };
             });
-            o.querySelectorAll('.he-add').forEach(b => b.onclick = () => {
-                pull();
-                const team = Number(b.dataset.team);
-                const list = team === 1 ? r1 : r2;
-                state.goals.push({ team, scorer: list[0] || '', assist: null, og: false });
-                syncScore(); render();
-            });
-            o.querySelector('.he-cancel').onclick = closeEditHistoryMatch;
-            o.querySelector('.he-save').onclick = save;
         };
-        // read the form back into state
-        const pull = () => {
-            o.querySelectorAll('.he-goal').forEach(row => {
-                const g = state.goals[Number(row.dataset.gi)];
-                if (!g) return;
-                g.scorer = row.querySelector('.he-scorer').value;
-                g.og = row.querySelector('.he-og').checked;
-                g.assist = g.og ? null : (row.querySelector('.he-assist').value || null);
-            });
-            const mv = o.querySelector('#heMvp'); if (mv) st.mvp = mv.value || null;
-            const a = o.querySelector('#heS1'), b = o.querySelector('#heS2');
-            if (a) st.s1 = Number(a.value) || 0;
-            if (b) st.s2 = Number(b.value) || 0;
-        };
-        const syncScore = () => {
-            st.s1 = state.goals.filter(g => g.team === 1).length;
-            st.s2 = state.goals.filter(g => g.team === 2).length;
-        };
-        const save = async () => {
+        const onScore = () => {
             pull();
-            if (state.goals.some(g => !g.scorer)) { alert('Choose a scorer for every goal.'); return; }
-            if (!st.mvp && !st.s1 && !st.s2 && !state.goals.length) {
-                const pool = [...r1, ...r2];
-                if (pool.length) st.mvp = pool[Math.floor(Math.random() * pool.length)];
+            score[1] = Math.max(0, Math.min(30, parseInt(o.querySelector('#heS1').value) || 0));
+            score[2] = Math.max(0, Math.min(30, parseInt(o.querySelector('#heS2').value) || 0));
+            fit(); renderGoals();
+        };
+        o.querySelector('#heS1').addEventListener('input', onScore);
+        o.querySelector('#heS2').addEventListener('input', onScore);
+        o.querySelector('.he-cancel').onclick = closeEditHistoryMatch;
+        o.addEventListener('click', e => { if (e.target === o) closeEditHistoryMatch(); });
+
+        o.querySelector('.he-save').onclick = async () => {
+            pull();
+            const goals = [];
+            [1, 2].forEach(t => G[t].forEach(g => { if (g.scorer) goals.push({ team: t, scorer: g.scorer, assist: g.og ? null : (g.assist || null), og: !!g.og }); }));
+            const sig = x => JSON.stringify([Number(x.s1) || 0, Number(x.s2) || 0, (x.goals || []).map(g => [g.team, g.scorer, g.assist || '', !!g.og].join('|')).sort()]);
+            const nm = { ...m, s1: score[1], s2: score[2], goals };
+            if (sig(nm) === sig(m)) { closeEditHistoryMatch(); return; }
+            // MVP is chosen automatically, like during a tournament: most goals+assists, tie -> winning team, nobody -> random
+            const pts = {};
+            goals.forEach(g => { if (g.og) return; pts[g.scorer] = (pts[g.scorer] || 0) + 1; if (g.assist) pts[g.assist] = (pts[g.assist] || 0) + 1; });
+            let top = [], max = 0;
+            Object.keys(pts).forEach(n => { if (pts[n] > max) { max = pts[n]; top = [n]; } else if (pts[n] === max) top.push(n); });
+            let mvp = null;
+            if (top.length === 1) mvp = top[0];
+            else if (top.length > 1) {
+                const win = score[1] > score[2] ? R[1] : (score[2] > score[1] ? R[2] : null);
+                const fromWin = win ? top.filter(n => win.includes(n)) : [];
+                const pool = fromWin.length ? fromWin : top;
+                mvp = pool[Math.floor(Math.random() * pool.length)];
+            } else {
+                const pool = [...R[1], ...R[2]];
+                if (pool.length) mvp = pool[Math.floor(Math.random() * pool.length)];
             }
-            const nm = {
-                ...m,
-                s1: st.s1, s2: st.s2,
-                goals: state.goals.map(g => ({ team: g.team, scorer: g.scorer, assist: g.og ? null : (g.assist || null), og: !!g.og })),
-                mvp: st.mvp || null
-            };
+            nm.mvp = mvp;
             closeEditHistoryMatch();
             await applyHistoryMatchEdit(idx, mi, nm);
         };
-        o.addEventListener('click', e => { if (e.target === o) closeEditHistoryMatch(); });
         document.body.appendChild(o);
-        render();
+        renderGoals();
     }
 
     async function applyHistoryMatchEdit(idx, mi, nm) {
