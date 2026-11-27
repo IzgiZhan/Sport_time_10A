@@ -581,6 +581,18 @@
         .match-team.right { justify-content: flex-end; text-align: right; }
         .match-team.right span.country-code { margin-left: 0; margin-right: -4px; }
         .match-score-inputs { display: flex; align-items: center; gap: 8px; }
+        /* match cards: bigger emblems without white circle, teams closer to the score */
+        .match-main { display: grid; grid-template-columns: 1fr auto 1fr; gap: 14px; }
+        .match-main .match-team { flex: none; min-width: 0; gap: 10px; font-size: 18px; justify-content: flex-end; }
+        .match-main .match-team.right { justify-content: flex-start; text-align: left; }
+        .match-main .match-team.right > div { text-align: left !important; }
+        .match-main .match-team span.country-code { font-size: 12px; }
+        .match-main .team-logo { width: 56px; height: 56px; background: none; border: none; border-radius: 0; padding: 0; flex-shrink: 0; }
+        @media (max-width: 520px) {
+            .match-main { gap: 8px; }
+            .match-main .match-team { font-size: 15px; gap: 6px; }
+            .match-main .team-logo { width: 40px; height: 40px; }
+        }
         .match-score-inputs input { width: 44px; height: 44px; text-align: center; font-size: 20px; font-weight: 900; background: var(--input-bg); border: 2px solid var(--card-border); color: var(--text-main); border-radius: 10px; outline: none; }
         .match-btn { background: var(--primary-green); color: #fff; border: none; padding: 12px 16px; border-radius: 10px; font-size: 13px; font-weight: 900; cursor: pointer; min-width: 120px; }
         .skip-match-btn { background: #263c50; border: 1px solid #263c50; }
@@ -1058,10 +1070,12 @@
         .hm-meta { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 11px; font-weight: 900; color: var(--text-sub); text-transform: uppercase; letter-spacing: .4px; margin-bottom: 10px; }
         .hm-share { background: var(--primary-blue); color: #fff; border: none; border-radius: 8px; padding: 5px 10px; font-size: 11px; font-weight: 900; cursor: pointer; }
         .hm-share:disabled { opacity: .6; cursor: wait; }
-        .hm-main { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 10px; }
+        .hm-main { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 14px; }
+        .hm-main .hm-team { font-size: 17px; justify-content: flex-end; }
+        .hm-main .hm-team.right { justify-content: flex-end; text-align: left; }
         .hm-team { display: flex; align-items: center; gap: 8px; min-width: 0; font-size: 14px; font-weight: 900; }
         .hm-team.right { flex-direction: row-reverse; text-align: right; }
-        .hm-team img { width: 38px; height: 38px; object-fit: contain; background: none; border-radius: 0; padding: 0; border: none; flex-shrink: 0; }
+        .hm-team img { width: 52px; height: 52px; object-fit: contain; background: none; border-radius: 0; padding: 0; border: none; flex-shrink: 0; }
         .hm-team span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .hm-score { font-size: 24px; font-weight: 900; color: var(--primary-blue); white-space: nowrap; }
         .hm-goals { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--card-border); }
