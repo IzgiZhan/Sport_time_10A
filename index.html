@@ -897,21 +897,7 @@
         .hist-sc-rank { width: 22px; height: 22px; border-radius: 50%; background: var(--card-border); color: var(--text-main); font-size: 11px; font-weight: 900; display: inline-flex; align-items: center; justify-content: center; }
         .hist-roster { display: block; margin-top: 3px; font-size: 11px; font-weight: 700; line-height: 1.35; color: var(--text-sub); }
         .hist-delete { background: rgba(229,62,62,.85); border: 1px solid rgba(255,255,255,.5); color: #fff; border-radius: 8px; padding: 3px 10px; font-size: 11px; font-weight: 900; cursor: pointer; }
-        body:not(.is-admin) .hist-delete, body:not(.is-admin) .hist-swap { display: none !important; }
-        .hist-swap { background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.4); color: #fff; border-radius: 8px; padding: 3px 10px; font-size: 11px; font-weight: 900; cursor: pointer; }
-        .swapstat-overlay { position: fixed; inset: 0; z-index: 10030; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(5,10,24,.72); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
-        .swapstat-dialog { width: min(440px, 100%); max-height: 90vh; overflow-y: auto; padding: 20px; border: 1px solid var(--card-border); border-radius: 20px; background: var(--card-bg); color: var(--text-main); box-shadow: 0 24px 70px rgba(0,0,0,.45); }
-        .swapstat-dialog h3 { font-size: 18px; font-weight: 900; margin-bottom: 4px; }
-        .swapstat-dialog .swapstat-sub { font-size: 12px; font-weight: 700; color: var(--text-sub); margin-bottom: 14px; line-height: 1.4; }
-        .swapstat-dialog label { display: block; margin: 10px 0 5px; font-size: 11px; font-weight: 900; text-transform: uppercase; color: var(--text-sub); }
-        .swapstat-dialog select { width: 100%; padding: 11px 10px; border-radius: 10px; border: 1px solid var(--card-border); background: var(--input-bg); color: var(--text-main); font-size: 14px; font-weight: 800; outline: none; }
-        .swapstat-preview { margin-top: 14px; padding: 12px; border-radius: 12px; background: var(--input-bg); border: 1px solid var(--card-border); font-size: 13px; font-weight: 800; line-height: 1.7; }
-        .swapstat-preview .swapstat-warn { color: var(--primary-red); }
-        .swapstat-actions { display: flex; gap: 10px; margin-top: 16px; }
-        .swapstat-actions button { flex: 1; padding: 13px; border: none; border-radius: 12px; font-size: 14px; font-weight: 900; cursor: pointer; }
-        .swapstat-actions .swapstat-cancel { background: var(--input-bg); color: var(--text-main); border: 1px solid var(--card-border); }
-        .swapstat-actions .swapstat-ok { background: linear-gradient(135deg, #6366f1, #4f46e5); color: #fff; }
-        .swapstat-actions .swapstat-ok:disabled { opacity: .45; cursor: not-allowed; }
+        body:not(.is-admin) .hist-delete { display: none !important; }
         .hist-share { background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.4); color: #fff; border-radius: 8px; padding: 3px 10px; font-size: 11px; font-weight: 900; cursor: pointer; }
 
         /* ===== Captain badge + team formation ===== */
@@ -1175,6 +1161,18 @@
 
         .he-live .goal-row.he-mvp-row { grid-template-columns: 190px minmax(0, 1fr); }
         @media (max-width: 760px) { .he-live .goal-row.he-mvp-row { grid-template-columns: 1fr; } }
+        /* flags: identical size and shape for every country (cropped to the same box) */
+        .league-table .team-logo[src*="flagcdn.com"] { width: 48px; height: 32px; object-fit: cover; border-radius: 4px !important; }
+        .match-main .team-logo[src*="flagcdn.com"] { width: 56px; height: 38px; object-fit: cover; border-radius: 5px !important; }
+        .he-live .team-logo[src*="flagcdn.com"] { width: 60px; height: 40px; object-fit: cover; border-radius: 5px !important; }
+        .hist-team img[src*="flagcdn.com"] { width: 40px; height: 27px; object-fit: cover; border-radius: 4px !important; }
+        .hm-team img[src*="flagcdn.com"] { width: 60px; height: 40px; object-fit: cover; border-radius: 5px !important; }
+        @media (max-width: 520px) {
+            .match-main .team-logo[src*="flagcdn.com"], .he-live .team-logo[src*="flagcdn.com"], .hm-team img[src*="flagcdn.com"] { width: 45px; height: 30px; }
+        }
+        /* club crests: same square box */
+        .league-table .team-logo:not([src*="flagcdn.com"]) { width: 36px; height: 36px; object-fit: contain; }
+
         /* ===== Admin: rating & awards rules editor ===== */
         .backup-row { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 12px; margin-top:8px; border-radius:12px; background:var(--input-bg); border:1px solid var(--card-border); }
         .backup-row-main { min-width:0; }
@@ -2234,6 +2232,25 @@ function shareHiRes(c, W, H, maxQ = 2) {
 }
 // make sure every Inter weight used on share images is loaded (else canvas falls back to a system font)
 try { if (document.fonts && document.fonts.load) ['400','500','600','700','800','900'].forEach(w => document.fonts.load(`${w} 24px Inter`, 'AaBbЯя0123(C)')); } catch (e) {}
+
+// Emblem drawing for share images: every flag gets the same 3:2 box (cropped), crests are fitted into a square
+function shareDrawEmblem(ctx, img, cx, cy, size) {
+    if (!img) return;
+    const iw = img.width || size, ih = img.height || size;
+    if (img._flag) {
+        const bw = size * 1.12, bh = size * 0.75;
+        const k = Math.max(bw / iw, bh / ih), sw = bw / k, sh = bh / k;
+        const rad = Math.max(3, size * 0.06);
+        ctx.save(); shareRR(ctx, cx - bw / 2, cy - bh / 2, bw, bh, rad); ctx.clip();
+        ctx.drawImage(img, (iw - sw) / 2, (ih - sh) / 2, sw, sh, cx - bw / 2, cy - bh / 2, bw, bh);
+        ctx.restore();
+        ctx.save(); ctx.strokeStyle = 'rgba(15,23,42,0.16)'; ctx.lineWidth = 1.5;
+        shareRR(ctx, cx - bw / 2, cy - bh / 2, bw, bh, rad); ctx.stroke(); ctx.restore();
+    } else {
+        const r = Math.min(size / iw, size / ih);
+        ctx.drawImage(img, cx - iw * r / 2, cy - ih * r / 2, iw * r, ih * r);
+    }
+}
 
 function shareRR(ctx, x, y, w, h, r) {
     ctx.beginPath();
@@ -5058,6 +5075,7 @@ function syncAllGoalRows(saved) {
     async function loadLogo(src) {
         const p = presetByLogo(src);
         let img = await loadImg(src || defaultLogo);
+        if (img && /flagcdn\.com/.test(String(src || ''))) img._flag = true;
         if (!img && p) { const alt = wikiAltLogo(p.logo); if (alt) img = await loadImg(alt); }
         if (!img) img = await loadImg(badgeLogo(p ? p.name : '', p ? p.code : '?'));
         return img;
@@ -5146,12 +5164,7 @@ function syncAllGoalRows(saved) {
             x.arcTo(X, Y, X + w, Y, r); x.closePath();
         };
         const fit = (t, max) => { while (x.measureText(t).width > max && t.length > 3) t = t.slice(0, -2); return t; };
-        const drawEmblem = (img, cx, cy, size) => {
-            if (!img) return;
-            const iw = img.width || size, ih = img.height || size;
-            const r = Math.min(size / iw, size / ih);
-            x.drawImage(img, cx - iw * r / 2, cy - ih * r / 2, iw * r, ih * r);
-        };
+        const drawEmblem = (img, cx, cy, size) => shareDrawEmblem(x, img, cx, cy, size);
 
         const g = x.createLinearGradient(0, 0, W, H);
         g.addColorStop(0, '#0f2742'); g.addColorStop(1, '#2b6cb0');
@@ -5190,14 +5203,7 @@ function syncAllGoalRows(saved) {
             x.fillStyle = i < 3 ? '#fff' : '#4a5568'; x.font = F('900', 26); x.textAlign = 'center';
             x.fillText(String(i + 1), col.rank, cy + 9);
             if (logos[i]) {
-                x.save(); x.beginPath(); x.arc(col.team + 28, cy, 28, 0, Math.PI * 2); x.clip();
-                x.fillStyle = '#fff'; x.fillRect(col.team, cy - 28, 56, 56);
-                const r = Math.min(48 / (logos[i].width || 48), 48 / (logos[i].height || 48));
-                const w = (logos[i].width || 48) * r, h = (logos[i].height || 48) * r;
-                x.drawImage(logos[i], col.team + 28 - w / 2, cy - h / 2, w, h);
-                x.restore();
-                x.strokeStyle = '#e2e8f0'; x.lineWidth = 2;
-                x.beginPath(); x.arc(col.team + 28, cy, 28, 0, Math.PI * 2); x.stroke();
+                shareDrawEmblem(x, logos[i], col.team + 28, cy, 52);
             }
             // team name + small roster under it
             const lns = teamLines[i];
@@ -5383,8 +5389,7 @@ function syncAllGoalRows(saved) {
             x.fillStyle = colors.accent; x.fillRect(cx, cy + 20, 4, 54);
             const logo = logos[index], size = 54, lx = cx + 22, ly = cy + 26;
             if (logo) {
-                const iw = logo.width || size, ih = logo.height || size, scale = Math.min(size / iw, size / ih);
-                x.drawImage(logo, lx + (size - iw * scale) / 2, ly + (size - ih * scale) / 2, iw * scale, ih * scale);
+                shareDrawEmblem(x, logo, lx + size / 2, ly + size / 2, size);
             } else shareDrawEmoji(x, '⚽', lx + size / 2, ly + size / 2, 38);
             // Fit long team names without colliding with the logo or the rating column.
             x.textAlign = 'left'; x.fillStyle = colors.ink;
@@ -5656,12 +5661,7 @@ function syncAllGoalRows(saved) {
             while (t.length && x.measureText(t + (t === original ? '' : '…')).width > max) t = t.slice(0, -1);
             return t === original ? t : t + '…';
         };
-        const drawEmblem = (img, cx, cy, size) => {
-            if (!img) return;
-            const iw = img.width || size, ih = img.height || size;
-            const r = Math.min(size / iw, size / ih);
-            x.drawImage(img, cx - iw * r / 2, cy - ih * r / 2, iw * r, ih * r);
-        };
+        const drawEmblem = (img, cx, cy, size) => shareDrawEmblem(x, img, cx, cy, size);
         const g = x.createLinearGradient(0, 0, W, H);
         g.addColorStop(0, '#0f2742'); g.addColorStop(1, '#2b6cb0');
         x.fillStyle = g; x.fillRect(0, 0, W, H);
@@ -5926,11 +5926,7 @@ function syncAllGoalRows(saved) {
             x.fillText(`MATCH #${m.no}  ·  ROUND ${m.tour}`, cx, y + 34);
 
             const cy = y + 100;
-            const drawLogo = (img, lx, R) => {
-                if (!img) return;
-                const k = Math.min((R * 2) / img.width, (R * 2) / img.height);
-                x.drawImage(img, lx - img.width * k / 2, cy - img.height * k / 2, img.width * k, img.height * k);
-            };
+            const drawLogo = (img, lx, R) => shareDrawEmblem(x, img, lx, cy, R * 2);
             drawLogo(l1, pad + 66, 38);
             drawLogo(l2, pad + cw - 66, 38);
             x.fillStyle = '#1a202c'; x.font = SF('900', 30);
@@ -6035,11 +6031,7 @@ function syncAllGoalRows(saved) {
             const l1 = await getLogo(m.t1.logo), l2 = await getLogo(m.t2.logo);
             shareCard(x, cx0, y, cardW, rowH, Math.min(26, rowH * 0.24));
             const win1 = m.s1 > m.s2, win2 = m.s2 > m.s1;
-            const drawLogo = (img, lx) => {
-                if (!img) return;
-                const k = Math.min((R * 2) / img.width, (R * 2) / img.height);
-                x.drawImage(img, lx - img.width * k / 2, mid - img.height * k / 2, img.width * k, img.height * k);
-            };
+            const drawLogo = (img, lx) => shareDrawEmblem(x, img, lx, mid, R * 2);
             drawLogo(l1, cx0 + inset + R);
             drawLogo(l2, cx0 + cardW - inset - R);
             x.fillStyle = '#ebf4ff'; shareRR(x, cxm - pillW / 2, mid - pillH / 2, pillW, pillH, pillH / 2); x.fill();
@@ -6108,17 +6100,8 @@ function syncAllGoalRows(saved) {
             x.arcTo(X, Y, X + w, Y, r); x.closePath();
         };
         const fit = (t, max) => { while (x.measureText(t).width > max && t.length > 3) t = t.slice(0, -2); return t; };
-        const drawEmblem = (img, cx, cy, size) => {
-            if (!img) return;
-            const iw = img.width || size, ih = img.height || size;
-            const r = Math.min(size / iw, size / ih);
-            x.drawImage(img, cx - iw * r / 2, cy - ih * r / 2, iw * r, ih * r);
-        };
-        const drawLogo = (img, cx, cy, R) => {
-            if (!img) return;
-            const r = Math.min((R * 2) / img.width, (R * 2) / img.height);
-            x.drawImage(img, cx - img.width * r / 2, cy - img.height * r / 2, img.width * r, img.height * r);
-        };
+        const drawEmblem = (img, cx, cy, size) => shareDrawEmblem(x, img, cx, cy, size);
+        const drawLogo = (img, cx, cy, R) => shareDrawEmblem(x, img, cx, cy, R * 2);
 
         const g = x.createLinearGradient(0, 0, W, H);
         g.addColorStop(0, '#0f2742'); g.addColorStop(1, '#2b6cb0');
@@ -6662,7 +6645,6 @@ function syncAllGoalRows(saved) {
                         <span>${esc(d)} · ${h.rounds} rounds</span>
                         <button class="hist-share" onclick="openHistoryMatches(${list.length - 1 - i})">📋 Match History</button>
                         <button class="hist-share" onclick="shareHistory(${list.length - 1 - i})">📤 Share</button>
-                        <button class="hist-swap" onclick="openSwapStatsDialog(${list.length - 1 - i})">🔁 Swap stats</button>
                         <button class="hist-delete" onclick="deleteHistoryTournament(${list.length - 1 - i})">🗑 Delete</button>
                     </div>
                     <div class="hist-winner">
@@ -6812,101 +6794,6 @@ function syncAllGoalRows(saved) {
         const info = n => { const p = playersData.find(x => x.name === n); return { r: Number(p && p.rating) || 0, s: Number(p && p.speed) || 3 }; };
         return [...(names || [])].sort((a, b) => { const A = info(a), B = info(b); return (B.r - A.r) || (B.s - A.s) || String(a).localeCompare(String(b)); });
     }
-
-    // ---------- Swap two players' stats in a finished tournament ----------
-    function openSwapStatsDialog(idx) {
-        if (!requireAdmin("swap player stats")) return;
-        const h = (allTimeStats.__history || [])[idx];
-        if (!h) return;
-        const stats = Array.isArray(h.playerStats) ? h.playerStats : [];
-        if (stats.length < 2) { alert("This older tournament has no saved per-player stats, so they can't be swapped."); return; }
-        const n = v => Number(v) || 0;
-        const list = [...stats].sort((a, b) => String(a.name).localeCompare(String(b.name)));
-        const opts = sel => list.map((p, i) => `<option value="${esc(String(p.id))}" ${i === sel ? 'selected' : ''}>${esc(p.name)} — ⚽${n(p.goals)}  🅰️${n(p.assists)}  🏆${n(p.mvp)}</option>`).join('');
-        const ov = document.createElement('div');
-        ov.className = 'swapstat-overlay';
-        ov.innerHTML = `<div class="swapstat-dialog">
-            <h3>🔁 Swap stats</h3>
-            <div class="swapstat-sub">Tournament #${idx + 1}. The two players exchange their goals, assists, MVP and their teams — in this tournament and in All Time.</div>
-            <label>Player 1</label><select id="swapStatA">${opts(0)}</select>
-            <label>Player 2</label><select id="swapStatB">${opts(1)}</select>
-            <div class="swapstat-preview" id="swapStatPreview"></div>
-            <div class="swapstat-actions">
-                <button type="button" class="swapstat-cancel" id="swapStatCancel">Cancel</button>
-                <button type="button" class="swapstat-ok" id="swapStatOk">Swap</button>
-            </div></div>`;
-        document.body.appendChild(ov);
-        const selA = ov.querySelector('#swapStatA'), selB = ov.querySelector('#swapStatB');
-        const prev = ov.querySelector('#swapStatPreview'), ok = ov.querySelector('#swapStatOk');
-        const get = id => stats.find(p => String(p.id) === String(id));
-        const line = (p, q) => `<b>${esc(p.name)}</b>: ⚽ ${n(p.goals)} → ${n(q.goals)} · 🅰️ ${n(p.assists)} → ${n(q.assists)} · 🏆 ${n(p.mvp)} → ${n(q.mvp)}`;
-        const update = () => {
-            const a = get(selA.value), b = get(selB.value);
-            const bad = !a || !b || String(a.id) === String(b.id);
-            ok.disabled = bad;
-            prev.innerHTML = bad ? '<span class="swapstat-warn">Choose two different players.</span>' : line(a, b) + '<br>' + line(b, a);
-        };
-        selA.onchange = selB.onchange = update;
-        update();
-        const close = () => ov.remove();
-        ov.querySelector('#swapStatCancel').onclick = close;
-        ov.addEventListener('click', e => { if (e.target === ov) close(); });
-        ok.onclick = async () => { const a = selA.value, b = selB.value; close(); await swapHistoryStats(idx, a, b); };
-    }
-
-    async function swapHistoryStats(idx, idA, idB) {
-        if (!requireAdmin("swap player stats")) return;
-        const h = (allTimeStats.__history || [])[idx];
-        if (!h || !Array.isArray(h.playerStats)) return;
-        const a = h.playerStats.find(p => String(p.id) === String(idA));
-        const b = h.playerStats.find(p => String(p.id) === String(idB));
-        if (!a || !b || a === b) return;
-        const snap = takeResetSnapshot();
-        const n = v => Number(v) || 0;
-        const oldA = { goals: n(a.goals), assists: n(a.assists), mvp: n(a.mvp) };
-        const oldB = { goals: n(b.goals), assists: n(b.assists), mvp: n(b.mvp) };
-        ['goals', 'assists', 'mvp'].forEach(k => { a[k] = oldB[k]; b[k] = oldA[k]; });
-
-        // All Time totals follow the same change
-        const shift = (ps, from, to) => {
-            const rec = allTimeStats[String(ps.id)];
-            if (!rec) return;
-            ['goals', 'assists', 'mvp'].forEach(k => { rec[k] = Math.max(0, n(rec[k]) - from[k] + to[k]); });
-        };
-        shift(a, oldA, oldB);
-        shift(b, oldB, oldA);
-
-        // The players also trade places in the line-ups (and the team emblem shown next to them)
-        const teamsArr = h.teams || [];
-        const ia = teamsArr.findIndex(t => (t.players || []).includes(a.name));
-        const ib = teamsArr.findIndex(t => (t.players || []).includes(b.name));
-        if (ia >= 0 && ib >= 0 && ia !== ib) {
-            const pa = teamsArr[ia].players, pb = teamsArr[ib].players;
-            pa[pa.indexOf(a.name)] = b.name;
-            pb[pb.indexOf(b.name)] = a.name;
-            const lg = a.logo; a.logo = b.logo; b.logo = lg;
-        }
-
-        // names in the saved matches follow the swap too
-        const swapName = nm => nm === a.name ? b.name : (nm === b.name ? a.name : nm);
-        if (ia >= 0 && ib >= 0 && ia !== ib) {
-            teamsArr.forEach(t => { if (t.captain) t.captain = swapName(t.captain); });
-            (h.matches || []).forEach(mm => ['t1', 't2'].forEach(k => { if (mm[k] && mm[k].captain) mm[k].captain = swapName(mm[k].captain); }));
-        }
-        (h.matches || []).forEach(mm => {
-            (mm.goals || []).forEach(g => { g.scorer = swapName(g.scorer); if (g.assist) g.assist = swapName(g.assist); });
-            if (mm.mvp) mm.mvp = swapName(mm.mvp);
-        });
-
-        // Tournament awards are recalculated from the corrected stats
-        h.awards = computeAwards(h.playerStats, p => (h.teams || []).findIndex(t => (t.players || []).includes(p.name)));
-
-        renderHistory();
-        renderLeaderboard(leaderboardMetric);
-        await saveData();
-        showUndoToast(`Stats swapped: ${a.name} ⇄ ${b.name}`, snap);
-    }
-
 
     // ---------- Edit a match of a finished tournament ----------
     function closeEditHistoryMatch() { const o = document.getElementById('heOverlay'); if (o) o.remove(); }
