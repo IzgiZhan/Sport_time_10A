@@ -521,7 +521,8 @@
         .team-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
         .team-header { background: var(--input-bg); color: var(--text-main); padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; gap: 8px; border-bottom: 1px solid var(--card-border); }
         .team-header-title { display: flex; align-items: center; gap: 10px; flex: 1; }
-        .team-logo { width: 30px; height: 30px; object-fit: contain; background: #fff; border-radius: 50%; padding: 2px; border: 1px solid var(--card-border); }
+        .team-logo { width: 30px; height: 30px; object-fit: contain; background: none; border-radius: 0; padding: 0; border: none; flex-shrink: 0; }
+        .team-logo[src*="flagcdn.com"] { width: 36px; height: 24px; object-fit: cover; border-radius: 4px; }
         .team-select { background: var(--card-bg); color: var(--text-main); border: 1px solid var(--card-border); font-weight: 800; font-size: 13px; border-radius: 8px; padding: 6px; width: 100%; outline: none; }
         .team-score { font-size: 12px; font-weight: 900; background: rgba(49, 130, 206, 0.15); color: var(--primary-blue); border: 1px solid var(--card-border); padding: 4px 8px; border-radius: 12px; }
         .team-list { list-style: none; }
@@ -586,7 +587,7 @@
         /* current tournament match cards: slightly bigger emblems, no white background */
         .match-main .match-team { font-size: 16px; gap: 10px; }
         .match-main .match-team span.country-code { font-size: 11px; }
-        .match-main .team-logo { width: 42px; height: 42px; background: none; border: none; border-radius: 0; padding: 0; flex-shrink: 0; }
+        .match-main .team-logo { width: 36px; height: 36px; background: none; border: none; border-radius: 0; padding: 0; flex-shrink: 0; }
         .match-score-inputs { display: flex; align-items: center; gap: 8px; }
         .match-score-inputs input { width: 44px; height: 44px; text-align: center; font-size: 20px; font-weight: 900; background: var(--input-bg); border: 2px solid var(--card-border); color: var(--text-main); border-radius: 10px; outline: none; }
         .match-btn { background: var(--primary-green); color: #fff; border: none; padding: 12px 16px; border-radius: 10px; font-size: 13px; font-weight: 900; cursor: pointer; min-width: 120px; }
@@ -871,7 +872,7 @@
         .hist-table tbody tr:nth-child(even) { background: var(--input-bg); }
         .hist-table tbody tr.hist-first { background: rgba(214,158,46,.10); }
         .hist-team { display: flex; align-items: center; gap: 10px; text-align: left !important; }
-        .hist-team img { width: 30px; height: 30px; object-fit: contain; background: none; border-radius: 0; padding: 0; border: none; flex-shrink: 0; }
+        .hist-team img { width: 26px; height: 26px; object-fit: contain; background: none; border-radius: 0; padding: 0; border: none; flex-shrink: 0; }
         .hist-gf { color: var(--text-sub); }
         .hist-pts { color: var(--primary-green); font-size: 16px !important; font-weight: 900 !important; }
         .hist-rank { display: inline-flex; width: 26px; height: 26px; align-items: center; justify-content: center; border-radius: 50%; background: var(--card-border); color: var(--text-main); font-size: 12px; font-weight: 900; }
@@ -1055,7 +1056,7 @@
         .hm-main .hm-team { font-size: 17px; }
         .hm-team { display: flex; align-items: center; gap: 8px; min-width: 0; font-size: 14px; font-weight: 900; }
         .hm-team.right { flex-direction: row-reverse; text-align: right; }
-        .hm-team img { width: 52px; height: 52px; object-fit: contain; background: none; border-radius: 0; padding: 0; border: none; flex-shrink: 0; }
+        .hm-team img { width: 40px; height: 40px; object-fit: contain; background: none; border-radius: 0; padding: 0; border: none; flex-shrink: 0; }
         .hm-team span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .hm-score { font-size: 24px; font-weight: 900; color: var(--primary-blue); white-space: nowrap; }
         .hm-goals { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--card-border); }
@@ -1133,7 +1134,7 @@
         .he-live .match-main { align-items: center; }
         .he-live .match-team { gap: 10px; font-size: 18px; }
         .he-live .match-team span.country-code { font-size: 12px; margin: 0; }
-        .he-live .team-logo { width: 56px; height: 56px; background: none; border: none; border-radius: 0; padding: 0; flex-shrink: 0; }
+        .he-live .team-logo { width: 40px; height: 40px; background: none; border: none; border-radius: 0; padding: 0; flex-shrink: 0; }
         .he-live .match-score-inputs { justify-content: center; align-items: center; gap: 10px; }
         .he-live .match-score-inputs input { width: 56px; height: 56px; padding: 0; text-align: center; -moz-appearance: textfield; appearance: textfield; }
         .he-live .match-score-inputs input::-webkit-outer-spin-button, .he-live .match-score-inputs input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
@@ -1143,7 +1144,7 @@
 
         /* emblems: never a white disc / ring behind them */
         .league-table .team-logo, .match-main .team-logo, .he-live .team-logo, .team-cell .team-logo { background: none !important; border: none !important; border-radius: 0 !important; padding: 0 !important; box-shadow: none !important; }
-        .league-table .team-logo { width: 36px; height: 36px; object-fit: contain; }
+        .league-table .team-logo { object-fit: contain; }
 
         /* history editor: perfectly aligned columns for every goal row */
         .he-live .goal-events-container { display: flex; flex-direction: column; gap: 8px; padding: 12px; }
@@ -1162,16 +1163,21 @@
         .he-live .goal-row.he-mvp-row { grid-template-columns: 190px minmax(0, 1fr); }
         @media (max-width: 760px) { .he-live .goal-row.he-mvp-row { grid-template-columns: 1fr; } }
         /* flags: identical size and shape for every country (cropped to the same box) */
-        .league-table .team-logo[src*="flagcdn.com"] { width: 48px; height: 32px; object-fit: cover; border-radius: 4px !important; }
-        .match-main .team-logo[src*="flagcdn.com"] { width: 56px; height: 38px; object-fit: cover; border-radius: 5px !important; }
-        .he-live .team-logo[src*="flagcdn.com"] { width: 60px; height: 40px; object-fit: cover; border-radius: 5px !important; }
-        .hist-team img[src*="flagcdn.com"] { width: 40px; height: 27px; object-fit: cover; border-radius: 4px !important; }
-        .hm-team img[src*="flagcdn.com"] { width: 60px; height: 40px; object-fit: cover; border-radius: 5px !important; }
+        .team-logo[src*="flagcdn.com"] { width: 36px; height: 24px; object-fit: cover; border-radius: 4px !important; }
+        .league-table .team-logo[src*="flagcdn.com"] { width: 36px; height: 24px; }
+        .match-main .team-logo[src*="flagcdn.com"] { width: 42px; height: 28px; object-fit: cover; border-radius: 4px !important; }
+        .he-live .team-logo[src*="flagcdn.com"] { width: 44px; height: 30px; object-fit: cover; border-radius: 5px !important; }
+        .hist-team img[src*="flagcdn.com"] { width: 30px; height: 20px; object-fit: cover; border-radius: 3px !important; }
+        .hm-team img[src*="flagcdn.com"] { width: 44px; height: 30px; object-fit: cover; border-radius: 5px !important; }
         @media (max-width: 520px) {
-            .match-main .team-logo[src*="flagcdn.com"], .he-live .team-logo[src*="flagcdn.com"], .hm-team img[src*="flagcdn.com"] { width: 45px; height: 30px; }
+            .match-main .team-logo[src*="flagcdn.com"], .he-live .team-logo[src*="flagcdn.com"], .hm-team img[src*="flagcdn.com"] { width: 36px; height: 24px; }
         }
-        /* club crests: same square box */
-        .league-table .team-logo:not([src*="flagcdn.com"]) { width: 36px; height: 36px; object-fit: contain; }
+        /* club crests: same smaller square box */
+        .league-table .team-logo:not([src*="flagcdn.com"]) { width: 30px; height: 30px; object-fit: contain; }
+        .match-main .team-logo:not([src*="flagcdn.com"]) { width: 36px; height: 36px; }
+        .he-live .team-logo:not([src*="flagcdn.com"]) { width: 40px; height: 40px; }
+        .hm-team img:not([src*="flagcdn.com"]) { width: 40px; height: 40px; }
+        .hist-team img:not([src*="flagcdn.com"]) { width: 26px; height: 26px; }
 
         /* ===== Admin: rating & awards rules editor ===== */
         .backup-row { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 12px; margin-top:8px; border-radius:12px; background:var(--input-bg); border:1px solid var(--card-border); }
