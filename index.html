@@ -1179,6 +1179,13 @@
         .hm-team img:not([src*="flagcdn.com"]) { width: 40px; height: 40px; }
         .hist-team img:not([src*="flagcdn.com"]) { width: 26px; height: 26px; }
 
+        /* admin sub-tabs */
+        .adm-tabs { display: flex; gap: 6px; padding: 5px; margin: 0 0 16px; background: var(--input-bg); border: 1px solid var(--card-border); border-radius: 16px; }
+        .adm-tab { flex: 1; padding: 11px 8px; border: none; border-radius: 12px; background: transparent; color: var(--text-sub); font-size: 13px; font-weight: 900; cursor: pointer; transition: background .15s ease, color .15s ease, box-shadow .15s ease; }
+        .adm-tab:hover { color: var(--text-main); }
+        .adm-tab.active { background: linear-gradient(135deg, #3182ce, #2b6cb0); color: #fff; box-shadow: 0 6px 14px rgba(49,130,206,.35); }
+        .adm-pane[hidden] { display: none !important; }
+
         /* ===== Admin: rating & awards rules editor ===== */
         .backup-row { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 12px; margin-top:8px; border-radius:12px; background:var(--input-bg); border:1px solid var(--card-border); }
         .backup-row-main { min-width:0; }
@@ -1362,6 +1369,13 @@
         <span class="section-title">🔐 Admin</span>
       </div>
 
+      <div class="adm-tabs">
+        <button type="button" class="adm-tab active" data-pane="players" onclick="setAdminPane('players')">👥 Players</button>
+        <button type="button" class="adm-tab" data-pane="ratings" onclick="setAdminPane('ratings')">⭐ Ratings</button>
+        <button type="button" class="adm-tab" data-pane="backups" onclick="setAdminPane('backups')">🗂 Backups</button>
+      </div>
+
+      <div class="adm-pane" data-pane="players">
       <div class="admin-heading">
         <span>Player</span><span>Rating</span><span>Speed</span><span>Positions</span><span></span>
       </div>
@@ -1376,6 +1390,9 @@
         </div>
       </div>
 
+</div><!-- /players pane -->
+
+<div class="adm-pane" data-pane="ratings" hidden>
 <div class="admin-add-card" id="adminRulesCard" style="padding:18px;">
   <div class="rules-admin-title">⭐ How rating works</div>
   <div class="rules-admin-grid">
@@ -1400,18 +1417,16 @@
   <div class="rules-admin-note">After pressing Save, the "How rating works" cards, share images and every player's rating are updated: the difference between the old and new rules is applied to the current tournament and to all finished tournaments in History. Own goals from finished tournaments are not stored, so a change to the own-goal value only affects the current tournament and future ones.</div>
 </div>
 
+</div><!-- /ratings pane -->
+
+<div class="adm-pane" data-pane="backups" hidden>
 <div class="admin-add-card" id="adminBackupsCard" style="padding:18px;">
   <div class="rules-admin-title">🗂 Backups (drafts)</div>
   <div id="backupList"><div class="rules-admin-note" style="margin-top:0;">Open the Admin tab to load backups…</div></div>
-  <div class="rules-admin-actions">
-    <button class="btn btn-green" onclick="createManualBackup()">💾 Create backup now</button>
-  </div>
-  <div class="rules-admin-note">A backup of the previous data is made automatically when you save (at most once every 20 minutes) and always before players or history are deleted. The newest 15 backups are kept. "Restore" brings back everything from that moment: players, ratings, teams, matches, history and rules. The current data is backed up first, so a restore can be undone.</div>
+  <div class="rules-admin-note">A backup of the previous data is made automatically when you save (at most once every 20 minutes) and always before players or history are deleted. Only the newest 3 backups are kept. "Restore" brings back everything from that moment: players, ratings, teams, matches, history and rules. The current data is backed up first, so a restore can be undone.</div>
 </div>
 
-<div class="admin-add-card" style="padding:18px;">
-  <button class="btn btn-dark" style="margin:0;" onclick="restoreStartingRatings()">⭐ Restore Starting Ratings</button>
-</div>
+</div><!-- /backups pane -->
 
 <div class="admin-save-bar">
   <button class="admin-save-btn" onclick="saveAdminChanges()">💾 Save</button>
@@ -3092,6 +3107,15 @@ function shareCard(ctx, x, y, w, h, r = 28, fill = '#fff') {
 
     let currentOpenTab = 'playersTab';
 
+    let admPane = 'players';
+    function setAdminPane(name) {
+        admPane = name;
+        document.querySelectorAll('.adm-pane').forEach(p => { p.hidden = p.dataset.pane !== name; });
+        document.querySelectorAll('.adm-tab').forEach(b => b.classList.toggle('active', b.dataset.pane === name));
+        const sb = document.querySelector('.admin-save-bar');
+        if (sb) sb.style.display = name === 'backups' ? 'none' : '';
+    }
+
     function switchTab(tabId, btn) {
         currentOpenTab = tabId;
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
@@ -3101,7 +3125,7 @@ function shareCard(ctx, x, y, w, h, r = 28, fill = '#fff') {
         updateResetButtonLabel();
         if(tabId === 'leadersTab') renderLeaderboard(leaderboardMetric);
         if(tabId === 'playersTab') renderPlayers();
-        if(tabId === 'adminTab') { renderAdminPlayers(); renderAdminRules(); renderAdminBackups(); }
+        if(tabId === 'adminTab') { renderAdminPlayers(); renderAdminRules(); renderAdminBackups(); setAdminPane(admPane); }
     }
 
     function updateResetButtonLabel() {
@@ -7467,7 +7491,8 @@ function syncAllGoalRows(saved) {
 
     // ---------- Backups (drafts) ----------
     // Backups are extra rows in the same table: ids APP_STATE_ID*1000 + 1 ... + BACKUP_SLOTS (a ring of the newest ones).
-    const BACKUP_SLOTS = 15;
+    const BACKUP_SLOTS = 15;      // id space of the ring
+    const BACKUPS_KEEP = 3;       // only the newest 3 backups are kept
     const BACKUP_INTERVAL_MS = 20 * 60 * 1000;
     const BACKUP_MIN_GAP_MS = 2 * 60 * 1000;
     let lastSavedState = null;     // the last state known to be in the database (before the next save)
@@ -7501,7 +7526,9 @@ function syncAllGoalRows(saved) {
             if (e1) throw e1;
             const used = new Map((ex || []).map(r => [r.id, new Date(r.updated_at).getTime() || 0]));
             let slot = null;
-            for (let i = 1; i <= BACKUP_SLOTS; i++) if (!used.has(base + i)) { slot = base + i; break; }
+            if (used.size < BACKUPS_KEEP) {
+                for (let i = 1; i <= BACKUP_SLOTS; i++) if (!used.has(base + i)) { slot = base + i; break; }
+            }
             if (slot === null) slot = [...used.entries()].sort((a, b) => a[1] - b[1])[0][0];   // overwrite the oldest
 
             const st = JSON.parse(json);
@@ -7511,12 +7538,26 @@ function syncAllGoalRows(saved) {
             if (error) throw error;
             lastBackupAt = Date.now();
             lastBackupJson = json;
+            await pruneBackups();
             return true;
         } catch (err) {
             console.error("Backup error:", err);
             showOnlineStatus("⚠️ Backup failed");
             return false;
         }
+    }
+
+    // delete everything except the newest BACKUPS_KEEP backups (also cleans old ones from the 15-slot era)
+    async function pruneBackups() {
+        try {
+            const base = APP_STATE_ID * 1000;
+            const { data, error } = await supabaseClient
+                .from("tournament_state").select("id, updated_at").gt("id", base).lte("id", base + BACKUP_SLOTS)
+                .order("updated_at", { ascending: false });
+            if (error || !data || data.length <= BACKUPS_KEEP) return;
+            const extra = data.slice(BACKUPS_KEEP).map(r => r.id);
+            await supabaseClient.from("tournament_state").delete().in("id", extra);
+        } catch (e) { console.error("Prune backups:", e); }
     }
 
     // runs before every admin save: keeps a copy of what is in the database right now
@@ -7554,6 +7595,7 @@ function syncAllGoalRows(saved) {
             return;
         }
         backupRowsCache = {};
+        if (data && data.length > BACKUPS_KEEP) { data.length = BACKUPS_KEEP; pruneBackups(); }
         if (!data || !data.length) {
             box.innerHTML = '<div class="rules-admin-note" style="margin-top:0;">No backups yet. One is created automatically the next time you save.</div>';
             return;
@@ -7573,7 +7615,6 @@ function syncAllGoalRows(saved) {
                 </div>
                 <div class="backup-row-actions">
                     <button class="btn btn-dark" onclick="restoreBackup(${r.id})">↩ Restore</button>
-                    <button class="btn btn-dark backup-del" onclick="deleteBackup(${r.id})">🗑 Delete</button>
                 </div>
             </div>`;
         }).join('');
