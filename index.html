@@ -563,7 +563,9 @@
         .league-table { width: 100%; border-collapse: collapse; text-align: center; font-size: 14px; }
         .league-table th { background: var(--input-bg); color: var(--text-sub); padding: 14px 10px; font-weight: 800; text-transform: uppercase; font-size: 11px; border-bottom: 1px solid var(--card-border); }
         .league-table td { padding: 14px 10px; border-bottom: 1px solid var(--card-border); font-weight: 700; }
-        .team-cell { text-align: left; font-weight: 900; color: var(--text-main); display: flex; align-items: center; gap: 10px; }
+        .team-cell { text-align: left; font-weight: 900; color: var(--text-main); display: table-cell; vertical-align: middle; }
+        .team-cell-inner { display: flex; align-items: center; gap: 10px; }
+        .league-table td, .league-table th { vertical-align: middle; }
         .team-cell .team-logo { background: none; border: none; border-radius: 0; padding: 0; }
         .team-cell span.country-code { font-size: 10px; font-weight: 700; color: var(--text-sub); text-transform: uppercase; margin-left: -4px; }
         .pts-cell { font-weight: 900; color: var(--primary-green); background: rgba(56, 161, 105, 0.1); }
@@ -1153,6 +1155,26 @@
         @media (max-width: 520px) { .he-live .match-team { font-size: 15px; gap: 6px; } .he-live .team-logo { width: 40px; height: 40px; } .he-live .match-score-inputs input { width: 44px; height: 44px; } }
         .he-live .match-actions .match-btn { min-width: 120px; }
 
+        /* emblems: never a white disc / ring behind them */
+        .league-table .team-logo, .match-main .team-logo, .he-live .team-logo, .team-cell .team-logo { background: none !important; border: none !important; border-radius: 0 !important; padding: 0 !important; box-shadow: none !important; }
+        .league-table .team-logo { width: 36px; height: 36px; object-fit: contain; }
+
+        /* history editor: perfectly aligned columns for every goal row */
+        .he-live .goal-events-container { display: flex; flex-direction: column; gap: 8px; padding: 12px; }
+        .he-live .goal-row { display: grid; grid-template-columns: 190px 56px minmax(0, 1fr) 104px 56px minmax(0, 1fr); align-items: center; gap: 10px; margin: 0; padding: 10px 12px; }
+        .he-live .goal-row > span:first-child { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .he-live .goal-row > label:not(.autogol-label) { text-align: right; }
+        .he-live .goal-row select { width: 100%; min-width: 0; height: 40px; flex: none; }
+        .he-live .autogol-label { justify-content: center; height: 40px; box-sizing: border-box; white-space: nowrap; }
+        @media (max-width: 760px) {
+            .he-live .goal-row { grid-template-columns: auto 1fr; row-gap: 8px; }
+            .he-live .goal-row > span:first-child { grid-column: 1 / -1; }
+            .he-live .goal-row > label:not(.autogol-label) { text-align: left; }
+            .he-live .autogol-label { grid-column: 1 / -1; justify-content: flex-start; padding: 0 12px; }
+        }
+
+        .he-live .goal-row.he-mvp-row { grid-template-columns: 190px minmax(0, 1fr); }
+        @media (max-width: 760px) { .he-live .goal-row.he-mvp-row { grid-template-columns: 1fr; } }
         /* ===== Admin: rating & awards rules editor ===== */
         .backup-row { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 12px; margin-top:8px; border-radius:12px; background:var(--input-bg); border:1px solid var(--card-border); }
         .backup-row-main { min-width:0; }
@@ -3653,13 +3675,13 @@ function shareCard(ctx, x, y, w, h, r = 28, fill = '#fff') {
             body.innerHTML += `
                 <tr>
                     <td>${i + 1}</td>
-                    <td class="team-cell">
+                    <td class="team-cell"><div class="team-cell-inner">
                         <img src="${t.logo || defaultLogo}" class="team-logo" alt="" onerror="logoFallback(this)">
                         <div style="display:flex; flex-direction:column; line-height:1.2;">
                             <span>${esc(t.name)}</span>
                             <span class="country-code">${t.code || ''}</span>
                         </div>
-                    </td>
+                    </div></td>
                     <td>${t.played}</td>
                     <td>${t.win}</td>
                     <td>${t.draw}</td>
@@ -3914,6 +3936,15 @@ function shareCard(ctx, x, y, w, h, r = 28, fill = '#fff') {
                     }
 
                     eventsHtml += `</div>`;
+                } else if (val1 !== '' && val2 !== '' && parseInt(val1) === 0 && parseInt(val2) === 0 && t1 && t2) {
+                    eventsHtml += `<div class="goal-events-container"><div class="goal-row">
+                        <span style="font-size:11px; font-weight:800; color:var(--primary-gold);">🏆 MVP (0:0):</span>
+                        <select id="m_${m.id}_mvp0" ${isAdminAuthenticated ? '' : 'disabled'}>
+                            <option value="">No MVP</option>
+                            <optgroup label="${esc(t1.name)}">${t1.players.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('')}</optgroup>
+                            <optgroup label="${esc(t2.name)}">${t2.players.map(p => `<option value="${p.id}">${esc(p.name)}</option>`).join('')}</optgroup>
+                        </select>
+                    </div></div>`;
                 }
 
                 container.innerHTML += `
@@ -4474,11 +4505,11 @@ function syncAllGoalRows(saved) {
         }
 
         /*
-         * Nobody scored or assisted (e.g. 0:0): pick the MVP randomly from both teams.
+         * 0:0 - the MVP is chosen by hand (no random pick).
          */
         if (mvpPlayerId === null && topPlayers.length === 0) {
-            const pool = [...(t1.players || []), ...(t2.players || [])].map(p => p.id);
-            if (pool.length) mvpPlayerId = pool[Math.floor(Math.random() * pool.length)];
+            const sel0 = document.getElementById(`m_${matchId}_mvp0`);
+            if (sel0 && sel0.value !== '') mvpPlayerId = parseInt(sel0.value);
         }
 
         /*
@@ -4551,6 +4582,7 @@ function syncAllGoalRows(saved) {
                 draft[base + '_scorer'] = String(e.scorerId);
                 draft[base + '_assistant'] = e.assistantId ? String(e.assistantId) : '';
             });
+            if (match.mvpId && (match.goalsDetails || []).length === 0) draft[`m_${match.id}_mvp0`] = String(match.mvpId);
         }
 
         const t1 = activeTeams.find(t => t.id === match.t1);
@@ -6892,6 +6924,7 @@ function syncAllGoalRows(saved) {
         const G = { 1: [], 2: [] };
         (m.goals || []).forEach(g => G[g.team === 1 ? 1 : 2].push({ scorer: g.scorer || '', assist: g.assist || '', og: !!g.og }));
         const score = { 1: Number(m.s1) || 0, 2: Number(m.s2) || 0 };
+        let mvp0 = m.mvp || '';
         const fit = () => [1, 2].forEach(t => {
             while (G[t].length < score[t]) G[t].push({ scorer: '', assist: '', og: false });
             if (G[t].length > score[t]) G[t].length = score[t];
@@ -6951,6 +6984,18 @@ function syncAllGoalRows(saved) {
                     <select class="he-assist" ${g.og ? 'disabled' : ''}>${optHtml(assists, g.assist, 'None')}</select>
                 </div>`;
             }).join('')).join('');
+            if (!score[1] && !score[2]) {
+                const names = [...R[1], ...R[2]];
+                box.innerHTML = `<div class="goal-events-container"><div class="goal-row he-mvp-row">
+                    <span style="font-size:11px; font-weight:800; color:var(--primary-gold);">🏆 MVP (0:0):</span>
+                    <select id="heMvp0"><option value="">No MVP</option>
+                        <optgroup label="${esc(m.t1.name)}">${optHtml(R[1], mvp0)}</optgroup>
+                        <optgroup label="${esc(m.t2.name)}">${optHtml(R[2], mvp0)}</optgroup>
+                    </select></div></div>`;
+                const sel = box.querySelector('#heMvp0');
+                if (sel) sel.onchange = () => { mvp0 = sel.value; };
+                return;
+            }
             box.innerHTML = rows ? `<div class="goal-events-container">${rows}</div>` : '';
             box.querySelectorAll('.goal-row').forEach(row => {
                 const t = Number(row.dataset.t), i = Number(row.dataset.i);
@@ -6982,22 +7027,26 @@ function syncAllGoalRows(saved) {
             [1, 2].forEach(t => G[t].forEach(g => { if (g.scorer) goals.push({ team: t, scorer: g.scorer, assist: g.og ? null : (g.assist || null), og: !!g.og }); }));
             const sig = x => JSON.stringify([Number(x.s1) || 0, Number(x.s2) || 0, (x.goals || []).map(g => [g.team, g.scorer, g.assist || '', !!g.og].join('|')).sort()]);
             const nm = { ...m, s1: score[1], s2: score[2], goals };
-            if (sig(nm) === sig(m)) { closeEditHistoryMatch(); return; }
+            const zero = !score[1] && !score[2];
+            if (zero) nm.goals = [];
+            if (sig(nm) === sig(m) && (!zero || (mvp0 || null) === (m.mvp || null))) { closeEditHistoryMatch(); return; }
             // MVP is chosen automatically, like during a tournament: most goals+assists, tie -> winning team, nobody -> random
             const pts = {};
-            goals.forEach(g => { if (g.og) return; pts[g.scorer] = (pts[g.scorer] || 0) + 1; if (g.assist) pts[g.assist] = (pts[g.assist] || 0) + 1; });
+            goals.forEach(g => {
+                if (g.og) { pts[g.scorer] = (pts[g.scorer] || 0) - 1; return; }
+                pts[g.scorer] = (pts[g.scorer] || 0) + 1;
+                if (g.assist) pts[g.assist] = (pts[g.assist] || 0) + 1;
+            });
             let top = [], max = 0;
             Object.keys(pts).forEach(n => { if (pts[n] > max) { max = pts[n]; top = [n]; } else if (pts[n] === max) top.push(n); });
             let mvp = null;
-            if (top.length === 1) mvp = top[0];
+            if (zero) mvp = mvp0 || null;
+            else if (top.length === 1) mvp = top[0];
             else if (top.length > 1) {
                 const win = score[1] > score[2] ? R[1] : (score[2] > score[1] ? R[2] : null);
                 const fromWin = win ? top.filter(n => win.includes(n)) : [];
                 const pool = fromWin.length ? fromWin : top;
                 mvp = pool[Math.floor(Math.random() * pool.length)];
-            } else {
-                const pool = [...R[1], ...R[2]];
-                if (pool.length) mvp = pool[Math.floor(Math.random() * pool.length)];
             }
             nm.mvp = mvp;
             closeEditHistoryMatch();
@@ -7421,6 +7470,10 @@ function syncAllGoalRows(saved) {
         });
         (h.teams || []).forEach(t => (t.players || []).forEach(name => {
             if (idByName[name] !== undefined) add(idByName[name], (Number(t.w) || 0) * R.win);
+        }));
+        // own goals (taken from the saved matches) cost rating
+        (h.matches || []).forEach(mm => (mm.goals || []).forEach(g => {
+            if (g.og && idByName[g.scorer] !== undefined) add(idByName[g.scorer], -(Number(R.ownGoal) || 0));
         }));
         // final place and award bonuses exist only for tournaments that were finished with them applied
         if (h.placementRatingBonuses !== undefined) {
