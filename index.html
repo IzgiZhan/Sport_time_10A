@@ -564,6 +564,7 @@
         .league-table th { background: var(--input-bg); color: var(--text-sub); padding: 14px 10px; font-weight: 800; text-transform: uppercase; font-size: 11px; border-bottom: 1px solid var(--card-border); }
         .league-table td { padding: 14px 10px; border-bottom: 1px solid var(--card-border); font-weight: 700; }
         .team-cell { text-align: left; font-weight: 900; color: var(--text-main); display: flex; align-items: center; gap: 10px; }
+        .team-cell .team-logo { background: none; border: none; border-radius: 0; padding: 0; }
         .team-cell span.country-code { font-size: 10px; font-weight: 700; color: var(--text-sub); text-transform: uppercase; margin-left: -4px; }
         .pts-cell { font-weight: 900; color: var(--primary-green); background: rgba(56, 161, 105, 0.1); }
 
@@ -580,6 +581,10 @@
         .match-team span.country-code { font-size: 10px; font-weight: 700; color: var(--text-sub); text-transform: uppercase; margin-left: -4px; }
         .match-team.right { justify-content: flex-end; text-align: right; }
         .match-team.right span.country-code { margin-left: 0; margin-right: -4px; }
+        /* current tournament match cards: slightly bigger emblems, no white background */
+        .match-main .match-team { font-size: 16px; gap: 10px; }
+        .match-main .match-team span.country-code { font-size: 11px; }
+        .match-main .team-logo { width: 42px; height: 42px; background: none; border: none; border-radius: 0; padding: 0; flex-shrink: 0; }
         .match-score-inputs { display: flex; align-items: center; gap: 8px; }
         .match-score-inputs input { width: 44px; height: 44px; text-align: center; font-size: 20px; font-weight: 900; background: var(--input-bg); border: 2px solid var(--card-border); color: var(--text-main); border-radius: 10px; outline: none; }
         .match-btn { background: var(--primary-green); color: #fff; border: none; padding: 12px 16px; border-radius: 10px; font-size: 13px; font-weight: 900; cursor: pointer; min-width: 120px; }
@@ -864,7 +869,7 @@
         .hist-table tbody tr:nth-child(even) { background: var(--input-bg); }
         .hist-table tbody tr.hist-first { background: rgba(214,158,46,.10); }
         .hist-team { display: flex; align-items: center; gap: 10px; text-align: left !important; }
-        .hist-team img { width: 28px; height: 28px; object-fit: contain; background: none; border-radius: 0; padding: 0; border: none; }
+        .hist-team img { width: 30px; height: 30px; object-fit: contain; background: none; border-radius: 0; padding: 0; border: none; flex-shrink: 0; }
         .hist-gf { color: var(--text-sub); }
         .hist-pts { color: var(--primary-green); font-size: 16px !important; font-weight: 900 !important; }
         .hist-rank { display: inline-flex; width: 26px; height: 26px; align-items: center; justify-content: center; border-radius: 50%; background: var(--card-border); color: var(--text-main); font-size: 12px; font-weight: 900; }
@@ -1059,9 +1064,10 @@
         .hm-share { background: var(--primary-blue); color: #fff; border: none; border-radius: 8px; padding: 5px 10px; font-size: 11px; font-weight: 900; cursor: pointer; }
         .hm-share:disabled { opacity: .6; cursor: wait; }
         .hm-main { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 10px; }
+        .hm-main .hm-team { font-size: 17px; }
         .hm-team { display: flex; align-items: center; gap: 8px; min-width: 0; font-size: 14px; font-weight: 900; }
         .hm-team.right { flex-direction: row-reverse; text-align: right; }
-        .hm-team img { width: 38px; height: 38px; object-fit: contain; background: none; border-radius: 0; padding: 0; border: none; flex-shrink: 0; }
+        .hm-team img { width: 52px; height: 52px; object-fit: contain; background: none; border-radius: 0; padding: 0; border: none; flex-shrink: 0; }
         .hm-team span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .hm-score { font-size: 24px; font-weight: 900; color: var(--primary-blue); white-space: nowrap; }
         .hm-goals { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--card-border); }
@@ -1076,6 +1082,8 @@
 
         /* ===== Edit a match of a finished tournament ===== */
         body:not(.is-admin) .hm-edit { display: none !important; }
+        body:not(.is-admin) .hm-edit-live { display: none !important; }
+        .hm-bottom-actions { margin-top: 12px; }
         .hm-actions { display: flex; gap: 6px; align-items: center; }
         .hm-edit { background: #d69e2e; color: #fff; border: none; border-radius: 8px; padding: 5px 10px; font-size: 11px; font-weight: 900; cursor: pointer; }
         .he-overlay { position: fixed; inset: 0; z-index: 10060; display: flex; align-items: center; justify-content: center; padding: 12px; background: rgba(5,10,24,.82); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
@@ -1133,6 +1141,16 @@
         /* history match editor = same look as the live match editor */
         .he-dialog.he-live { width: min(760px, 100%); overflow-y: auto; }
         .he-live .match-card { margin: 0; border: none; box-shadow: none; border-radius: 0; }
+        /* history match editor: bigger emblems without white circle, tidy score inputs */
+        .he-live .match-main { align-items: center; }
+        .he-live .match-team { gap: 10px; font-size: 18px; }
+        .he-live .match-team span.country-code { font-size: 12px; margin: 0; }
+        .he-live .team-logo { width: 56px; height: 56px; background: none; border: none; border-radius: 0; padding: 0; flex-shrink: 0; }
+        .he-live .match-score-inputs { justify-content: center; align-items: center; gap: 10px; }
+        .he-live .match-score-inputs input { width: 56px; height: 56px; padding: 0; text-align: center; -moz-appearance: textfield; appearance: textfield; }
+        .he-live .match-score-inputs input::-webkit-outer-spin-button, .he-live .match-score-inputs input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        .he-live .match-score-inputs span { font-weight: 900; font-size: 20px; line-height: 1; }
+        @media (max-width: 520px) { .he-live .match-team { font-size: 15px; gap: 6px; } .he-live .team-logo { width: 40px; height: 40px; } .he-live .match-score-inputs input { width: 44px; height: 44px; } }
         .he-live .match-actions .match-btn { min-width: 120px; }
 
         /* ===== Admin: rating & awards rules editor ===== */
@@ -5777,7 +5795,7 @@ function syncAllGoalRows(saved) {
             const g1 = (m.goals || []).filter(g => g.team === 1), g2 = (m.goals || []).filter(g => g.team === 2);
             return `
             <div class="hm-card">
-                <div class="hm-meta"><span>Match #${esc(m.no)} · Round ${esc(m.tour)}</span><div class="hm-actions">${idx === 'current' ? '' : `<button class="hm-share hm-edit" onclick="openEditHistoryMatch(${ik}, ${i})">✏️ Edit</button>`}<button class="hm-share" onclick="shareHistoryMatch(${ik}, ${i}, this)">📤 Share</button></div></div>
+                <div class="hm-meta"><span>Match #${esc(m.no)} · Round ${esc(m.tour)}</span></div>
                 <div class="hm-main">
                     <div class="hm-team"><img src="${esc(m.t1.logo || defaultLogo)}" alt="" onerror="logoFallback(this)"><span>${esc(m.t1.name)}</span></div>
                     <div class="hm-score">${m.s1} : ${m.s2}</div>
@@ -5785,6 +5803,10 @@ function syncAllGoalRows(saved) {
                 </div>
                 ${(g1.length || g2.length) ? `<div class="hm-goals"><div class="col">${g1.map(g => goalLine(m, g)).join('')}</div><div class="col right">${g2.map(g => goalLine(m, g)).join('')}</div></div>` : ''}
                 ${m.mvp ? `<div class="hm-mvp">🏆 MVP: ${esc(m.mvp)}${matchIsCaptain(m, m.mvp) ? '<span class="cap-band" title="Captain">C</span>' : ''}</div>` : ''}
+                <div class="match-actions hm-bottom-actions">
+                    ${idx === 'current' ? '' : `<button class="match-cancel-btn match-edit-btn hm-edit-live" onclick="openEditHistoryMatch(${ik}, ${i})">✏️ Edit</button>`}
+                    <button class="match-cancel-btn match-edit-btn" onclick="shareHistoryMatch(${ik}, ${i}, this)">📤 Share</button>
+                </div>
             </div>`;
         }).join('');
         const o = document.createElement('div');
